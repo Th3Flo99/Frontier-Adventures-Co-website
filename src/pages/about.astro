@@ -4,7 +4,12 @@ import group from '../data/group.json';
 ---
 
 <Layout title="The Group · Frontier Adventures Co.">
-  <section class="pt-32 pb-24 px-6 md:px-12">
+  <section class="relative h-[60vh] md:h-[70vh] overflow-hidden">
+    <img src="/group-photo.jpg" alt="The group in front of the castle" class="w-full h-full object-cover object-center" />
+    <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent"></div>
+  </section>
+
+  <section class="pt-16 pb-24 px-6 md:px-12">
     <div class="max-w-4xl">
       <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Who we are</p>
       <h1 class="display text-5xl md:text-7xl leading-none reveal">The group</h1>
