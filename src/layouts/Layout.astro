@@ -2,6 +2,8 @@
 import '../styles/global.css';
 
 const { title = 'Frontier Adventures Co.', description = 'A Belgian friend group exploring Disney parks and cruises together.' } = Astro.props;
+const rawBase = import.meta.env.BASE_URL || '/';
+const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 ---
 
 <!DOCTYPE html>
@@ -11,29 +13,29 @@ const { title = 'Frontier Adventures Co.', description = 'A Belgian friend group
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <title>{title}</title>
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
   </head>
   <body class="antialiased">
     <header class="fixed top-0 left-0 right-0 z-50 mix-blend-difference">
       <nav class="flex items-center justify-between px-6 md:px-12 py-6">
-        <a href="/" class="display text-2xl tracking-tight text-white">Frontier</a>
+        <a href={base} class="display text-2xl tracking-tight text-white">Frontier</a>
         <div class="hidden md:flex items-center gap-10 text-sm uppercase tracking-widest text-white/80">
-          <a href="/" class="hover:text-gold transition-colors">Home</a>
-          <a href="/about" class="hover:text-gold transition-colors">The Group</a>
-          <a href="/food" class="hover:text-gold transition-colors">Food</a>
-          <a href="/reviews" class="hover:text-gold transition-colors">Reviews</a>
-          <a href="/socials" class="hover:text-gold transition-colors">Socials</a>
+          <a href={base} class="hover:text-gold transition-colors">Home</a>
+          <a href={`${base}about`} class="hover:text-gold transition-colors">The Group</a>
+          <a href={`${base}food`} class="hover:text-gold transition-colors">Food</a>
+          <a href={`${base}reviews`} class="hover:text-gold transition-colors">Reviews</a>
+          <a href={`${base}socials`} class="hover:text-gold transition-colors">Socials</a>
         </div>
         <button id="menu-btn" class="md:hidden text-white text-2xl" aria-label="Menu">☰</button>
       </nav>
     </header>
 
     <div id="mobile-menu" class="fixed inset-0 bg-ink z-40 hidden md:hidden flex flex-col items-center justify-center gap-8 text-2xl">
-      <a href="/" class="hover:text-gold">Home</a>
-      <a href="/about" class="hover:text-gold">The Group</a>
-      <a href="/food" class="hover:text-gold">Food</a>
-      <a href="/reviews" class="hover:text-gold">Reviews</a>
-      <a href="/socials" class="hover:text-gold">Socials</a>
+      <a href={base} class="hover:text-gold">Home</a>
+      <a href={`${base}about`} class="hover:text-gold">The Group</a>
+      <a href={`${base}food`} class="hover:text-gold">Food</a>
+      <a href={`${base}reviews`} class="hover:text-gold">Reviews</a>
+      <a href={`${base}socials`} class="hover:text-gold">Socials</a>
     </div>
 
     <main>
@@ -47,9 +49,9 @@ const { title = 'Frontier Adventures Co.', description = 'A Belgian friend group
           <p class="mt-1">Belgian friends. Disney parks and cruises.</p>
         </div>
         <div class="flex gap-6">
-          <a href="/socials" class="hover:text-gold">Socials</a>
-          <a href="/food" class="hover:text-gold">Food</a>
-          <a href="/reviews" class="hover:text-gold">Reviews</a>
+          <a href={`${base}socials`} class="hover:text-gold">Socials</a>
+          <a href={`${base}food`} class="hover:text-gold">Food</a>
+          <a href={`${base}reviews`} class="hover:text-gold">Reviews</a>
         </div>
       </div>
     </footer>
