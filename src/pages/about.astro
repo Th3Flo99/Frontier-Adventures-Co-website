@@ -25,6 +25,9 @@ import group from '../data/group.json';
             <p class="text-gold text-sm uppercase tracking-widest">{person.role}</p>
             <h2 class="display text-4xl md:text-5xl mt-2">{person.name}</h2>
             <p class="mt-6 text-white/80 leading-relaxed">{person.bio}</p>
+            {person.socials?.x && (
+              <a href={person.socials.x} target="_blank" rel="noopener" class="inline-block mt-4 text-gold text-sm hover:underline">X →</a>
+            )}
           </div>
         </article>
       ))}
