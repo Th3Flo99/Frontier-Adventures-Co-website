@@ -37,8 +37,10 @@
     "name": "Lotte",
     "role": "Group Member",
     "bio": "Always up for the next adventure. Lotte brings the energy, the jokes, and is usually the first one to suggest one more snack or one more ride.",
-    "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&q=80",
-    "photos": []
+    "image": "photos/lotte/lake.jpg",
+    "photos": [
+      "photos/lotte/lake.jpg"
+    ]
   },
   {
     "name": "Thibeau",
