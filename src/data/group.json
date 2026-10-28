@@ -17,7 +17,7 @@
   },
   {
     "name": "Megan",
-    "role": "Food Lead",
+    "role": "Food Expert",
     "bio": "If it is edible and Disney-related, Megan has already researched it. She owns the restaurant reservations, the must-try snacks, and the honest food takes that the rest of us trust.",
     "image": "photos/megan/food.jpg",
     "photos": [
@@ -44,7 +44,7 @@
   },
   {
     "name": "Thibeau",
-    "role": "Group Member",
+    "role": "Drink Expert",
     "bio": "The calm one in the group. Thibeau is always relaxed and just sees how it goes. He loves cocktails and is the drinks expert of the group.",
     "image": "photos/thibeau/balcony.jpg",
     "photos": [
