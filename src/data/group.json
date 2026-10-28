@@ -1,0 +1,20 @@
+[
+  {
+    "name": "Florian Ronsse",
+    "role": "Group Lead",
+    "bio": "The planner. Florian handles every Disney detail from park days and cruise itineraries to Lightning Lane strategy and late-night snack runs. He keeps the group moving and the magic intact.",
+    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80"
+  },
+  {
+    "name": "Megan",
+    "role": "Food Lead",
+    "bio": "If it is edible and Disney-related, Megan has already researched it. She owns the restaurant reservations, the must-try snacks, and the honest food takes that the rest of us trust.",
+    "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&q=80"
+  },
+  {
+    "name": "Elias",
+    "role": "Group Member",
+    "bio": "Florian’s brother and the reliable third vote. Elias brings steady energy, strong opinions on thrills, and is always ready for one more ride or one more dessert.",
+    "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=80"
+  }
+]

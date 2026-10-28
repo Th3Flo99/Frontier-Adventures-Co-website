@@ -1,0 +1,62 @@
+[
+  {
+    "id": "dole-whip",
+    "name": "Dole Whip",
+    "location": "Adventureland, Disneyland Paris",
+    "type": "snack",
+    "trip": "Spring 2025",
+    "review": "The classic pineapple soft-serve that never disappoints. Cold, tangy, and the perfect reset between rides.",
+    "scores": { "Florian": 5, "Megan": 5, "Elias": 4 },
+    "image": "https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=800&q=80"
+  },
+  {
+    "id": "mickey-pretzel",
+    "name": "Mickey-shaped Pretzel",
+    "location": "Main Street, Disneyland Paris",
+    "type": "snack",
+    "trip": "Spring 2025",
+    "review": "Warm, salty, and properly shaped. Cheese dip is optional but recommended after a long morning.",
+    "scores": { "Florian": 4, "Megan": 4, "Elias": 5 },
+    "image": "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=800&q=80"
+  },
+  {
+    "id": "be-our-guest",
+    "name": "Be Our Guest Restaurant",
+    "location": "Fantasyland, Walt Disney World",
+    "type": "restaurant",
+    "trip": "Fall 2024",
+    "review": "The ballroom atmosphere is the real draw. Grey stuff is fine; the roast and the setting make the meal.",
+    "scores": { "Florian": 4, "Megan": 5, "Elias": 3 },
+    "image": "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80"
+  },
+  {
+    "id": "cruise-buffet",
+    "name": "Cabanas Buffet",
+    "location": "Disney Cruise Line",
+    "type": "restaurant",
+    "trip": "Fantasy Europe 2025",
+    "review": "Reliable morning fuel with solid eggs, fruit, and the occasional surprise pastry. Good for groups with different preferences.",
+    "scores": { "Florian": 4, "Megan": 4, "Elias": 4 },
+    "image": "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80"
+  },
+  {
+    "id": "churro",
+    "name": "Churro with Chocolate",
+    "location": "Various parks",
+    "type": "snack",
+    "trip": "Multiple",
+    "review": "Crispy outside, soft inside, and the chocolate dip is non-negotiable. Best shared while walking.",
+    "scores": { "Florian": 5, "Megan": 5, "Elias": 4 },
+    "image": "https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=800&q=80"
+  },
+  {
+    "id": "palo",
+    "name": "Palo",
+    "location": "Disney Cruise Line",
+    "type": "restaurant",
+    "trip": "Fantasy Europe 2025",
+    "review": "Adult-only Italian with proper pasta and a view. Worth the reservation and the dress code.",
+    "scores": { "Florian": 5, "Megan": 5, "Elias": 4 },
+    "image": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&q=80"
+  }
+]

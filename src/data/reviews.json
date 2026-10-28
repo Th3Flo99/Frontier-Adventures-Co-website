@@ -1,0 +1,32 @@
+[
+  {
+    "id": "dlp-park",
+    "title": "Disneyland Paris: still the most beautiful castle park",
+    "platform": "TripAdvisor",
+    "date": "2025-04-12",
+    "rating": 5,
+    "body": "We spent three days moving between both parks. The castle, the layout, and the way the lands flow still feel special compared to other resorts. Crowds are manageable if you rope drop and use the app properly. Food is better than it used to be. Highly recommend for a group that already knows Disney.",
+    "reply": "Thank you for visiting Disneyland Paris. We are glad the parks felt special. See you again soon.",
+    "url": "https://www.tripadvisor.com/placeholder-dlp"
+  },
+  {
+    "id": "dcl-fantasy",
+    "title": "Disney Fantasy Europe itinerary",
+    "platform": "TripAdvisor",
+    "date": "2025-08-03",
+    "rating": 4,
+    "body": "Solid ship, good entertainment, and the ports worked well for our group. Dining was consistent. The only downside was the length of some sea days if you do not enjoy the ship itself. Overall a smooth trip and easy to plan around.",
+    "reply": "Thank you for sailing with Disney Cruise Line. We appreciate the detailed feedback.",
+    "url": "https://www.tripadvisor.com/placeholder-fantasy"
+  },
+  {
+    "id": "hotel-cheyenne",
+    "title": "Disney Hotel Cheyenne",
+    "platform": "TripAdvisor",
+    "date": "2024-10-20",
+    "rating": 3,
+    "body": "Functional and on-site, which is the main advantage. Rooms are fine for a short stay. The theming is light. Breakfast is average. We stayed here because of the bus access and would do it again for logistics, not for the hotel itself.",
+    "reply": null,
+    "url": "https://www.tripadvisor.com/placeholder-cheyenne"
+  }
+]
