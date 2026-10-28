@@ -21,19 +21,37 @@ const base = import.meta.env.BASE_URL;
   </section>
 
   <section class="pb-32 px-6 md:px-12">
-    <div class="max-w-6xl mx-auto space-y-24">
+    <div class="max-w-6xl mx-auto space-y-32">
       {group.map((person, i) => (
-        <article class={`grid md:grid-cols-2 gap-12 items-center reveal ${i % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
-          <div class={i % 2 === 1 ? 'md:col-start-2' : ''}>
-            <img src={person.image.startsWith('http') ? person.image : base + person.image} alt={person.name} class="w-full aspect-[4/5] object-cover" />
-          </div>
-          <div class={i % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}>
-            <p class="text-gold text-sm uppercase tracking-widest">{person.role}</p>
-            <h2 class="display text-4xl md:text-5xl mt-2">{person.name}</h2>
-            <p class="mt-6 text-white/80 leading-relaxed">{person.bio}</p>
-            {person.socials?.x && (
-              <a href={person.socials.x} target="_blank" rel="noopener" class="inline-block mt-4 text-gold text-sm hover:underline">X →</a>
-            )}
+        <article class="reveal">
+          <div class={`grid md:grid-cols-2 gap-12 items-start ${i % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
+            <div class={i % 2 === 1 ? 'md:col-start-2' : ''}>
+              {person.photos && person.photos.length > 0 ? (
+                <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
+                  {person.photos.map((photo) => (
+                    <img
+                      src={base + photo}
+                      alt={`${person.name} photo`}
+                      class="snap-start flex-shrink-0 w-72 md:w-80 aspect-[3/4] object-cover"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <img
+                  src={person.image.startsWith('http') ? person.image : base + person.image}
+                  alt={person.name}
+                  class="w-full aspect-[4/5] object-cover"
+                />
+              )}
+            </div>
+            <div class={i % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}>
+              <p class="text-gold text-sm uppercase tracking-widest">{person.role}</p>
+              <h2 class="display text-4xl md:text-5xl mt-2">{person.name}</h2>
+              <p class="mt-6 text-white/80 leading-relaxed">{person.bio}</p>
+              {person.socials?.x && (
+                <a href={person.socials.x} target="_blank" rel="noopener" class="inline-block mt-4 text-gold text-sm hover:underline">X →</a>
+              )}
+            </div>
           </div>
         </article>
       ))}
