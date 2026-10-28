@@ -19,8 +19,10 @@
     "name": "Megan",
     "role": "Food Lead",
     "bio": "If it is edible and Disney-related, Megan has already researched it. She owns the restaurant reservations, the must-try snacks, and the honest food takes that the rest of us trust.",
-    "image": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&q=80",
-    "photos": []
+    "image": "photos/megan/food.jpg",
+    "photos": [
+      "photos/megan/food.jpg"
+    ]
   },
   {
     "name": "Elias",
