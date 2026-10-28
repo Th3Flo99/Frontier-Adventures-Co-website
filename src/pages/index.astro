@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import group from '../data/group.json';
+const base = import.meta.env.BASE_URL;
 ---
 
 <Layout title="Frontier Adventures Co." description="Belgian friends exploring Disney parks and cruises together. Food, reviews, and stories.">
@@ -8,7 +9,7 @@ import group from '../data/group.json';
   <section class="relative min-h-screen flex items-end pb-24 md:pb-32 overflow-hidden">
     <div class="absolute inset-0">
       <img
-        src="/group-photo.jpg"
+        src={`${base}group-photo.jpg`}
         alt="The group in front of the castle"
         class="w-full h-full object-cover object-center scale-105"
         style="transform: translateY(var(--parallax, 0px));"
@@ -24,8 +25,8 @@ import group from '../data/group.json';
         A small Belgian group that travels for the parks, the ships, and the food. We plan the days, eat everything worth eating, and write it down.
       </p>
       <div class="mt-10 flex flex-wrap gap-4 reveal">
-        <a href="/food" class="px-6 py-3 bg-gold text-ink font-medium hover:bg-white transition-colors">Food reviews</a>
-        <a href="/reviews" class="px-6 py-3 border border-white/40 text-white hover:border-gold hover:text-gold transition-colors">Florian’s reviews</a>
+        <a href={`${base}food`} class="px-6 py-3 bg-gold text-ink font-medium hover:bg-white transition-colors">Food reviews</a>
+        <a href={`${base}reviews`} class="px-6 py-3 border border-white/40 text-white hover:border-gold hover:text-gold transition-colors">Florian’s reviews</a>
       </div>
     </div>
   </section>
@@ -47,7 +48,7 @@ import group from '../data/group.json';
           </div>
         </article>
         <article class="group relative overflow-hidden reveal">
-          <img src="/group-photo.jpg" alt="Group at the castle" class="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-105" />
+          <img src={`${base}group-photo.jpg`} alt="Group at the castle" class="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-105" />
           <div class="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent"></div>
           <div class="absolute bottom-0 p-6">
             <p class="text-gold text-sm">Disneyland Paris</p>
@@ -73,7 +74,7 @@ import group from '../data/group.json';
         ))}
       </div>
       <div class="mt-12 reveal">
-        <a href="/about" class="text-gold hover:underline">Full group page →</a>
+        <a href={`${base}about`} class="text-gold hover:underline">Full group page →</a>
       </div>
     </div>
   </section>
@@ -83,9 +84,9 @@ import group from '../data/group.json';
     <div class="max-w-4xl mx-auto text-center reveal">
       <p class="display text-3xl md:text-5xl">Follow the trips</p>
       <div class="mt-8 flex justify-center gap-6">
-        <a href="/socials" class="text-gold hover:underline">Socials</a>
-        <a href="/food" class="text-gold hover:underline">Food log</a>
-        <a href="/reviews" class="text-gold hover:underline">Reviews</a>
+        <a href={`${base}socials`} class="text-gold hover:underline">Socials</a>
+        <a href={`${base}food`} class="text-gold hover:underline">Food log</a>
+        <a href={`${base}reviews`} class="text-gold hover:underline">Reviews</a>
       </div>
     </div>
   </section>
