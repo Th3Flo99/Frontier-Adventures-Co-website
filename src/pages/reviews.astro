@@ -18,14 +18,24 @@ import reviews from '../data/reviews.json';
     <div class="max-w-4xl mx-auto space-y-16">
       {reviews.map((r) => (
         <article class="reveal border-b border-white/10 pb-12">
-          {r.image && (
-            <img src={r.image} alt={r.title} class="w-full aspect-[16/9] object-cover mb-6" />
-          )}
           <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h2 class="display text-3xl md:text-4xl">{r.title}</h2>
             <div class="text-gold">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
           </div>
           <p class="mt-2 text-sm text-white/50">{r.platform} · {r.date}</p>
+
+          {r.images && r.images.length > 0 && (
+            <div class="mt-6 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
+              {r.images.map((img) => (
+                <img
+                  src={img}
+                  alt={r.title}
+                  class="snap-start flex-shrink-0 w-full md:w-[80%] aspect-[16/9] object-cover"
+                />
+              ))}
+            </div>
+          )}
+
           <p class="mt-6 text-white/80 leading-relaxed whitespace-pre-line">{r.body}</p>
           {r.reply && (
             <blockquote class="mt-6 pl-4 border-l border-gold text-white/60 text-sm">
