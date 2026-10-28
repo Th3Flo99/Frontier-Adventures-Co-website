@@ -46,7 +46,9 @@
     "name": "Thibeau",
     "role": "Group Member",
     "bio": "The steady one in the group. Thibeau keeps the vibe calm, has strong opinions on the best rides, and is always ready when the plans change.",
-    "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&q=80",
-    "photos": []
+    "image": "photos/thibeau/balcony.jpg",
+    "photos": [
+      "photos/thibeau/balcony.jpg"
+    ]
   }
 ]
