@@ -19,5 +19,17 @@
     "role": "Group Member",
     "bio": "Florian’s brother and the reliable third vote. Elias brings steady energy, strong opinions on thrills, and is always ready for one more ride or one more dessert.",
     "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=80"
+  },
+  {
+    "name": "Lotte",
+    "role": "Group Member",
+    "bio": "Always up for the next adventure. Lotte brings the energy, the jokes, and is usually the first one to suggest one more snack or one more ride.",
+    "image": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=800&q=80"
+  },
+  {
+    "name": "Thibeau",
+    "role": "Group Member",
+    "bio": "The steady one in the group. Thibeau keeps the vibe calm, has strong opinions on the best rides, and is always ready when the plans change.",
+    "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&q=80"
   }
 ]
