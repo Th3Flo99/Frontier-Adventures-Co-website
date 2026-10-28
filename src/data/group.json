@@ -28,8 +28,10 @@
     "name": "Elias",
     "role": "Group Member",
     "bio": "Florian’s brother and the reliable third vote. Elias brings steady energy, strong opinions on thrills, and is always ready for one more ride or one more dessert.",
-    "image": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=80",
-    "photos": []
+    "image": "photos/elias/pooh.jpg",
+    "photos": [
+      "photos/elias/pooh.jpg"
+    ]
   },
   {
     "name": "Lotte",
