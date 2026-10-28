@@ -25,7 +25,7 @@ const base = import.meta.env.BASE_URL;
       {group.map((person, i) => (
         <article class={`grid md:grid-cols-2 gap-12 items-center reveal ${i % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
           <div class={i % 2 === 1 ? 'md:col-start-2' : ''}>
-            <img src={person.image} alt={person.name} class="w-full aspect-[4/5] object-cover" />
+            <img src={person.image.startsWith('http') ? person.image : base + person.image} alt={person.name} class="w-full aspect-[4/5] object-cover" />
           </div>
           <div class={i % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}>
             <p class="text-gold text-sm uppercase tracking-widest">{person.role}</p>
