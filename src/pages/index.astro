@@ -1,0 +1,102 @@
+---
+import Layout from '../layouts/Layout.astro';
+import group from '../data/group.json';
+---
+
+<Layout title="Frontier Adventures Co." description="Belgian friends exploring Disney parks and cruises together. Food, reviews, and stories.">
+  <!-- Hero -->
+  <section class="relative min-h-screen flex items-end pb-24 md:pb-32 overflow-hidden">
+    <div class="absolute inset-0">
+      <img
+        src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=2000&q=80"
+        alt="Ocean horizon"
+        class="w-full h-full object-cover scale-105"
+        style="transform: translateY(var(--parallax, 0px));"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-transparent"></div>
+    </div>
+    <div class="relative z-10 px-6 md:px-12 max-w-5xl">
+      <p class="text-gold uppercase tracking-[0.3em] text-xs mb-6 reveal">Belgium · Disney · Together</p>
+      <h1 class="display text-6xl md:text-8xl lg:text-9xl leading-[0.9] text-white reveal">
+        Frontier<br/>Adventures<br/>Co.
+      </h1>
+      <p class="mt-8 text-lg md:text-xl max-w-xl text-white/80 reveal">
+        A small Belgian group that travels for the parks, the ships, and the food. We plan the days, eat everything worth eating, and write it down.
+      </p>
+      <div class="mt-10 flex flex-wrap gap-4 reveal">
+        <a href="/food" class="px-6 py-3 bg-gold text-ink font-medium hover:bg-white transition-colors">Food reviews</a>
+        <a href="/reviews" class="px-6 py-3 border border-white/40 text-white hover:border-gold hover:text-gold transition-colors">Florian’s reviews</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Highlights -->
+  <section class="py-24 md:py-32 px-6 md:px-12">
+    <div class="max-w-6xl mx-auto">
+      <div class="grid md:grid-cols-12 gap-12 items-end mb-16">
+        <h2 class="display text-4xl md:text-6xl md:col-span-7 reveal">Recent trips</h2>
+        <p class="md:col-span-5 text-white/70 reveal">Short notes from the last few adventures. Full food and review logs live on their own pages.</p>
+      </div>
+      <div class="grid md:grid-cols-2 gap-8">
+        <article class="group relative overflow-hidden reveal">
+          <img src="https://images.unsplash.com/photo-1533929736458-ca588d08c8be?w=1000&q=80" alt="Cruise ship" class="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent"></div>
+          <div class="absolute bottom-0 p-6">
+            <p class="text-gold text-sm">Disney Cruise Line</p>
+            <h3 class="display text-2xl mt-1">Fantasy Europe</h3>
+          </div>
+        </article>
+        <article class="group relative overflow-hidden reveal">
+          <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1000&q=80" alt="Castle at night" class="w-full aspect-[4/3] object-cover transition-transform duration-700 group-hover:scale-105" />
+          <div class="absolute inset-0 bg-gradient-to-t from-ink/80 to-transparent"></div>
+          <div class="absolute bottom-0 p-6">
+            <p class="text-gold text-sm">Disneyland Paris</p>
+            <h3 class="display text-2xl mt-1">Spring park days</h3>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Group teaser -->
+  <section class="py-24 md:py-32 bg-deep px-6 md:px-12">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="display text-4xl md:text-5xl mb-12 reveal">The group</h2>
+      <div class="grid md:grid-cols-3 gap-8">
+        {group.map((person) => (
+          <div class="reveal">
+            <img src={person.image} alt={person.name} class="w-full aspect-[3/4] object-cover mb-4" />
+            <p class="text-gold text-sm">{person.role}</p>
+            <h3 class="display text-2xl mt-1">{person.name}</h3>
+            <p class="mt-2 text-white/70 text-sm">{person.bio}</p>
+          </div>
+        ))}
+      </div>
+      <div class="mt-12 reveal">
+        <a href="/about" class="text-gold hover:underline">Full group page →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA strip -->
+  <section class="py-20 px-6 md:px-12 border-t border-white/10">
+    <div class="max-w-4xl mx-auto text-center reveal">
+      <p class="display text-3xl md:text-5xl">Follow the trips</p>
+      <div class="mt-8 flex justify-center gap-6">
+        <a href="/socials" class="text-gold hover:underline">Socials</a>
+        <a href="/food" class="text-gold hover:underline">Food log</a>
+        <a href="/reviews" class="text-gold hover:underline">Reviews</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  // Simple parallax on hero
+  const heroImg = document.querySelector('section img');
+  window.addEventListener('scroll', () => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const y = window.scrollY * 0.3;
+    if (heroImg) heroImg.style.setProperty('--parallax', `${y}px`);
+  }, { passive: true });
+</script>

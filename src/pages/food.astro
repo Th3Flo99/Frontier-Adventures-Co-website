@@ -1,0 +1,73 @@
+---
+import Layout from '../layouts/Layout.astro';
+import food from '../data/food.json';
+---
+
+<Layout title="Disney Food Reviews · Frontier Adventures Co.">
+  <section class="pt-32 pb-12 px-6 md:px-12">
+    <div class="max-w-4xl">
+      <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Megan’s domain</p>
+      <h1 class="display text-5xl md:text-7xl leading-none reveal">Food</h1>
+      <p class="mt-6 text-lg text-white/80 max-w-2xl reveal">
+        Everything the group has eaten at Disney parks and on Disney Cruise Line. Scores are 1–5 from each person.
+      </p>
+    </div>
+  </section>
+
+  <section class="pb-8 px-6 md:px-12">
+    <div class="max-w-6xl mx-auto flex flex-wrap gap-3 reveal" id="filters">
+      <button data-filter="all" class="filter-btn px-4 py-2 text-sm border border-white/30 hover:border-gold">All</button>
+      <button data-filter="snack" class="filter-btn px-4 py-2 text-sm border border-white/30 hover:border-gold">Snacks</button>
+      <button data-filter="restaurant" class="filter-btn px-4 py-2 text-sm border border-white/30 hover:border-gold">Restaurants</button>
+      <button data-sort="avg" class="filter-btn px-4 py-2 text-sm border border-white/30 hover:border-gold">Highest score</button>
+    </div>
+  </section>
+
+  <section class="pb-32 px-6 md:px-12">
+    <div id="food-grid" class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+      {food.map((item) => {
+        const avg = Object.values(item.scores).reduce((a, b) => a + b, 0) / Object.values(item.scores).length;
+        return (
+          <article class="food-card group reveal border border-white/10 hover:border-gold/40 transition-colors" data-type={item.type} data-avg={avg.toFixed(1)}>
+            <img src={item.image} alt={item.name} class="w-full aspect-[16/10] object-cover" />
+            <div class="p-6">
+              <div class="flex justify-between items-start gap-4">
+                <h3 class="display text-2xl">{item.name}</h3>
+                <span class="text-gold text-sm">{avg.toFixed(1)}</span>
+              </div>
+              <p class="text-sm text-white/60 mt-1">{item.location}</p>
+              <p class="mt-4 text-white/80 text-sm leading-relaxed">{item.review}</p>
+              <div class="mt-4 flex gap-4 text-xs text-white/50">
+                {Object.entries(item.scores).map(([person, score]) => (
+                  <span>{person} {score}/5</span>
+                ))}
+              </div>
+              <p class="mt-3 text-xs text-white/40">{item.trip}</p>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const cards = Array.from(document.querySelectorAll('.food-card'));
+  const grid = document.getElementById('food-grid');
+
+  document.querySelectorAll('[data-filter]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.filter;
+      cards.forEach(card => {
+        card.style.display = (type === 'all' || card.dataset.type === type) ? '' : 'none';
+      });
+    });
+  });
+
+  document.querySelectorAll('[data-sort]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sorted = [...cards].sort((a, b) => parseFloat(b.dataset.avg) - parseFloat(a.dataset.avg));
+      sorted.forEach(card => grid.appendChild(card));
+    });
+  });
+</script>
