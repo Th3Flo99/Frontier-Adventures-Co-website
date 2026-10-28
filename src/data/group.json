@@ -3,7 +3,10 @@
     "name": "Florian Ronsse",
     "role": "Group Lead",
     "bio": "The planner. Florian handles every Disney detail from park days and cruise itineraries to Lightning Lane strategy and late-night snack runs. He keeps the group moving and the magic intact.",
-    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80"
+    "image": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80",
+    "socials": {
+      "x": "https://x.com/florianronsse"
+    }
   },
   {
     "name": "Megan",
