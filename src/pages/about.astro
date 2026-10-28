@@ -1,11 +1,12 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import group from '../data/group.json';
+const base = import.meta.env.BASE_URL;
 ---
 
 <Layout title="The Group · Frontier Adventures Co.">
   <section class="relative h-[60vh] md:h-[70vh] overflow-hidden">
-    <img src="/group-photo.jpg" alt="The group in front of the castle" class="w-full h-full object-cover object-center" />
+    <img src={`${base}group-photo.jpg`} alt="The group in front of the castle" class="w-full h-full object-cover object-center" />
     <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent"></div>
   </section>
 
