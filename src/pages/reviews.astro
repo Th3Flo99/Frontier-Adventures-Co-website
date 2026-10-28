@@ -18,6 +18,9 @@ import reviews from '../data/reviews.json';
     <div class="max-w-4xl mx-auto space-y-16">
       {reviews.map((r) => (
         <article class="reveal border-b border-white/10 pb-12">
+          {r.image && (
+            <img src={r.image} alt={r.title} class="w-full aspect-[16/9] object-cover mb-6" />
+          )}
           <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h2 class="display text-3xl md:text-4xl">{r.title}</h2>
             <div class="text-gold">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</div>
