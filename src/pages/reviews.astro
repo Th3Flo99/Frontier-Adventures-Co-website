@@ -1,4 +1,5 @@
 ---
+import PhotoCarousel from '../components/PhotoCarousel.astro';
 import Layout from '../layouts/Layout.astro';
 import reviews from '../data/reviews.json';
 ---
@@ -34,15 +35,12 @@ import reviews from '../data/reviews.json';
           )}
 
           {r.images && r.images.length > 0 && (
-            <div class="mt-6 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
-              {r.images.map((img, n) => (
-                <img
-                  loading="lazy" decoding="async" width="1200" height="675"
-                  src={img}
-                  alt={`Photo ${n + 1} for the review: ${r.title}`}
-                  class="snap-start flex-shrink-0 w-full md:w-[80%] aspect-[16/9] object-cover"
-                />
-              ))}
+            <div class="mt-6">
+              <PhotoCarousel
+                id={`review-photos-${r.id}`}
+                label={`Photos for ${r.title}`}
+                photos={r.images.map((src, n) => ({ src, alt: `Photo ${n + 1} for the review: ${r.title}` }))}
+              />
             </div>
           )}
 

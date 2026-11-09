@@ -1,0 +1,122 @@
+---
+import LocalPhoto from './LocalPhoto.astro';
+interface Props {
+  id: string;
+  label: string;
+  photos: { src: string; alt: string }[];
+  portrait?: boolean;
+}
+const { id, label, photos, portrait = false } = Astro.props;
+const multiple = photos.length > 1;
+---
+<photo-carousel role="region" aria-label={label} aria-roledescription={multiple ? 'carousel' : undefined}>
+  <div
+    id={id}
+    data-track
+    class:list={['photo-track', { portrait }]}
+    tabindex={multiple ? '0' : undefined}
+    aria-label={multiple ? `${label}. Use left and right arrow keys to browse photos.` : undefined}
+  >
+    {photos.map((photo, index) => (
+      <div class="photo-slide" role="group" aria-roledescription="slide" aria-label={`${index + 1} of ${photos.length}`}>
+        {photo.src.startsWith('http') ? (
+          <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" width="1200" height="675" />
+        ) : (
+          <LocalPhoto src={photo.src} alt={photo.alt} sizes="(min-width: 1280px) 552px, (min-width: 768px) 50vw, 100vw" />
+        )}
+      </div>
+    ))}
+  </div>
+  {multiple && (
+    <div class="photo-controls" data-controls hidden>
+      <button type="button" data-prev aria-label="Previous photo" aria-controls={id} disabled><span aria-hidden="true">←</span></button>
+      <div class="photo-position">
+        <p data-status aria-live="polite" aria-atomic="true">Photo 1 of {photos.length}</p>
+        <div class="photo-dots" role="group" aria-label="Choose a photo">
+          {photos.map((_, index) => (
+            <button type="button" data-dot={index} aria-label={`Go to photo ${index + 1}`} aria-controls={id} aria-current={index === 0 ? 'true' : undefined}><span></span></button>
+          ))}
+        </div>
+      </div>
+      <button type="button" data-next aria-label="Next photo" aria-controls={id}><span aria-hidden="true">→</span></button>
+    </div>
+  )}
+</photo-carousel>
+
+<style>
+  photo-carousel { display: block; min-width: 0; }
+  .photo-track {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    background: var(--deep, #061014);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    scrollbar-width: thin;
+  }
+  .photo-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; aspect-ratio: 16 / 9; }
+  .portrait .photo-slide { aspect-ratio: 4 / 5; }
+  .photo-slide :global(img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .photo-controls { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; }
+  .photo-controls[hidden] { display: none; }
+  .photo-controls > button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid rgb(255 255 255 / 0.3); font-size: 1.25rem; transition: border-color 0.2s, color 0.2s; }
+  .photo-controls > button:hover:enabled { border-color: var(--gold); color: var(--gold); }
+  .photo-controls > button:disabled { opacity: 0.3; cursor: not-allowed; }
+  .photo-position { min-width: 0; text-align: center; }
+  .photo-position p { font-size: 0.75rem; color: rgb(255 255 255 / 0.7); }
+  .photo-dots { display: flex; flex-wrap: wrap; justify-content: center; }
+  .photo-dots button { width: 44px; height: 44px; display: grid; place-items: center; }
+  .photo-dots span { width: 6px; height: 6px; background: rgb(255 255 255 / 0.35); border-radius: 50%; }
+  .photo-dots [aria-current='true'] span { width: 20px; border-radius: 4px; background: var(--gold); }
+</style>
+
+<script>
+  class PhotoCarousel extends HTMLElement {
+    cleanup?: () => void;
+    connectedCallback() {
+      const track = this.querySelector<HTMLElement>('[data-track]');
+      const previous = this.querySelector<HTMLButtonElement>('[data-prev]');
+      const next = this.querySelector<HTMLButtonElement>('[data-next]');
+      const dots = Array.from(this.querySelectorAll<HTMLButtonElement>('[data-dot]'));
+      const status = this.querySelector<HTMLElement>('[data-status]');
+      if (!track || !previous || !next || !status) return;
+      let index = 0;
+      const events = new AbortController();
+      const { signal } = events;
+      const update = () => {
+        if (!track.clientWidth) return;
+        index = Math.max(0, Math.min(dots.length - 1, Math.round(track.scrollLeft / track.clientWidth)));
+        previous.disabled = index === 0;
+        next.disabled = index === dots.length - 1;
+        dots.forEach((dot, n) => n === index ? dot.setAttribute('aria-current', 'true') : dot.removeAttribute('aria-current'));
+        const text = `Photo ${index + 1} of ${dots.length}`;
+        if (status.textContent !== text) status.textContent = text;
+      };
+      const go = (target: number) => {
+        const position = Math.max(0, Math.min(dots.length - 1, target));
+        track.scrollTo({ left: position * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      };
+      previous.addEventListener('click', () => go(index - 1), { signal });
+      next.addEventListener('click', () => go(index + 1), { signal });
+      dots.forEach((dot, n) => dot.addEventListener('click', () => go(n), { signal }));
+      track.addEventListener('scroll', update, { signal, passive: true });
+      track.addEventListener('keydown', (event) => {
+        const targets: Record<string, number> = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: dots.length - 1 };
+        if (event.key in targets) {
+          event.preventDefault();
+          go(targets[event.key]);
+        }
+      }, { signal });
+      const resize = new ResizeObserver(() => {
+        track.scrollTo({ left: index * track.clientWidth, behavior: 'auto' });
+        update();
+      });
+      resize.observe(track);
+      this.querySelector<HTMLElement>('[data-controls]')?.removeAttribute('hidden');
+      update();
+      this.cleanup = () => { events.abort(); resize.disconnect(); };
+    }
+    disconnectedCallback() { this.cleanup?.(); }
+  }
+  if (!customElements.get('photo-carousel')) customElements.define('photo-carousel', PhotoCarousel);
+</script>
