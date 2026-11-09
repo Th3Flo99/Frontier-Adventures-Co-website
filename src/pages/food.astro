@@ -34,7 +34,7 @@ import food from '../data/food.json';
         const avg = Object.values(item.scores).reduce((a, b) => a + b, 0) / Object.values(item.scores).length;
         return (
           <article class="food-card group reveal border border-white/10 hover:border-gold/40 transition-colors" data-type={item.type} data-avg={avg.toFixed(1)}>
-            <img src={item.image} alt={item.name} class="w-full aspect-[16/10] object-cover" />
+            <img loading="lazy" decoding="async" width="800" height="500" src={item.image} alt={item.name} class="w-full aspect-[16/10] object-cover" />
             <div class="p-6">
               <div class="flex justify-between items-start gap-4">
                 <h2 class="display text-2xl">{item.name}</h2>

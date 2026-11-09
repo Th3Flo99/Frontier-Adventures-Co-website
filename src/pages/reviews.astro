@@ -3,11 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import reviews from '../data/reviews.json';
 ---
 
-<Layout title="Florian’s Reviews · Frontier Adventures Co.">
+<Layout title="Park, Hotel & Cruise Reviews · Frontier Adventures Co.">
   <section class="pt-32 pb-12 px-6 md:px-12">
     <div class="max-w-4xl mx-auto">
       <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Public reviews</p>
-      <h1 class="display text-5xl md:text-7xl leading-none reveal">Reviews</h1>
+      <h1 class="display text-5xl md:text-7xl leading-none reveal">Travel reviews</h1>
       <p class="mt-6 text-lg text-white/80 max-w-2xl reveal">
         Florian’s reviews from TripAdvisor and other platforms. Parks, hotels, and cruises.
       </p>
@@ -26,10 +26,18 @@ import reviews from '../data/reviews.json';
           </div>
           <p class="mt-2 text-sm text-white/60">{r.platform} · {r.date}</p>
 
+          {r.summary && (
+            <div class="mt-6 p-6 bg-deep border-l-2 border-gold">
+              <p class="text-gold text-xs uppercase tracking-widest mb-2">Our take</p>
+              <p class="text-lg text-white/90 leading-relaxed">{r.summary}</p>
+            </div>
+          )}
+
           {r.images && r.images.length > 0 && (
             <div class="mt-6 flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory">
               {r.images.map((img, n) => (
                 <img
+                  loading="lazy" decoding="async" width="1200" height="675"
                   src={img}
                   alt={`Photo ${n + 1} for the review: ${r.title}`}
                   class="snap-start flex-shrink-0 w-full md:w-[80%] aspect-[16/9] object-cover"
@@ -38,7 +46,18 @@ import reviews from '../data/reviews.json';
             </div>
           )}
 
-          <p class="mt-6 text-white/80 leading-relaxed whitespace-pre-line">{r.body}</p>
+          {r.sections?.length ? (
+            <div class="mt-8 space-y-8">
+              {r.sections.map(section => (
+                <section>
+                  <h3 class="display text-2xl text-parchment">{section.title}</h3>
+                  <p class="mt-3 text-white/80 leading-relaxed whitespace-pre-line">{section.body}</p>
+                </section>
+              ))}
+            </div>
+          ) : (
+            <p class="mt-6 text-white/80 leading-relaxed whitespace-pre-line">{r.body}</p>
+          )}
           {r.reply && (
             <blockquote class="mt-6 pl-4 border-l border-gold text-white/60 text-sm">
               {r.reply}

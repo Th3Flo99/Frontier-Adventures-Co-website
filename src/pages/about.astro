@@ -1,13 +1,12 @@
 ---
+import LocalPhoto from '../components/LocalPhoto.astro';
 import Layout from '../layouts/Layout.astro';
 import group from '../data/group.json';
-const rawBase = import.meta.env.BASE_URL || '/';
-const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 ---
 
 <Layout title="The Group · Frontier Adventures Co.">
   <section class="relative h-[60vh] md:h-[70vh] overflow-hidden">
-    <img src={`${base}group-photo.jpg`} alt="The group in front of the castle" class="w-full h-full object-cover object-center" />
+    <LocalPhoto priority src="group-photo.jpg" alt="The group in front of the castle" class="w-full h-full object-cover object-center" />
     <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent"></div>
   </section>
 
@@ -32,16 +31,18 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
               {person.photos && person.photos.length > 0 ? (
                 <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
                   {person.photos.map((photo, n) => (
-                    <img
-                      src={base + photo}
+                    <LocalPhoto
+                      src={photo}
+                      sizes="(min-width: 768px) 320px, 288px"
                       alt={`${person.name}, photo ${n + 1} of ${person.photos.length}`}
                       class="snap-start flex-shrink-0 w-72 md:w-80 aspect-[3/4] object-cover"
                     />
                   ))}
                 </div>
               ) : (
-                <img
-                  src={person.image.startsWith('http') ? person.image : base + person.image}
+                <LocalPhoto
+                  src={person.image}
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   alt={person.name}
                   class="w-full aspect-[4/5] object-cover"
                 />

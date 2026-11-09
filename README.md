@@ -58,7 +58,9 @@ Edit `src/data/reviews.json`:
 - `platform` (TripAdvisor, Google, etc.)
 - `date` (YYYY-MM-DD)
 - `rating` (1–5)
-- `body`
+- `body` (original review text)
+- `summary` (optional short verdict)
+- `sections` (optional list of `{ "title": "…", "body": "…" }` for readable sections)
 - `reply` (string or null)
 - `url` (link to original)
 
@@ -97,3 +99,13 @@ src/
 public/
   photos/        Photos per person
 ```
+
+## Responsive photos
+
+Local group photos use `LocalPhoto.astro` with responsive WebP copies in `public/optimized/`. The original JPEGs remain available. After adding or replacing a local photo, run this from the repository root with Python and Pillow installed:
+
+```bash
+python scripts/optimize-images.py
+```
+
+Commit the generated WebP files and `src/data/image-sizes.json` together. Pass a public-relative source path to `LocalPhoto`, set `sizes` for its layout, and use `priority` only for above-the-fold hero images. Other photos load lazily.

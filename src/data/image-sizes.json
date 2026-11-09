@@ -1,0 +1,164 @@
+{
+  "group-photo.jpg": {
+    "width": 1500,
+    "height": 1125,
+    "variants": [
+      {
+        "src": "optimized/group-photo-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/group-photo-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/group-photo-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/elias/pooh.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/pooh-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/pooh-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/elias/pooh-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/bus.jpg": {
+    "width": 1500,
+    "height": 1840,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/bus-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/bus-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/florian/bus-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/churro.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/churro-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/churro-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/florian/churro-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/sitting.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/sitting-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/sitting-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/florian/sitting-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/throne.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/throne-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/throne-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/florian/throne-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/lake.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/lake-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/lake-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/lotte/lake-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/megan/food.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/food-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/food-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/megan/food-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/thibeau/balcony.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/balcony-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/balcony-960.webp",
+        "width": 960
+      },
+      {
+        "src": "optimized/photos/thibeau/balcony-1500.webp",
+        "width": 1500
+      }
+    ]
+  }
+}

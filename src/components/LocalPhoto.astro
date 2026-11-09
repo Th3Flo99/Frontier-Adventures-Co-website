@@ -1,0 +1,26 @@
+---
+import photos from '../data/image-sizes.json';
+interface Props {
+  src: string;
+  alt: string;
+  class?: string;
+  style?: string;
+  id?: string;
+  sizes?: string;
+  priority?: boolean;
+}
+const { src, alt, class: className, style, id, sizes = '100vw', priority = false } = Astro.props;
+const photo = photos[src as keyof typeof photos];
+const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
+---
+<img
+  src={photo ? base + photo.variants[photo.variants.length - 1].src : src.startsWith('http') ? src : base + src}
+  srcset={photo?.variants.map(v => `${base}${v.src} ${v.width}w`).join(', ')}
+  sizes={photo ? sizes : undefined}
+  width={photo?.width}
+  height={photo?.height}
+  loading={priority ? 'eager' : 'lazy'}
+  fetchpriority={priority ? 'high' : undefined}
+  decoding="async"
+  {alt} class={className} {style} {id}
+/>
