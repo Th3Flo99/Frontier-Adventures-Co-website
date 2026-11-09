@@ -12,12 +12,14 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
   </section>
 
   <section class="pt-16 pb-24 px-6 md:px-12">
-    <div class="max-w-4xl">
-      <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Who we are</p>
-      <h1 class="display text-5xl md:text-7xl leading-none reveal">The group</h1>
-      <p class="mt-6 text-lg text-white/80 max-w-2xl reveal">
-        A Belgian friend group that keeps coming back to Disney parks and Disney Cruise Line. Florian plans everything, Megan owns the food, and the rest of us make sure the trips stay fun.
-      </p>
+    <div class="max-w-6xl mx-auto">
+      <div class="max-w-4xl">
+        <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Who we are</p>
+        <h1 class="display text-5xl md:text-7xl leading-none reveal">The group</h1>
+        <p class="mt-6 text-lg text-white/80 max-w-2xl reveal">
+          A Belgian friend group that keeps coming back to Disney parks and Disney Cruise Line. Florian plans everything, Megan owns the food, and the rest of us make sure the trips stay fun.
+        </p>
+      </div>
     </div>
   </section>
 
@@ -26,13 +28,13 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
       {group.map((person, i) => (
         <article class="reveal">
           <div class={`grid md:grid-cols-2 gap-12 items-start ${i % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
-            <div class={i % 2 === 1 ? 'md:col-start-2' : ''}>
+            <div class={`min-w-0 ${i % 2 === 1 ? 'md:col-start-2' : ''}`}>
               {person.photos && person.photos.length > 0 ? (
                 <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-                  {person.photos.map((photo) => (
+                  {person.photos.map((photo, n) => (
                     <img
                       src={base + photo}
-                      alt={`${person.name} photo`}
+                      alt={`${person.name}, photo ${n + 1} of ${person.photos.length}`}
                       class="snap-start flex-shrink-0 w-72 md:w-80 aspect-[3/4] object-cover"
                     />
                   ))}
@@ -45,7 +47,7 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
                 />
               )}
             </div>
-            <div class={i % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}>
+            <div class={`min-w-0 ${i % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}`}>
               <p class="text-gold text-sm uppercase tracking-widest">{person.role}</p>
               <h2 class="display text-4xl md:text-5xl mt-2">{person.name}</h2>
               <p class="mt-6 text-white/80 leading-relaxed">{person.bio}</p>

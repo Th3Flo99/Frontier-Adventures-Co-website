@@ -10,10 +10,11 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
   <section class="relative min-h-screen flex items-end pb-24 md:pb-32 overflow-hidden">
     <div class="absolute inset-0">
       <img
+        id="hero-img"
         src={`${base}group-photo.jpg`}
         alt="The group in front of the castle"
-        class="w-full h-full object-cover object-center scale-105"
-        style="transform: translateY(var(--parallax, 0px));"
+        class="w-full h-full object-cover object-center will-change-transform"
+        style="transform: translateY(var(--parallax, 0px)) scale(1.05);"
       />
       <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/50 to-transparent"></div>
     </div>
@@ -94,11 +95,29 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 </Layout>
 
 <script>
-  // Simple parallax on hero
-  const heroImg = document.querySelector('section img');
+  // Simple parallax on hero: one update per frame, only while the hero is on screen
+  const heroImg = document.getElementById('hero-img');
+  const hero = heroImg?.closest('section');
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    if (!heroImg || !hero) return;
+    const y = window.scrollY;
+    if (reduceMotion.matches) {
+      heroImg.style.setProperty('--parallax', '0px');
+      return;
+    }
+    if (y > hero.offsetHeight) return;
+    heroImg.style.setProperty('--parallax', `${y * 0.3}px`);
+  };
+
   window.addEventListener('scroll', () => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    const y = window.scrollY * 0.3;
-    if (heroImg) heroImg.style.setProperty('--parallax', `${y}px`);
+    if (!ticking) {
+      ticking = true;
+      requestAnimationFrame(update);
+    }
   }, { passive: true });
+  update();
 </script>
