@@ -63,12 +63,19 @@ const entries = (reviews as unknown as Review[]).map((r, i) => {
 const numberWords = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
 const entryCount = `${numberWords[entries.length] ?? entries.length} ${entries.length === 1 ? 'entry' : 'entries'}`;
 
+// The intro and the search snippet describe only what is in the data: the platforms the reviews
+// were published on and, while there is a single entry, the place it is about.
+const platforms = [...new Set(entries.map((r) => r.platform))];
+const platformNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(platforms);
+const publishedOn = platforms.length ? `, first published on ${platformNames} and` : ',';
+const soFar = entries.length === 1 ? `${entryCount} so far: ${entries[0].head}.` : `${entryCount} so far.`;
+
 const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.75L2.3 9.5l6.75-.9z';
 ---
 
 <Layout
   title="Reviews · Frontier Adventurers"
-  description="Florian’s published reviews of parks, hotels and cruises, kept in full in the Frontier Adventurers expedition journal."
+  description={`Florian’s reviews${publishedOn} kept in full in the Frontier Adventurers expedition journal. ${soFar}`}
 >
   <section class="journal-head surface-deep grain lantern" aria-labelledby="reviews-title">
     <div class="shell journal-head-grid">
@@ -79,7 +86,7 @@ const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.
 
       <div class="journal-intro">
         <p class="lede reveal" style="--reveal-delay: 160ms">
-          Florian’s reviews from TripAdvisor and other platforms: parks, hotels and cruises. The good, the less good, and the bits in between.
+          Florian’s reviews{publishedOn} kept here in full. The good, the less good, and the bits in between.
         </p>
         <p class="fell journal-count reveal" style="--reveal-delay: 240ms">
           {entryCount} in the journal so far.
@@ -364,11 +371,11 @@ const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.
     transform: rotate(-3.5deg);
   }
   .verdict-label {
-    font-size: 0.62rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.26em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    padding-left: 0.26em;
+    padding-left: 0.2em;
   }
   .verdict-num {
     display: flex;
@@ -413,9 +420,9 @@ const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.
     max-width: 36rem;
   }
   .particulars-list dt {
-    font-size: 0.64rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgb(72 42 27 / 0.86);
   }

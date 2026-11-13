@@ -19,11 +19,14 @@ interface Props {
   eyebrow?: string;
   title?: string;
   headingLevel?: 2 | 3 | 4;
+  /** Plate number in the caption under the chart. The plates of a page are numbered in order. */
+  plate?: string;
 }
 const {
   eyebrow = 'Chapter I · The Expedition Map',
   title = 'A Chart of Known Adventures',
   headingLevel = 2,
+  plate = 'II',
 } = Astro.props;
 const Heading = `h${headingLevel}`;
 const SubHeading = `h${headingLevel + 1}`;
@@ -84,6 +87,9 @@ const scoreText = (e: { kind: string; score: number }) => (e.kind === 'food' ? e
 // Everything we have charted, in one box: this is what a phone shows first.
 const contentBox = unionBox(stops.map((s) => s.route.box));
 const compactPads = { top: 52, right: 88, bottom: 86, left: 48 };
+// When the chart is drawn the phone way (5:4 window, opening on the charted waters): narrow
+// screens, and phones held sideways. The same query is written out in the <style> below.
+const compactQuery = '(max-width: 767px), (max-width: 1023px) and (max-height: 520px)';
 // First paint on a phone (334 x 267 is the chart window of a 390px screen). A one-line inline
 // script right after the SVG applies it before the module script arrives, which then refines it.
 const compactFrame = fitFrame(contentBox, 334, 267, sheetBox, compactPads);
@@ -169,6 +175,11 @@ const chartLabel = `Chart of the world on Mercator's projection. Dashed courses 
   .map((s) => (s.approximate ? `${s.name} (position approximate)` : s.name))
   .join(', ')}.`;
 
+// Width of the journal photograph in each layout (see the journal rules in the <style>):
+// beside the chart; in the left column of a two-column entry; in one column, at most 44rem
+// wide; on a phone, the screen less the side padding.
+const photoSizes = '(min-width: 1280px) 384px, (min-width: 900px) calc(45vw - 65px), (min-width: 800px) 704px, calc(100vw - 48px)';
+
 const jokes = [
   'Skipper’s log: north is up. Everything else is negotiable.',
   'Skipper’s log: lost again, but making excellent time.',
@@ -234,6 +245,7 @@ const jokes = [
                 data-content={toViewBox(contentBox)}
                 data-compact={toViewBox(compactFrame)}
                 data-compact-pads={`${compactPads.top} ${compactPads.right} ${compactPads.bottom} ${compactPads.left}`}
+                data-compact-query={compactQuery}
               >
                 <defs>
                   <path id="fa-chart-land" d={chart.landPath} />
@@ -401,14 +413,21 @@ const jokes = [
                   })}
                 </g>
               </svg>
-              <script is:inline>(function(){var w=document.currentScript.parentElement,l=w.querySelectorAll('svg'),c=matchMedia('(max-width:767px)').matches,i,v;if(!w.clientWidth)return;for(i=0;i<l.length;i++){v=c?l[1].dataset.compact:l[i].getAttribute('viewBox');l[i].setAttribute('viewBox',v);l[i].style.setProperty('--k',(v.split(' ')[2]/w.clientWidth).toFixed(4))}})()</script>
+              <script is:inline>(function(){var w=document.currentScript.parentElement,l=w.querySelectorAll('svg'),c=matchMedia(l[1].dataset.compactQuery).matches,i,v;if(!w.clientWidth)return;for(i=0;i<l.length;i++){v=c?l[1].dataset.compact:l[i].getAttribute('viewBox');l[i].setAttribute('viewBox',v);l[i].style.setProperty('--k',(v.split(' ')[2]/w.clientWidth).toFixed(4))}})()</script>
 
               <p class="sheet-tab" aria-hidden="true" data-chart-tab>Whole chart</p>
+              <!-- Where the journal lies under the chart, the opened entry is out of sight: this
+                   points to it. A pointer shortcut like the brass tags; with a keyboard the journal
+                   simply follows the index. -->
+              <a href="#chart-journal" class="sheet-cue" data-chart-cue tabindex="-1" aria-hidden="true">
+                Read the entry
+                <svg viewBox="0 0 10 12" aria-hidden="true" focusable="false"><path d="M5 .8v9.6M1.4 6.9L5 10.5l3.6-3.6" /></svg>
+              </a>
               <button type="button" class="rose-btn" data-rose-btn aria-label="Turn the compass rose" hidden></button>
               <p class="skipper fell" role="status" data-skipper data-jokes={JSON.stringify(jokes)}></p>
             </div>
           </div>
-          <figcaption class="plate-caption fell">Plate II. The world, as far as our journal goes.</figcaption>
+          <figcaption class="plate-caption fell">Plate {plate}. The world, as far as our journal goes.</figcaption>
         </figure>
 
         <!-- Chart index: the real controls. The pins on the chart are pointer shortcuts to the same thing. -->
@@ -445,11 +464,14 @@ const jokes = [
       <!-- Journal: one entry per destination. All are listed when JavaScript is off. -->
       <div class="journal" id="chart-journal">
         <article class="entry entry-key is-active" data-entry="">
-          <p class="eyebrow">Key to the chart</p>
-          <SubHeading class="display entry-title">Where shall we open the journal?</SubHeading>
-          <p class="entry-blurb js-only">
-            {destinationWord} {stops.length === 1 ? 'destination is' : 'destinations are'} on the chart so far. Pick one from the index, or press its brass tag, and the chart will take you there.
-          </p>
+          <div class="entry-head">
+            <p class="eyebrow">Key to the chart</p>
+            <SubHeading class="display entry-title">Where shall we open the journal?</SubHeading>
+            <p class="entry-blurb js-only">
+              {destinationWord} {stops.length === 1 ? 'destination is' : 'destinations are'} on the chart so far. Pick one from the index, or press its brass tag, and the chart will take you there.
+            </p>
+          </div>
+          <div class="entry-body">
           <dl class="legend">
             <div>
               <dt>
@@ -494,19 +516,23 @@ const jokes = [
           <p class="entry-count fell">
             {cap(count(stops.length, 'destination'))} charted, {count(totalEntries, 'journal entry', 'journal entries')} pinned to {stops.length === 1 ? 'it' : 'them'}. The rest is blank paper.
           </p>
+          </div>
         </article>
 
         {stops.map((s) => (
           <article class="entry" id={`journal-${s.id}`} data-entry={s.id}>
-            <p class="eyebrow">Journal entry · {s.numeral} of {roman[stops.length - 1] ?? stops.length}</p>
-            <SubHeading class="display entry-title">{s.name}</SubHeading>
-            <p class="entry-region fell">{s.region}{s.approximate && ' · position approximate'}</p>
-            <p class="entry-blurb">{s.blurb}</p>
-            {s.photo && (
-              <div class="entry-photo frame">
-                <LocalPhoto src={s.photo.src} alt={s.photo.alt} class="photo-grade" sizes="(min-width: 1280px) 384px, (min-width: 768px) 44vw, 100vw" />
-              </div>
-            )}
+            <div class="entry-head">
+              <p class="eyebrow">Journal entry · {s.numeral} of {roman[stops.length - 1] ?? stops.length}</p>
+              <SubHeading class="display entry-title">{s.name}</SubHeading>
+              <p class="entry-region fell">{s.region}{s.approximate && ' · position approximate'}</p>
+              <p class="entry-blurb">{s.blurb}</p>
+              {s.photo && (
+                <div class="entry-photo frame">
+                  <LocalPhoto src={s.photo.src} alt={s.photo.alt} class="photo-grade" sizes={photoSizes} />
+                </div>
+              )}
+            </div>
+            <div class="entry-body">
             {s.groups.map((group) => (
               <div class="ledger">
                 <MinorHeading class="ledger-title">{group.title}</MinorHeading>
@@ -531,6 +557,7 @@ const jokes = [
             ))}
             <p class="entry-count fell">{s.countLine}</p>
             <a href={s.archive.url} class="link entry-more">{s.archive.label} <span class="arrow" aria-hidden="true">→</span></a>
+            </div>
           </article>
         ))}
       </div>
@@ -553,7 +580,8 @@ const jokes = [
 
   if (root && svg && frame) {
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const compact = window.matchMedia('(max-width: 767px)');
+    // Phone framing: narrow screens, and phones held sideways (the query comes from the build)
+    const compact = window.matchMedia(svg.dataset.compactQuery ?? '(max-width: 767px)');
 
     const sheet = parseBox(svg.dataset.sheet)!;
     const worldBox = parseBox(svg.dataset.world)!;
@@ -572,6 +600,7 @@ const jokes = [
     const entries = [...root.querySelectorAll<HTMLElement>('[data-entry]')];
     const status = root.querySelector<HTMLElement>('[data-chart-status]');
     const tab = root.querySelector<HTMLElement>('[data-chart-tab]');
+    const cue = root.querySelector<HTMLAnchorElement>('[data-chart-cue]');
     const roseEl = root.querySelector<SVGGElement>('[data-rose]');
     const roseBtn = root.querySelector<HTMLButtonElement>('[data-rose-btn]');
     const skipper = root.querySelector<HTMLElement>('[data-skipper]');
@@ -640,6 +669,13 @@ const jokes = [
       });
     };
 
+    // The skipper's note lies over the chart, so it is put away again after a moment
+    let noteTimer = 0;
+    const clearNote = () => {
+      window.clearTimeout(noteTimer);
+      if (skipper) skipper.textContent = '';
+    };
+
     // ----- Selection -----
     const select = (id: string | null, { showWhole = false, animate = true } = {}) => {
       selected = id;
@@ -649,6 +685,9 @@ const jokes = [
       root.classList.toggle('has-selection', Boolean(id));
       destButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.dest === id)));
       const worldShown = !id && (whole || !compact.matches);
+      // The title cartouche belongs to the whole chart; in a closer frame only a corner of it shows
+      root.classList.toggle('is-whole', worldShown);
+      cue?.setAttribute('href', id ? `#journal-${id}` : '#chart-journal');
       wholeButton?.setAttribute('aria-pressed', String(worldShown));
       tags.forEach((t) => t.classList.toggle('is-active', t.dataset.tag === id));
       courses.forEach((c) => c.classList.toggle('is-active', c.dataset.course === id));
@@ -670,7 +709,7 @@ const jokes = [
             ? 'Whole chart shown. No destination selected.'
             : 'Charted waters shown. No destination selected.';
       }
-      if (skipper) skipper.textContent = '';
+      clearNote();
       moveTo(targetFrame(), animate);
     };
 
@@ -689,13 +728,26 @@ const jokes = [
       })
     );
 
+    // Where the journal lies under the chart: bring the opened entry up below the header.
+    // The page's own scroll-behavior decides whether that glides or jumps (reduced motion).
+    cue?.addEventListener('click', (e) => {
+      const entry = entries.find((el) => el.classList.contains('is-active'));
+      if (!entry) return;
+      e.preventDefault();
+      entry.scrollIntoView({ block: 'start' });
+    });
+
     // ----- Discoveries -----
     const jokes: string[] = JSON.parse(skipper?.dataset.jokes ?? '[]');
     let turns = 0;
     roseBtn?.addEventListener('click', () => {
       turns += 1;
       if (!reduceMotion.matches) roseEl?.style.setProperty('--turn', `${turns * 360}deg`);
-      if (skipper && jokes.length) skipper.textContent = jokes[(turns - 1) % jokes.length];
+      if (skipper && jokes.length) {
+        clearNote();
+        skipper.textContent = jokes[(turns - 1) % jokes.length];
+        noteTimer = window.setTimeout(clearNote, 7000);
+      }
     });
     // Touch screens have no hover: a tap sends the serpent under as well
     serpent?.addEventListener('click', () => {
@@ -745,7 +797,22 @@ const jokes = [
     margin: clamp(2.5rem, 6vw, 4.5rem) auto 0;
     padding-inline: 1.5rem;
   }
-  .plate-layout { display: grid; gap: 2.5rem; }
+  .plate-layout {
+    display: grid;
+    gap: 2.5rem;
+    /* The plate is never taller than the room under the header. On a short screen it gets
+       narrower instead (the chart keeps its shape), so the chart, its caption and, with
+       JavaScript, the index stay in view together.
+       --plate-chrome: everything in that view that is not the chart window.
+       --plate-frame:  how much wider .plate-col is than the chart window. */
+    --plate-ratio: 1.25;
+    --plate-chrome: 5.5rem;
+    --plate-min: 12.5rem;
+    --plate-frame: 8px;
+    --plate-cap: calc(max(var(--plate-min), 100svh - var(--header-h) - var(--plate-chrome)) * var(--plate-ratio) + var(--plate-frame));
+  }
+  /* (width: a grid item with auto margins would otherwise shrink to its content) */
+  .plate-col { width: 100%; min-width: 0; max-width: var(--plate-cap); margin-inline: auto; }
 
   /* ---------- The mounted plate ---------- */
   .plate {
@@ -887,7 +954,12 @@ const jokes = [
     fill: var(--ink);
   }
 
-  /* Cartouche */
+  /* Cartouche. It belongs to the whole chart: in the closer phone frames only a cut-off
+     corner of it would show, so there it waits until the whole chart is asked for. */
+  .cartouche { transition: opacity 0.5s var(--ease-out), visibility 0.5s; }
+  @media (max-width: 767px), (max-width: 1023px) and (max-height: 520px) {
+    .expedition:not(.is-whole) .cartouche { opacity: 0; visibility: hidden; }
+  }
   .cartouche-ground { fill: #f6ecd2; stroke: var(--ink); stroke-width: 0.9px; }
   .cartouche-rule { fill: none; stroke: var(--ink); stroke-width: 0.4px; }
   .cartouche-diamond { fill: var(--ink); }
@@ -1025,7 +1097,7 @@ const jokes = [
   .tag-num,
   .tag-name-compact { display: none; }
   .tag-num { font-size: 15.5px; }
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (max-width: 1023px) and (max-height: 520px) {
     .tag:not(.is-active) .tag-name { display: none; }
     .tag:not(.is-active) .tag-num { display: block; }
     /* No room to the left of a pin on a phone: the name goes underneath */
@@ -1073,6 +1145,47 @@ const jokes = [
     letter-spacing: 0.2em;
     text-transform: uppercase;
   }
+  /* The tab's counterpart in the opposite corner: shown once a destination is chosen, wherever
+     the journal lies under the chart (it is hidden again where the journal sits beside it) */
+  .sheet-cue { display: none; }
+  :global(.js) .has-selection .sheet-cue {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.42rem 0.7rem 0.4rem 0.75rem;
+    background: var(--ink-deep);
+    border-top: 1px solid var(--ink-deep);
+    border-left: 1px solid var(--ink-deep);
+    color: #f6ecd2;
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    line-height: 1.5;
+    text-transform: uppercase;
+    transition: background-color 0.3s, color 0.3s;
+    animation: chart-cue-in 0.6s var(--ease-out) 0.5s both;
+  }
+  /* The label stays small; its touch target grows to 44px, upwards and to the left */
+  .sheet-cue::after { content: ''; position: absolute; inset: -1rem 0 0 -0.75rem; }
+  .sheet-cue svg {
+    width: 0.6rem;
+    height: 0.72rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    transition: transform 0.4s var(--ease-out);
+  }
+  @media (hover: hover) {
+    .sheet-cue:hover { color: var(--gold-bright); }
+    .sheet-cue:hover svg { transform: translateY(2px); }
+  }
+  @keyframes chart-cue-in {
+    from { opacity: 0; transform: translateY(8px); }
+  }
   .rose-btn {
     position: absolute;
     top: 0;
@@ -1098,6 +1211,8 @@ const jokes = [
     text-align: center;
     transform: translateX(-50%);
     animation: chart-note-in 0.6s var(--ease-out);
+    /* A note, not a control: a tap goes through to the pin it may lie over */
+    pointer-events: none;
   }
   .skipper:empty { display: none; }
   @keyframes chart-note-in {
@@ -1176,17 +1291,13 @@ const jokes = [
   .entry { min-width: 0; }
   .js-only { display: none; }
   :global(.js) .js-only { display: block; }
-  /* With JavaScript: the entries share one cell, so the tallest reserves the room and
-     changing destination never moves the page. */
+  /* With JavaScript: only the chosen entry. Under the chart the journal is as tall as that
+     entry, with nothing held in reserve. (Beside the chart, on wide screens, the entries
+     share one cell instead: see the last block.) */
   :global(.js) .journal { gap: 0; }
-  :global(.js) .entry {
-    grid-area: 1 / 1;
-    visibility: hidden;
-    opacity: 0;
-  }
+  :global(.js) .entry { display: none; }
   :global(.js) .entry.is-active {
-    visibility: visible;
-    opacity: 1;
+    display: block;
     animation: chart-entry-in 0.8s var(--ease-out);
   }
   @keyframes chart-entry-in {
@@ -1274,7 +1385,7 @@ const jokes = [
   .lg-ink-fill { fill: var(--jungle-deep); }
 
   /* Phones without JavaScript: the same charted-waters framing, as a transform of the drawing */
-  @media (max-width: 767px) {
+  @media (max-width: 767px), (max-width: 1023px) and (max-height: 520px) {
     :global(html:not(.js)) .world { transform: var(--nojs-transform); }
     :global(html:not(.js)) .chart { --k: var(--nojs-k); }
   }
@@ -1283,6 +1394,20 @@ const jokes = [
   @media (min-width: 768px) {
     .plate { margin-inline: 0; padding: 0.65rem; }
     .sheet { padding: 9px; }
+    .plate-layout { --plate-frame: calc(1.3rem + 20px); }
+    .sheet-tab { font-size: 0.64rem; padding: 0.4rem 0.8rem 0.36rem; }
+    :global(.js) .has-selection .sheet-cue { font-size: 0.64rem; padding: 0.48rem 0.8rem 0.44rem 0.9rem; }
+    .journal { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3.5rem 3rem; }
+    :global(.js) .journal { grid-template-columns: minmax(0, 1fr); max-width: 47rem; }
+    .journal { padding-inline: 1.5rem; }
+  }
+
+  /* Everything but the phone framing (the opposite of the query used for the tag names):
+     the window takes the shape of the whole chart, and the index lies across the page */
+  @media (min-width: 1024px), (min-width: 768px) and (min-height: 520.01px) {
+    .plate-layout { --plate-ratio: var(--chart-ratio); --plate-chrome: 5.75rem; --plate-min: 20rem; }
+    /* Plate frame, caption, index (two rows of two) and a little air */
+    :global(.js) .plate-layout { --plate-chrome: 21rem; }
     .sheet {
       background:
         linear-gradient(90deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 0 3px / calc(100% / 24) 3px repeat-x,
@@ -1292,11 +1417,6 @@ const jokes = [
         var(--sea);
     }
     .sheet-window { aspect-ratio: var(--chart-ratio); }
-    .sheet-tab { font-size: 0.64rem; padding: 0.4rem 0.8rem 0.36rem; }
-    .journal { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3.5rem 3rem; }
-    :global(.js) .journal { grid-template-columns: minmax(0, 1fr); max-width: 44rem; }
-
-    .journal { padding-inline: 1.5rem; }
     :global(.js) .index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .index-btn {
       grid-template-columns: 1fr;
@@ -1319,28 +1439,98 @@ const jokes = [
     }
   }
 
+  /* Under the chart, with room for two columns: the entry opens like a spread, the place and
+     its photograph on the left, the ledger on the right */
+  @media (min-width: 900px) and (max-width: 1279.98px) {
+    :global(.js) .journal { max-width: none; }
+    :global(.js) .entry.is-active {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      column-gap: clamp(2.5rem, 5vw, 4rem);
+      align-items: start;
+    }
+    :global(.js) .entry-body > :first-child { margin-top: 0; }
+    :global(.js) .entry-body > .legend { padding-top: 0; border-top: 0; }
+  }
+
   @media (min-width: 1024px) {
+    /* Plate frame, caption, index (one row) and a little air */
+    :global(.js) .plate-layout { --plate-chrome: 14.25rem; }
     :global(.js) .index { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
     .index-btn:nth-child(odd) { border-left: 1px solid var(--hair); padding-left: 1.25rem; }
     .index-btn:first-child { border-left: 0; padding-left: 0.25rem; }
   }
 
+  /* A low window (a laptop, a tablet on its side): the index is set tighter, and the plate
+     gives up some width, so that the chart and its index fit under the header together */
+  @media (min-width: 1024px) and (max-height: 820px), (min-width: 768px) and (min-height: 520.01px) and (max-height: 820px) {
+    :global(.js) .plate-layout { --plate-chrome: 17.5rem; }
+    .index { margin-top: 0.75rem; }
+    .index-btn { padding-block: 0.6rem 0.7rem; }
+    .index-num,
+    .index-note { line-height: 1.25; }
+    .index-name { margin-top: 0; font-size: 1.15rem; }
+    .index-btn::after { top: 1.1rem; }
+  }
+  @media (min-width: 1024px) and (max-height: 820px) {
+    :global(.js) .plate-layout { --plate-chrome: 12rem; }
+  }
+
+  /* ---------- A phone held sideways ---------- */
+  /* The plate is as tall as the screen allows and the index stands beside it */
+  @media (min-width: 600px) and (max-width: 1023px) and (max-height: 520px) {
+    .plate-layout { --plate-frame: calc(1rem + 16px); }
+    .plate-col { max-width: none; }
+    .plate { width: var(--plate-cap); margin-inline: auto; }
+    :global(.js) .plate-col {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      column-gap: 1.75rem;
+    }
+    :global(.js) .plate { margin-inline: 0; }
+    :global(.js) .index { margin-top: 0; }
+  }
+  @media (min-width: 768px) and (max-width: 1023px) and (max-height: 520px) {
+    .plate-layout { --plate-frame: calc(1.3rem + 20px); }
+  }
+
   /* ---------- Wide: the journal lies beside the plate ---------- */
   @media (min-width: 1280px) {
     :global(.js) .plate-layout {
-      grid-template-columns: minmax(0, 1fr) clamp(20.5rem, 26vw, 24rem);
+      --journal-w: clamp(20.5rem, 26vw, 24rem);
+      --plate-gap: clamp(2.5rem, 3.4vw, 3.75rem);
+      /* The journal takes the width the plate gives up on a low screen */
+      grid-template-columns: minmax(0, 1fr) minmax(var(--journal-w), min(34rem, calc(100% - var(--plate-gap) - var(--plate-cap))));
       align-items: start;
-      gap: clamp(2.5rem, 3.4vw, 3.75rem);
+      gap: var(--plate-gap);
     }
     .journal { padding-inline: 0; }
-    :global(.js) .journal { padding-top: 0.4rem; }
+    :global(.js) .journal { padding-top: 0.4rem; max-width: none; }
     .journal { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5rem; }
     .index-name { font-size: 1.3rem; }
+    /* Beside the chart the entries share one cell, so the tallest reserves the room and
+       changing destination never moves the page */
+    :global(.js) .entry {
+      display: block;
+      grid-area: 1 / 1;
+      visibility: hidden;
+      opacity: 0;
+    }
+    :global(.js) .entry.is-active {
+      visibility: visible;
+      opacity: 1;
+    }
+    :global(.js) .has-selection .sheet-cue { display: none; }
+  }
+  @media (min-width: 1280px) and (max-height: 820px) {
+    .index-name { font-size: 1.15rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .rose { transition: none; }
     .skipper,
+    :global(.js) .has-selection .sheet-cue,
     :global(.js) .entry.is-active { animation: none; }
   }
 </style>

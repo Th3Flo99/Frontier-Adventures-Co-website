@@ -11,6 +11,7 @@ import Layout from '../layouts/Layout.astro';
 import LocalPhoto from '../components/LocalPhoto.astro';
 import ExpeditionMap from '../components/ExpeditionMap.astro';
 import reviewData from '../data/reviews.json';
+import foodData from '../data/food.json';
 import { categories, entriesByCategory, destinations, reviews, food, type CategoryId, type Entry } from '../lib/adventures';
 import { href } from '../lib/paths';
 
@@ -38,7 +39,7 @@ const tally = (list: Entry[]) => {
   const r = list.filter((e) => e.kind === 'review').length;
   const f = list.filter((e) => e.kind === 'food').length;
   const parts = [r ? count(r, 'review') : '', f ? count(f, 'food note') : ''].filter(Boolean);
-  return parts.length ? capital(parts.join(', ')) : 'Still being written';
+  return parts.length ? capital(parts.join(', ')) : 'Nothing here yet';
 };
 
 const chapters = categories.map((c, i) => {
@@ -70,6 +71,10 @@ const cruiseOnlyFood = cruiseLog.length > 0 && cruiseLog.every((e) => e.kind ===
 // ----- Chapter III: food -----
 const foodChapter = chapter('food');
 const ledger = [...foodChapter.list].sort(byScore);
+// Who has actually scored, read from the data in order of first appearance, so the ledger
+// never implies a score from someone who has not given one.
+const scorers = [...new Set(foodData.flatMap((f) => Object.keys(f.scores)))];
+const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 
 // ----- Chapter IV: journals -----
 const journals = chapter('journals');
@@ -80,7 +85,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
 
 <Layout
   title="Adventures · Frontier Adventurers"
-  description="The Frontier Adventurers archive: the expedition map, theme park reviews, cruise notes and every food find, scored by the crew."
+  description="The Frontier Adventurers archive: the expedition map, theme park reviews, cruise notes and every food find, scored out of five."
 >
   <!-- Title page and contents -->
   <section class="archive-head surface-deep grain lantern" aria-labelledby="archive-title">
@@ -122,7 +127,8 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
     </div>
   </section>
 
-  <ExpeditionMap eyebrow="The chart" />
+  <!-- Plates are numbered in page order: the chart is Plate I, the photographs follow as II to IV -->
+  <ExpeditionMap eyebrow="The chart" plate="I" />
 
   <!-- Chapter I: a featured review, set as a journal page -->
   <section id="theme-parks" class="parks surface-paper grain section" aria-labelledby="theme-parks-title">
@@ -188,7 +194,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
               class="photo-grade tipped-img"
             />
           </div>
-          <figcaption class="fell tipped-caption">Plate I. Florian, a churro and a rollercoaster. In that order.</figcaption>
+          <figcaption class="fell tipped-caption">Plate II. Florian, a churro and a rollercoaster. In that order.</figcaption>
         </figure>
 
         {(moreParkReviews.length > 0 || parkFood.length > 0) && (
@@ -261,7 +267,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
             />
           </div>
         </div>
-        <figcaption class="fell cruise-caption reveal">Plate II. Tibeau, a drink and a great deal of sea.</figcaption>
+        <figcaption class="fell cruise-caption reveal">Plate III. Tibeau, a drink and a great deal of sea.</figcaption>
       </figure>
 
       <div class="cruise-log">
@@ -306,7 +312,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
           <h2 id="food-title" class="display chapter-title mt-5 text-parchment-light reveal">{foodChapter.title}</h2>
           <p class="lede mt-7 reveal" style="--reveal-delay: 120ms">{foodChapter.description}</p>
           <p class="fell food-note reveal" style="--reveal-delay: 160ms">
-            The ledger keeps the crew average out of five, highest first. Ties are settled at the table.
+            The ledger keeps the crew average out of five, highest first.{scorers.length > 0 && ` Scores so far are from ${scorerNames}.`} Ties are settled at the table.
           </p>
         </div>
         <figure class="food-plate">
@@ -318,7 +324,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
               class="photo-grade food-img"
             />
           </div>
-          <figcaption class="fell food-caption reveal">Plate III. Megan, cutlery at the ready.</figcaption>
+          <figcaption class="fell food-caption reveal">Plate IV. Megan, cutlery at the ready.</figcaption>
         </figure>
       </div>
 
@@ -368,9 +374,9 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
         {journals.list.length === 0 ? (
           <div class="reveal" style="--reveal-delay: 120ms">
             <p class="lede mt-7">
-              Longer stories and practical guides from our trips will live here. None are published yet: the first entries are being written, and we would rather leave a page blank than fill it with something that did not happen.
+              This chapter is kept for longer stories and practical guides from our trips. None are published yet, and we would rather leave a page blank than fill it with something that did not happen.
             </p>
-            <p class="journals-body">Until they are ready, the newest reports from the road are on our channels.</p>
+            <p class="journals-body">For now, the newest reports from the road are on our channels.</p>
             <div class="journals-cta">
               <a href={href('socials')} class="btn btn-ghost">Find Our Channels <span class="arrow" aria-hidden="true">→</span></a>
             </div>
@@ -396,9 +402,9 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
         <div class="blank-wrap reveal" style="--reveal-delay: 200ms">
           <div class="blank surface-paper grain">
             <p class="blank-top"><span>Travel journal</span><span>Page 1</span></p>
-            <p class="fell blank-line">This page is still blank.</p>
-            <p class="fell blank-sub">Not for long.</p>
-            <div class="blank-stamp"><p class="stamp">Entries in progress</p></div>
+            <p class="fell blank-line">This page is blank.</p>
+            <p class="fell blank-sub">On purpose.</p>
+            <div class="blank-stamp"><p class="stamp">Nothing filed yet</p></div>
           </div>
         </div>
       )}
@@ -1004,6 +1010,8 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
     align-self: flex-end;
     color: var(--mahogany);
   }
+  /* The stamp is the page's status line, so it is set at the size of the other small labels */
+  .blank-stamp .stamp { font-size: 0.72rem; letter-spacing: 0.18em; }
 
   @media (min-width: 1024px) {
     .journals-grid {

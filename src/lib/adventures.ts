@@ -26,13 +26,13 @@ export const categories: Category[] = [
     id: 'cruises',
     title: 'Cruise Adventures',
     kicker: 'Ships, dining and days at sea',
-    description: 'What life on board is really like, from the buffet to the adults-only restaurants.',
+    description: 'What life on board is really like, from the buffet to the adults-only restaurant.',
   },
   {
     id: 'food',
     title: 'Food & Discoveries',
     kicker: 'Snacks, restaurants and recommendations',
-    description: 'Everything worth eating along the way, scored by each of us.',
+    description: 'Everything worth eating along the way, each entry scored out of five.',
   },
   {
     id: 'journals',

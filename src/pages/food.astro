@@ -20,6 +20,12 @@ const items = food.map((item) => {
 });
 
 const count = (type: string) => items.filter((item) => item.type === type).length;
+
+// Who has actually put a score in the ledger, read from the data in order of first appearance.
+// The intro names them, so the page never claims a score from someone who has not given one.
+const scorers = [...new Set(items.flatMap((item) => item.scores.map(([person]) => person)))];
+const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
+const scoredBy = scorers.length ? `scored from 1 to 5 by ${scorerNames}` : 'scored from 1 to 5';
 const filters = [
   { id: 'all', label: 'All', total: items.length },
   { id: 'snack', label: 'Snacks', total: count('snack') },
@@ -33,7 +39,7 @@ const strike = 'M2.4 18.6 36.6 5.6';
 
 <Layout
   title="Food & Snacks · Frontier Adventurers"
-  description="Everything the Frontier Adventurers crew has eaten at Disney parks and on Disney Cruise Line, scored from 1 to 5 by each of us."
+  description={`Everything the Frontier Adventurers crew has eaten at Disney parks and on Disney Cruise Line, ${scoredBy}.`}
 >
   <section class="fare-head surface-deep grain lantern" aria-labelledby="food-title">
     <div class="shell fare-head-grid">
@@ -43,14 +49,14 @@ const strike = 'M2.4 18.6 36.6 5.6';
           Food &amp; Snacks
         </h1>
         <p class="lede fare-lede reveal" style="--reveal-delay: 160ms">
-          Everything our crew has eaten at Disney parks and on Disney Cruise Line, entered in the ledger and scored from 1 to 5 by each of us.
+          Everything our crew has eaten at Disney parks and on Disney Cruise Line, entered in the ledger and {scoredBy}.
         </p>
       </div>
 
       <div class="fare-intro">
         <div class="legend reveal" style="--reveal-delay: 240ms">
           <p class="eyebrow no-rule">How to read the ledger</p>
-          <p class="fell legend-note">One pencil stroke per point, and a strike through the lot for a five. The large numeral is the crew average.</p>
+          <p class="fell legend-note">One pencil stroke per point, and a strike through the lot for a five. The large numeral is the crew average, taken from the scores listed under it.</p>
           <ol class="legend-key" aria-hidden="true">
             {[1, 2, 3, 4, 5].map((n) => (
               <li>
@@ -298,11 +304,6 @@ const strike = 'M2.4 18.6 36.6 5.6';
   }
   @media (max-width: 359px) {
     .filter-btn { letter-spacing: 0.1em; font-size: 0.7rem; }
-    .fare-avg { gap: 0.35rem; }
-    .fare-avg-label { letter-spacing: 0.14em; }
-    .fare-avg-num { font-size: 2.5rem; }
-    .fare-avg-of { font-size: 1.05rem; }
-    .fare-avg::before { min-width: 0.4rem; }
   }
   @media (min-width: 720px) {
     .controls-label { display: inline-flex; }
@@ -389,6 +390,9 @@ const strike = 'M2.4 18.6 36.6 5.6';
   /* Average. Small screens: a leader line from the label to the numeral, as on a menu */
   .fare-avg {
     display: flex;
+    /* Never wider than the column: with very large text, "out of five" drops to a second line */
+    flex-wrap: wrap;
+    justify-content: flex-end;
     align-items: baseline;
     gap: 0.5rem;
     margin-top: 1.6rem;
@@ -402,9 +406,9 @@ const strike = 'M2.4 18.6 36.6 5.6';
   }
   .fare-avg-label {
     order: 1;
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
     white-space: nowrap;
     color: rgb(232 211 165 / 0.8);
@@ -423,6 +427,15 @@ const strike = 'M2.4 18.6 36.6 5.6';
     color: rgb(232 211 165 / 0.75);
     white-space: nowrap;
   }
+  /* Narrow phones: the row is tightened so label, leader, numeral and "out of five" share one
+     line. Kept below the base rules above: same specificity, so the later rule wins. */
+  @media (max-width: 359px) {
+    .fare-avg { gap: 0.35rem; }
+    .fare-avg::before { min-width: 0.4rem; }
+    .fare-avg-label { letter-spacing: 0.12em; }
+    .fare-avg-num { font-size: 2.5rem; }
+    .fare-avg-of { font-size: 1.05rem; }
+  }
 
   .tally {
     display: flex;
@@ -440,9 +453,9 @@ const strike = 'M2.4 18.6 36.6 5.6';
   }
   .tally-name {
     grid-column: 1 / -1;
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: rgb(232 211 165 / 0.8);
   }
@@ -505,6 +518,8 @@ const strike = 'M2.4 18.6 36.6 5.6';
     .fare-avg {
       grid-area: avg;
       position: relative;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
       margin-top: 0;
     }
     .fare-avg::before { content: none; }

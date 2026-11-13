@@ -41,7 +41,7 @@ const chapters = categories.map((c, i) => {
     ...c,
     numeral: roman[i],
     url: href(`adventures#${c.id}`),
-    tally: parts.length ? capital(parts.join(', ')) : 'Still being written',
+    tally: parts.length ? capital(parts.join(', ')) : 'Nothing here yet',
   };
 });
 ---
@@ -57,7 +57,7 @@ const chapters = categories.map((c, i) => {
       </div>
       <div class="lg:col-span-5">
         <p class="lede reveal" style="--reveal-delay: 120ms">
-          Reviews, food scores and, before long, proper trip reports. The journal is open at the latest review, next to the plates at the top of our food ledger.
+          Reviews and food scores, so far. The journal is open at the latest review, next to the plates at the top of our food ledger.
         </p>
       </div>
     </div>
