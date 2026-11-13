@@ -11,7 +11,10 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 
 // Absolute URLs for link previews (WhatsApp, iMessage, X, ...) and search engines
 const siteName = 'Frontier Adventures Co.';
-const canonicalUrl = new URL(Astro.url.pathname, Astro.site ?? Astro.url).href;
+// Pages are served as directories, so the canonical always ends in a slash (the home path
+// comes without one because the configured base has none)
+const canonicalPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const canonicalUrl = new URL(canonicalPath, Astro.site ?? Astro.url).href;
 const ogImage = new URL(`${base}og-image.jpg`, Astro.site ?? Astro.url).href;
 
 const navItems = [
@@ -153,9 +156,10 @@ const isCurrent = (href: string) => stripSlash(href) === currentPath;
       if (reduceMotion || !('IntersectionObserver' in window)) {
         reveals.forEach(el => el.classList.add('visible'));
       } else {
-        // Reveal as soon as any part of the element is a little inside the viewport.
-        // A percentage-of-element threshold can never be met by elements much taller
-        // than the screen (a long review), which would then stay invisible.
+        // Reveal as soon as any part of the element enters the viewport. A percentage-of-element
+        // threshold can never be met by elements much taller than the screen (a long review),
+        // which would then stay invisible. The 24px bottom margin cancels the translateY(24px)
+        // of unrevealed elements, so nothing that is on screen stays hidden.
         const observer = new IntersectionObserver((entries) => {
           entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -163,7 +167,7 @@ const isCurrent = (href: string) => stripSlash(href) === currentPath;
               observer.unobserve(entry.target);
             }
           });
-        }, { threshold: 0, rootMargin: '0px 0px -8% 0px' });
+        }, { threshold: 0, rootMargin: '0px 0px 24px 0px' });
         reveals.forEach(el => observer.observe(el));
       }
     </script>

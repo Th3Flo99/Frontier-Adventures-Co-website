@@ -6,26 +6,29 @@ const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 ---
 
 <Layout title="Frontier Adventures Co." description="Belgian friends exploring Disney parks and cruises together. Food, reviews, and stories.">
-  <!-- Hero: photo on top with the text below on small screens; from lg the photo fills the
-       right side and the text sits on the left, so the title never covers the group. -->
-  <section class="relative flex flex-col lg:block lg:min-h-screen overflow-hidden">
-    <div class="relative h-[56vh] min-h-[320px] overflow-hidden lg:absolute lg:inset-y-0 lg:right-0 lg:left-auto lg:w-[68%] lg:h-auto lg:min-h-0">
-      <!-- "sizes" follows the cropped (object-cover) width, which is wider than the box itself -->
+  <!-- Hero: photo on top with the text below by default. On wide landscape viewports (the
+       "hero" screen in tailwind.config.mjs) the photo fills the right side and the text sits
+       on the left, so the title never covers the group. -->
+  <section class="relative flex flex-col hero:block hero:min-h-screen overflow-hidden">
+    <div class="relative h-[56vh] min-h-[320px] overflow-hidden hero:absolute hero:inset-y-0 hero:right-0 hero:left-auto hero:w-[68%] hero:h-auto hero:min-h-0">
+      <!-- "sizes" follows the cropped (object-cover) width, which is wider than the box itself.
+           Side by side, the box is at least as tall as the text column, hence the 1100px floor. -->
       <LocalPhoto
         priority
         id="hero-img"
         src="group-photo.jpg"
         alt="The group in front of the castle"
-        sizes="(min-width: 1024px) and (max-aspect-ratio: 19/10) 140vh, (min-width: 1024px) 72vw, (max-aspect-ratio: 3/4) 79vh, 105vw"
+        sizes="(min-width: 1024px) and (min-aspect-ratio: 5/4) max(140vh, 72vw, 1100px), (max-aspect-ratio: 3/4) 79vh, 105vw"
         class="w-full h-full object-cover object-center will-change-transform"
         style="transform: translateY(var(--parallax, 0px)) scale(1.05);"
       />
-      <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/10 to-transparent lg:via-transparent"></div>
-      <div class="absolute inset-0 hidden lg:block bg-gradient-to-r from-ink via-ink/40 to-transparent to-45%"></div>
+      <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/10 to-transparent hero:via-transparent"></div>
+      <div class="absolute inset-0 hidden hero:block bg-gradient-to-r from-ink via-ink/40 to-transparent to-45%"></div>
     </div>
-    <div class="relative z-10 -mt-10 px-6 md:px-12 pb-20 lg:mt-0 lg:min-h-screen lg:flex lg:flex-col lg:justify-end lg:pb-28 lg:max-w-[44%]">
+    <!-- hero:pt-28 keeps the text clear of the fixed header when the viewport is short -->
+    <div class="relative z-10 -mt-10 px-6 md:px-12 pb-20 hero:mt-0 hero:min-h-screen hero:flex hero:flex-col hero:justify-end hero:pt-28 hero:pb-28 hero:max-w-[44%]">
       <p class="text-gold uppercase tracking-[0.3em] text-xs mb-6 reveal">Belgium · Disney · Together</p>
-      <h1 class="display text-6xl md:text-8xl lg:text-7xl xl:text-8xl leading-[0.9] text-white reveal">
+      <h1 class="display text-6xl md:text-8xl hero:text-7xl hero-xl:text-8xl leading-[0.9] text-white reveal">
         Frontier<br/>Adventures<br/>Co.
       </h1>
       <p class="mt-8 text-lg md:text-xl max-w-xl text-white/80 reveal">
