@@ -2,6 +2,22 @@
 import PhotoCarousel from '../components/PhotoCarousel.astro';
 import Layout from '../layouts/Layout.astro';
 import reviews from '../data/reviews.json';
+
+// Accepts "YYYY-MM-DD" or "YYYY-MM"; anything else is shown as written
+const formatDate = (value: string) => {
+  const match = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(value);
+  if (!match) return { label: value, datetime: undefined };
+  const [, year, month, day] = match;
+  const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day ?? 1)));
+  if (Number.isNaN(date.getTime()) || date.getUTCMonth() !== Number(month) - 1) return { label: value, datetime: undefined };
+  const label = date.toLocaleDateString('en-GB', {
+    timeZone: 'UTC',
+    year: 'numeric',
+    month: 'long',
+    ...(day ? { day: 'numeric' } : {}),
+  });
+  return { label, datetime: value };
+};
 ---
 
 <Layout title="Park, Hotel & Cruise Reviews · Frontier Adventures Co.">
@@ -17,7 +33,9 @@ import reviews from '../data/reviews.json';
 
   <section class="pb-32 px-6 md:px-12">
     <div class="max-w-4xl mx-auto space-y-16">
-      {reviews.map((r) => (
+      {reviews.map((r) => {
+        const date = formatDate(r.date);
+        return (
         <article class="reveal border-b border-white/10 pb-12">
           <div class="flex flex-wrap items-baseline justify-between gap-4">
             <h2 class="display text-3xl md:text-4xl">{r.title}</h2>
@@ -25,7 +43,7 @@ import reviews from '../data/reviews.json';
               <span aria-hidden="true">{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</span>
             </div>
           </div>
-          <p class="mt-2 text-sm text-white/60">{r.platform} · {r.date}</p>
+          <p class="mt-2 text-sm text-white/60">{r.platform} · <time datetime={date.datetime}>{date.label}</time></p>
 
           {r.summary && (
             <div class="mt-6 p-6 bg-deep border-l-2 border-gold">
@@ -63,7 +81,8 @@ import reviews from '../data/reviews.json';
           )}
           <a href={r.url} class="inline-block mt-6 text-gold text-sm hover:underline" target="_blank" rel="noopener">Original review →</a>
         </article>
-      ))}
+        );
+      })}
     </div>
   </section>
 </Layout>

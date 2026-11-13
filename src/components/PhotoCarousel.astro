@@ -55,8 +55,11 @@ const multiple = photos.length > 1;
     scrollbar-width: thin;
   }
   .photo-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; aspect-ratio: 16 / 9; }
-  .portrait .photo-slide { aspect-ratio: 4 / 5; }
   .photo-slide :global(img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+  /* Portrait sets (the group page) are phone photos in 3:4: match that shape and fill the
+     slide, so there are no dark bars. Mixed sets keep "contain" so nothing gets cropped. */
+  .portrait .photo-slide { aspect-ratio: 3 / 4; }
+  .portrait .photo-slide :global(img) { object-fit: cover; }
   .photo-controls { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; }
   .photo-controls[hidden] { display: none; }
   .photo-controls > button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid rgb(255 255 255 / 0.3); font-size: 1.25rem; transition: border-color 0.2s, color 0.2s; }

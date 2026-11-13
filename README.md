@@ -56,7 +56,7 @@ Edit `src/data/reviews.json`:
 - `id`
 - `title`
 - `platform` (TripAdvisor, Google, etc.)
-- `date` (YYYY-MM-DD)
+- `date` (`YYYY-MM-DD` or `YYYY-MM`; shown as "14 May 2026" or "May 2026")
 - `rating` (1–5)
 - `body` (original review text)
 - `summary` (optional short verdict)
