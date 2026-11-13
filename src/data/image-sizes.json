@@ -37,7 +37,7 @@
   },
   "photos/florian/bus.jpg": {
     "width": 1500,
-    "height": 1840,
+    "height": 1815,
     "variants": [
       {
         "src": "optimized/photos/florian/bus-480.webp",
