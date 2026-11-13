@@ -1,0 +1,62 @@
+---
+// Official logo slot.
+// Drop the logo file in public/brand/ as logo.svg, logo.png or logo.webp (and optionally
+// logo-light.* for dark backgrounds / logo-dark.* for parchment) and it is used everywhere
+// automatically. Until then a plain text wordmark is shown; it is a stand-in, not a logo design.
+import { existsSync } from 'node:fs';
+import site from '../data/site.json';
+import { base } from '../lib/paths';
+
+interface Props {
+  variant?: 'header' | 'hero' | 'footer' | 'menu';
+  tone?: 'light' | 'dark';
+  class?: string;
+}
+const { variant = 'header', tone = 'light', class: className } = Astro.props;
+
+const find = (name: string) =>
+  ['svg', 'png', 'webp'].map((ext) => `brand/${name}.${ext}`).find((file) => existsSync(`public/${file}`));
+const file = find(`logo-${tone}`) ?? find('logo');
+---
+
+{file ? (
+  <img src={base + file} alt={site.name} class:list={['logo-img', `logo-${variant}`, className]} decoding="async" />
+) : (
+  <span class:list={['wordmark', `wordmark-${variant}`, `tone-${tone}`, className]} aria-label={site.name} role="img">
+    <span aria-hidden="true" class="wm-top">Frontier</span>
+    <span aria-hidden="true" class="wm-bottom">Adventurers</span>
+  </span>
+)}
+
+<style>
+  .logo-img { display: block; width: auto; }
+  .logo-header { height: 2.5rem; }
+  .logo-menu { height: 3rem; }
+  .logo-footer { height: 4.5rem; }
+  .logo-hero { height: clamp(4rem, 9vw, 7rem); }
+
+  .wordmark {
+    display: inline-flex;
+    flex-direction: column;
+    font-family: 'Besley Variable', Besley, Georgia, serif;
+    font-weight: 600;
+    line-height: 0.95;
+    color: var(--parchment);
+  }
+  .tone-dark { color: var(--mahogany-deep); }
+  .wm-top {
+    font-size: 0.5em;
+    font-weight: 600;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 0.3em;
+  }
+  .tone-dark .wm-top { color: var(--mahogany); }
+  .wm-bottom { letter-spacing: -0.01em; }
+
+  .wordmark-header { font-size: 1.45rem; }
+  .wordmark-menu { font-size: 1.7rem; }
+  .wordmark-footer { font-size: 2.4rem; }
+  .wordmark-hero { font-size: clamp(2rem, 1.2rem + 3vw, 3.4rem); }
+</style>

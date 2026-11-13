@@ -1,0 +1,36 @@
+---
+// The Explorer's Compass: a small brass compass whose needle follows the visitor.
+// Purely decorative as a graphic; the element that contains it carries the label.
+interface Props { class?: string; }
+const { class: className } = Astro.props;
+const ticks = Array.from({ length: 16 }, (_, i) => i * 22.5);
+---
+<svg class:list={['compass', className]} viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+  <circle cx="24" cy="24" r="22.5" fill="none" stroke="currentColor" stroke-width="1" opacity="0.9" />
+  <circle cx="24" cy="24" r="18.5" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.5" />
+  {ticks.map((angle, i) => (
+    <line
+      x1="24" y1="3.2" x2="24" y2={i % 4 === 0 ? 7.2 : 5.4}
+      stroke="currentColor" stroke-width={i % 4 === 0 ? 1.1 : 0.6}
+      opacity={i % 4 === 0 ? 0.95 : 0.55}
+      transform={`rotate(${angle} 24 24)`}
+    />
+  ))}
+  <g class="compass-needle" data-compass-needle>
+    <path d="M24 9.5 L27.2 24 L24 26 L20.8 24 Z" fill="currentColor" />
+    <path d="M24 38.5 L27.2 24 L24 22 L20.8 24 Z" fill="currentColor" opacity="0.38" />
+    <circle cx="24" cy="24" r="1.7" fill="var(--jungle-deep)" stroke="currentColor" stroke-width="0.8" />
+  </g>
+</svg>
+
+<style>
+  .compass { display: block; width: 100%; height: 100%; overflow: visible; }
+  .compass-needle {
+    transform-origin: 24px 24px;
+    transform: rotate(var(--needle, 0deg));
+    transition: transform 0.9s cubic-bezier(0.2, 1.4, 0.4, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .compass-needle { transition: none; }
+  }
+</style>

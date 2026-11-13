@@ -1,0 +1,47 @@
+{
+  "home": {
+    "name": "Belgium",
+    "label": "Home port",
+    "lat": 50.85,
+    "lon": 4.35
+  },
+  "destinations": [
+    {
+      "id": "disneyland-paris",
+      "name": "Disneyland Paris",
+      "kind": "park",
+      "region": "Marne-la-Vallée, France",
+      "lat": 48.8722,
+      "lon": 2.7758,
+      "approximate": false,
+      "blurb": "The closest Disney resort to our home port, and where our Davy Crockett Ranch stay took place.",
+      "_source": "reviews.json (Davy Crockett Ranch) and food.json entries located at Disneyland Paris"
+    },
+    {
+      "id": "walt-disney-world",
+      "name": "Walt Disney World",
+      "kind": "park",
+      "region": "Florida, United States",
+      "lat": 28.3852,
+      "lon": -81.5639,
+      "approximate": false,
+      "blurb": "Across the Atlantic to Florida. The crew photo on our front page was taken here, in front of the castle.",
+      "photo": {
+        "src": "group-photo.jpg",
+        "alt": "The five of us standing arm in arm in front of the castle"
+      },
+      "_source": "group-photo.jpg (castle at Magic Kingdom) and the Be Our Guest entry in food.json. Please confirm."
+    },
+    {
+      "id": "disney-cruise-line-europe",
+      "name": "Disney Cruise Line",
+      "kind": "cruise",
+      "region": "European sailing",
+      "lat": 44.6,
+      "lon": -9.5,
+      "approximate": true,
+      "blurb": "Life at sea. Our dining notes from Cabanas and Palo come from a European sailing.",
+      "_source": "food.json entries with trip 'Fantasy Europe 2025'. The marker position is symbolic (at sea), not a port."
+    }
+  ]
+}

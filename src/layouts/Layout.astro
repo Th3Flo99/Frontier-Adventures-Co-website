@@ -1,33 +1,62 @@
 ---
 import '../styles/global.css';
+import Logo from '../components/Logo.astro';
+import Compass from '../components/Compass.astro';
+import site from '../data/site.json';
+import { base, href, stripSlash } from '../lib/paths';
 
 const {
-  title = 'Frontier Adventures Co.',
-  description = 'A Belgian friend group exploring Disney parks and cruises together.',
+  title = site.name,
+  description = site.description,
   noindex = false,
 } = Astro.props;
-const rawBase = import.meta.env.BASE_URL || '/';
-const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
 
-// Absolute URLs for link previews (WhatsApp, iMessage, X, ...) and search engines
-const siteName = 'Frontier Adventures Co.';
+// Absolute URLs for link previews (WhatsApp, iMessage, X, ...) and search engines.
 // Pages are served as directories, so the canonical always ends in a slash (the home path
-// comes without one because the configured base has none)
+// comes without one because the configured base has none).
 const canonicalPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
 const canonicalUrl = new URL(canonicalPath, Astro.site ?? Astro.url).href;
+const siteUrl = new URL(base, Astro.site ?? Astro.url).href;
 const ogImage = new URL(`${base}og-image.jpg`, Astro.site ?? Astro.url).href;
 
-const navItems = [
-  { href: base, label: 'Home' },
-  { href: `${base}about`, label: 'The Group' },
-  { href: `${base}food`, label: 'Food & snacks' },
-  { href: `${base}reviews`, label: 'Travel reviews' },
-  { href: `${base}socials`, label: 'Socials' },
+// Short list shown in the header on wide screens
+const primaryNav = [
+  { href: href('about'), label: 'Our Crew' },
+  { href: href('adventures'), label: 'Adventures' },
+  { href: href('food'), label: 'Food & Snacks' },
+  { href: href('reviews'), label: 'Reviews' },
+  { href: href('socials'), label: 'Contact' },
 ];
 
-const stripSlash = (p: string) => p.replace(/\/+$/, '');
+// Full index shown in the journal menu (opened with the compass)
+const indexNav = [
+  { href: base, label: 'Home', note: 'Back to base camp' },
+  { href: href('about'), label: 'Our Crew', note: 'Five friends, one expedition' },
+  { href: href('adventures'), label: 'Adventures', note: 'The archive and the expedition map' },
+  { href: href('adventures#theme-parks'), label: 'Theme Parks', note: 'Parks, hotels and honest verdicts' },
+  { href: href('adventures#cruises'), label: 'Cruises', note: 'Life at sea with Disney Cruise Line' },
+  { href: href('food'), label: 'Food & Snacks', note: 'Everything worth eating, scored' },
+  { href: href('reviews'), label: 'Reviews', note: 'Parks, hotels and cruises in full' },
+  { href: href('socials'), label: 'Contact', note: 'Find us and say hello' },
+];
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
 const currentPath = stripSlash(Astro.url.pathname);
-const isCurrent = (href: string) => stripSlash(href) === currentPath;
+const isCurrent = (link: string) => !link.includes('#') && stripSlash(link) === currentPath;
+
+const mainSocials = site.socials.filter((s) => ['youtube', 'instagram', 'tiktok'].includes(s.id));
+const year = new Date().getFullYear();
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: site.name,
+  alternateName: site.formerName,
+  url: siteUrl,
+  description: site.description,
+  logo: ogImage,
+  sameAs: site.socials.map((s) => s.url),
+};
 ---
 
 <!DOCTYPE html>
@@ -36,140 +65,508 @@ const isCurrent = (href: string) => stripSlash(href) === currentPath;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
+    <meta name="theme-color" content="#142A24" />
     <title>{title}</title>
     <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
     {noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonicalUrl} />}
     <link rel="sitemap" href={`${base}sitemap-index.xml`} />
 
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content={siteName} />
+    <meta property="og:site_name" content={site.name} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {!noindex && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content="Five friends standing together in front of a Disney castle" />
+    <meta property="og:image:alt" content="Five friends standing together in front of a castle" />
     <meta property="og:locale" content="en_GB" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+
     <!-- Mark that JS runs, so reveal animations only hide content when they can also show it again -->
     <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
   <body class="antialiased">
     <a href="#main" class="skip-link" data-behind-menu>Skip to content</a>
 
-    <header class="fixed top-0 left-0 right-0 z-50 mix-blend-difference">
-      <nav class="flex items-center justify-between px-6 md:px-12 py-6" aria-label="Main">
-        <a href={base} class="display text-2xl tracking-tight text-white" data-behind-menu>Frontier</a>
-        <div class="hidden lg:flex items-center gap-6 xl:gap-10 text-sm uppercase tracking-widest text-white/80">
-          {navItems.map((item) => (
-            <a
-              href={item.href}
-              aria-current={isCurrent(item.href) ? 'page' : undefined}
-              class="nav-link hover:text-gold transition-colors"
-            >{item.label}</a>
+    <header id="site-header" class="site-header">
+      <div class="header-inner">
+        <a href={base} class="brand" data-behind-menu aria-label={`${site.name}, home`}>
+          <Logo variant="header" />
+        </a>
+
+        <nav class="primary-nav" aria-label="Main" data-behind-menu>
+          {primaryNav.map((item) => (
+            <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined} class="nav-link">
+              {item.label}
+            </a>
           ))}
-        </div>
+        </nav>
+
         <button
           id="menu-btn"
           type="button"
-          class="lg:hidden text-white text-2xl w-10 h-10 flex items-center justify-center"
-          aria-label="Open menu"
+          class="compass-btn"
+          aria-label="Open the expedition index"
           aria-expanded="false"
-          aria-controls="mobile-menu"
-        ><span aria-hidden="true" data-icon>☰</span></button>
-      </nav>
+          aria-controls="site-menu"
+        >
+          <span class="compass-btn-label" aria-hidden="true" data-menu-label>Index</span>
+          <span class="compass-btn-dial"><Compass /></span>
+        </button>
+      </div>
     </header>
 
-    <div id="mobile-menu" class="fixed inset-0 bg-ink z-40 hidden lg:hidden flex-col items-center justify-center gap-8 text-2xl">
-      {navItems.map((item) => (
-        <a
-          href={item.href}
-          aria-current={isCurrent(item.href) ? 'page' : undefined}
-          class="nav-link hover:text-gold"
-        >{item.label}</a>
-      ))}
+    <!-- Journal menu: the full index, opened from the compass -->
+    <div id="site-menu" class="site-menu surface-paper grain">
+      <div class="menu-inner">
+        <nav aria-label="Expedition index" class="menu-nav">
+          <p class="eyebrow">Expedition index</p>
+          <ol class="menu-list">
+            {indexNav.map((item, i) => (
+              <li style={`--i:${i}`}>
+                <a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined} class="menu-link">
+                  <span class="menu-num fell" aria-hidden="true">{roman[i]}.</span>
+                  <span class="menu-label display">{item.label}</span>
+                  <span class="menu-note fell">{item.note}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+
+        <aside class="menu-aside" aria-label="Follow the expedition">
+          <p class="eyebrow">Follow the expedition</p>
+          <ul class="menu-socials">
+            {mainSocials.map((s) => (
+              <li>
+                <a href={s.url} target="_blank" rel="noopener">
+                  <span class="display">{s.label}</span>
+                  <span class="fell">{s.handle}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+          <p class="menu-foot fell">Home port: {site.homePort}. Formerly {site.formerName}.</p>
+        </aside>
+      </div>
     </div>
 
     <main id="main" tabindex="-1" data-behind-menu>
       <slot />
     </main>
 
-    <footer data-behind-menu class="border-t border-white/10 py-12 px-6 md:px-12 text-sm text-white/60">
-      <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between gap-6">
-        <div>
-          <p class="display text-lg text-parchment">Frontier Adventures Co.</p>
-          <p class="mt-1">Belgian friends. Disney parks and cruises.</p>
+    <footer class="site-footer surface-mahogany grain" data-behind-menu>
+      <div class="shell">
+        <div class="footer-statement">
+          <p class="eyebrow no-rule">Until the next entry</p>
+          <p class="display footer-title">The Adventure Continues.</p>
         </div>
-        <div class="flex flex-wrap gap-x-6 gap-y-3">
-          <a href="https://www.instagram.com/the_frontier_adventures_co" target="_blank" rel="noopener" class="text-gold hover:underline">Follow on Instagram ↗</a>
-          <a href={`${base}socials`} class="hover:text-gold">Socials</a>
-          <a href={`${base}food`} class="hover:text-gold">Food & snacks</a>
-          <a href={`${base}reviews`} class="hover:text-gold">Travel reviews</a>
+
+        <div class="ornament" aria-hidden="true"><span></span></div>
+
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <a href={base} aria-label={`${site.name}, home`}><Logo variant="footer" /></a>
+            <p class="mt-5 max-w-xs text-parchment/75">
+              A Belgian crew of five friends and family, chasing theme parks, cruise decks and good food.
+            </p>
+            <p class="fell mt-4 text-parchment/60">Formerly {site.formerName}.</p>
+          </div>
+
+          <nav aria-label="Footer" class="footer-col">
+            <p class="footer-heading">Explore</p>
+            <ul>
+              {indexNav.filter((item) => !item.href.includes('#')).map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ul>
+          </nav>
+
+          <div class="footer-col">
+            <p class="footer-heading">Follow</p>
+            <ul>
+              {site.socials.map((s) => (
+                <li><a href={s.url} target="_blank" rel="noopener">{s.label} <span aria-hidden="true">↗</span></a></li>
+              ))}
+            </ul>
+          </div>
+
+          <div class="footer-col">
+            <p class="footer-heading">The fine print</p>
+            <ul>
+              <li><a href={href('privacy')}>Privacy</a></li>
+              <li><a href={href('privacy#disclaimer')}>Disclaimer</a></li>
+              <li><a href={href('socials')}>Contact</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-base">
+          <p>© {year} {site.name}. Made with friends, snacks and far too many photos.</p>
+          <p>An independent fan project. Not affiliated with The Walt Disney Company.</p>
         </div>
       </div>
     </footer>
 
     <script>
-      // Mobile menu
+      import '../scripts/motion';
+
+      // ----- Header state -----
+      const header = document.getElementById('site-header');
+      const setScrolled = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
+      setScrolled();
+      window.addEventListener('scroll', setScrolled, { passive: true });
+
+      // ----- Journal menu -----
       const btn = document.getElementById('menu-btn');
-      const menu = document.getElementById('mobile-menu');
-      const icon = btn?.querySelector('[data-icon]');
+      const menu = document.getElementById('site-menu');
+      const label = btn?.querySelector('[data-menu-label]');
+      const root = document.documentElement;
 
       const setMenu = (open: boolean, { restoreFocus = true } = {}) => {
         if (!btn || !menu) return;
-        menu.classList.toggle('hidden', !open);
-        menu.classList.toggle('flex', open);
+        if (open) {
+          // Open the page from the compass, like an aperture
+          const r = btn.getBoundingClientRect();
+          menu.style.setProperty('--cx', `${r.left + r.width / 2}px`);
+          menu.style.setProperty('--cy', `${r.top + r.height / 2}px`);
+          menu.scrollTop = 0;
+        }
+        root.classList.toggle('menu-open', open);
         btn.setAttribute('aria-expanded', String(open));
-        btn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-        if (icon) icon.textContent = open ? '✕' : '☰';
+        btn.setAttribute('aria-label', open ? 'Close the expedition index' : 'Open the expedition index');
+        if (label) label.textContent = open ? 'Close' : 'Index';
         document.body.classList.toggle('overflow-hidden', open);
         // Keep keyboard focus inside the overlay: everything behind it becomes inert
-        document.querySelectorAll('[data-behind-menu]').forEach(el => el.toggleAttribute('inert', open));
+        document.querySelectorAll('[data-behind-menu]').forEach((el) => el.toggleAttribute('inert', open));
         if (open) {
-          menu.querySelector('a')?.focus();
+          menu.querySelector('a')?.focus({ preventScroll: true });
         } else if (restoreFocus) {
           btn.focus();
         }
       };
 
-      btn?.addEventListener('click', () => {
-        setMenu(btn.getAttribute('aria-expanded') !== 'true');
-      });
-      menu?.querySelectorAll('a').forEach(a =>
+      btn?.addEventListener('click', () => setMenu(btn.getAttribute('aria-expanded') !== 'true'));
+      menu?.querySelectorAll('a').forEach((a) =>
         a.addEventListener('click', () => setMenu(false, { restoreFocus: false }))
       );
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && btn?.getAttribute('aria-expanded') === 'true') setMenu(false);
       });
-      // Close the overlay if the viewport grows past the mobile breakpoint
-      window.matchMedia('(min-width: 1024px)').addEventListener('change', (e) => {
-        if (e.matches) setMenu(false, { restoreFocus: false });
+      // A page restored from the back/forward cache must not come back with the menu open
+      window.addEventListener('pageshow', (e) => {
+        if (e.persisted) setMenu(false, { restoreFocus: false });
       });
 
-      // Reveal on scroll
-      const reveals = document.querySelectorAll('.reveal');
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduceMotion || !('IntersectionObserver' in window)) {
-        reveals.forEach(el => el.classList.add('visible'));
+      // ----- Explorer's compass: the needle follows the pointer, or the scroll on touch screens -----
+      const needleHost = btn?.querySelector<HTMLElement>('.compass-btn-dial');
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      if (needleHost && !reduceMotion.matches) {
+        let frame = 0;
+        let angle = 0;
+        const apply = () => {
+          frame = 0;
+          needleHost.style.setProperty('--needle', `${angle}deg`);
+        };
+        const schedule = () => { if (!frame) frame = requestAnimationFrame(apply); };
+
+        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+          window.addEventListener('pointermove', (e) => {
+            const r = needleHost.getBoundingClientRect();
+            const dx = e.clientX - (r.left + r.width / 2);
+            const dy = e.clientY - (r.top + r.height / 2);
+            const target = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+            // Take the short way round so the needle never spins a full turn
+            angle += ((((target - angle) % 360) + 540) % 360) - 180;
+            schedule();
+          }, { passive: true });
+        } else {
+          window.addEventListener('scroll', () => {
+            const max = document.documentElement.scrollHeight - window.innerHeight;
+            angle = max > 0 ? (window.scrollY / max) * 360 : 0;
+            schedule();
+          }, { passive: true });
+        }
+      }
+
+      // ----- Reveal on scroll -----
+      const reveals = document.querySelectorAll('.reveal, .unveil');
+      if (reduceMotion.matches || !('IntersectionObserver' in window)) {
+        reveals.forEach((el) => el.classList.add('visible'));
       } else {
         // Reveal as soon as any part of the element enters the viewport. A percentage-of-element
         // threshold can never be met by elements much taller than the screen (a long review),
         // which would then stay invisible. The 24px bottom margin cancels the translateY(24px)
         // of unrevealed elements, so nothing that is on screen stays hidden.
         const observer = new IntersectionObserver((entries) => {
-          entries.forEach(entry => {
+          entries.forEach((entry) => {
             if (entry.isIntersecting) {
               entry.target.classList.add('visible');
               observer.unobserve(entry.target);
             }
           });
         }, { threshold: 0, rootMargin: '0px 0px 24px 0px' });
-        reveals.forEach(el => observer.observe(el));
+        reveals.forEach((el) => observer.observe(el));
       }
     </script>
   </body>
 </html>
+
+<style>
+  /* ---------- Header ---------- */
+  .site-header {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 60;
+    transition: background-color 0.5s var(--ease-out), box-shadow 0.5s var(--ease-out);
+  }
+  /* Soft scrim so the header stays readable over photographs */
+  .site-header::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -2.5rem 0;
+    background: linear-gradient(180deg, rgb(12 27 23 / 0.82), rgb(12 27 23 / 0));
+    pointer-events: none;
+    transition: opacity 0.5s var(--ease-out);
+  }
+  .site-header.is-scrolled {
+    background: rgb(12 27 23 / 0.94);
+    box-shadow: 0 1px 0 rgb(196 154 80 / 0.28);
+  }
+  @supports (backdrop-filter: blur(8px)) {
+    .site-header.is-scrolled { background: rgb(12 27 23 / 0.93); backdrop-filter: blur(10px); }
+  }
+  .site-header.is-scrolled::before { opacity: 0; }
+  :global(.menu-open) .site-header { background: transparent; box-shadow: none; backdrop-filter: none; }
+  :global(.menu-open) .site-header::before { opacity: 0; }
+
+  .header-inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    height: var(--header-h);
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .header-inner { padding-inline: 3rem; }
+  }
+
+  .brand { display: inline-flex; transition: opacity 0.3s; }
+  :global(.menu-open) .brand { opacity: 0; }
+
+  .primary-nav {
+    display: none;
+    align-items: center;
+    gap: clamp(1.25rem, 2.2vw, 2.5rem);
+    margin-left: auto;
+    transition: opacity 0.3s;
+  }
+  @media (min-width: 1024px) {
+    .primary-nav { display: flex; }
+  }
+  :global(.menu-open) .primary-nav { opacity: 0; }
+
+  .nav-link {
+    position: relative;
+    padding-block: 0.6rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.82);
+    transition: color 0.3s;
+  }
+  /* Brass diamond that slides in under the link */
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 5px;
+    height: 5px;
+    background: var(--gold);
+    transform: translate(-50%, 6px) rotate(45deg) scale(0);
+    transition: transform 0.45s var(--ease-out);
+  }
+  .nav-link:hover,
+  .nav-link[aria-current='page'] { color: var(--parchment-light); }
+  .nav-link:hover::after,
+  .nav-link[aria-current='page']::after { transform: translate(-50%, 0) rotate(45deg) scale(1); }
+
+  /* ---------- Compass button ---------- */
+  .compass-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    color: var(--gold);
+    transition: color 0.4s var(--ease-out);
+  }
+  .compass-btn:hover { color: var(--gold-bright); }
+  .compass-btn-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+  }
+  .compass-btn-dial {
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0.2rem;
+    border-radius: 50%;
+    background: rgb(12 27 23 / 0.55);
+    transition: background-color 0.4s var(--ease-out), transform 0.6s var(--ease-out);
+  }
+  .compass-btn:hover .compass-btn-dial { transform: scale(1.06); }
+  :global(.menu-open) .compass-btn { color: var(--mahogany); }
+  :global(.menu-open) .compass-btn-dial { background: rgb(72 42 27 / 0.08); }
+
+  /* ---------- Journal menu ---------- */
+  .site-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    visibility: hidden;
+    clip-path: circle(0 at var(--cx, calc(100% - 3rem)) var(--cy, 2.25rem));
+    transition: clip-path 0.65s var(--ease-out), visibility 0s linear 0.65s;
+  }
+  :global(.menu-open) .site-menu {
+    visibility: visible;
+    clip-path: circle(150vmax at var(--cx, calc(100% - 3rem)) var(--cy, 2.25rem));
+    transition: clip-path 0.9s var(--ease-out), visibility 0s;
+  }
+
+  .menu-inner {
+    display: grid;
+    gap: 3rem;
+    min-height: 100%;
+    max-width: 76rem;
+    margin-inline: auto;
+    padding: calc(var(--header-h) + 2rem) 1.5rem 3rem;
+  }
+  @media (min-width: 900px) {
+    .menu-inner {
+      grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+      align-items: start;
+      gap: 5rem;
+      padding: calc(var(--header-h) + 3.5rem) 3rem 4rem;
+    }
+  }
+
+  .menu-list { margin-top: 1.5rem; border-top: 1px solid rgb(72 42 27 / 0.3); }
+  .menu-list li {
+    border-bottom: 1px solid rgb(72 42 27 / 0.3);
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  :global(.menu-open) .menu-list li {
+    opacity: 1;
+    transform: none;
+    transition: opacity 0.7s var(--ease-out), transform 0.7s var(--ease-out);
+    transition-delay: calc(0.18s + var(--i) * 0.045s);
+  }
+  .menu-link {
+    display: grid;
+    grid-template-columns: 2.6rem 1fr;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    padding: 0.85rem 0;
+    color: var(--mahogany-deep);
+    transition: color 0.3s, padding-left 0.5s var(--ease-out);
+  }
+  @media (min-width: 640px) {
+    .menu-link { grid-template-columns: 3.2rem auto 1fr; column-gap: 1.25rem; }
+  }
+  .menu-link:hover { padding-left: 0.6rem; color: var(--mahogany); }
+  .menu-num { font-size: 1.05rem; color: rgb(72 42 27 / 0.7); }
+  .menu-label { font-size: clamp(1.7rem, 1.2rem + 2.6vw, 2.9rem); line-height: 1.1; }
+  .menu-note {
+    grid-column: 2;
+    font-size: 1rem;
+    color: rgb(72 42 27 / 0.82);
+  }
+  @media (min-width: 640px) {
+    .menu-note { grid-column: 3; text-align: right; }
+  }
+  .menu-link[aria-current='page'] .menu-label {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.18em;
+  }
+
+  .menu-socials { margin-top: 1.5rem; display: grid; gap: 1rem; }
+  .menu-socials a { display: grid; gap: 0.1rem; color: var(--mahogany-deep); }
+  .menu-socials a .display { font-size: 1.5rem; }
+  .menu-socials a .fell { color: rgb(72 42 27 / 0.82); overflow-wrap: anywhere; }
+  .menu-socials a:hover .display { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
+  .menu-foot { margin-top: 2.5rem; color: rgb(72 42 27 / 0.82); }
+
+  /* ---------- Footer ---------- */
+  .site-footer {
+    padding-block: clamp(4rem, 9vw, 7.5rem) 2.5rem;
+    color: rgb(232 211 165 / 0.82);
+  }
+  .footer-statement { text-align: center; margin-bottom: clamp(2.5rem, 6vw, 4.5rem); }
+  .footer-title {
+    margin-top: 1rem;
+    font-size: clamp(2.6rem, 1.2rem + 7vw, 7rem);
+    color: var(--parchment-light);
+  }
+  .footer-grid {
+    display: grid;
+    gap: 2.5rem;
+    margin-top: clamp(2.5rem, 6vw, 4.5rem);
+  }
+  @media (min-width: 640px) {
+    .footer-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .footer-brand { grid-column: 1 / -1; }
+  }
+  @media (min-width: 1024px) {
+    .footer-grid { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); gap: 3rem; }
+    .footer-brand { grid-column: auto; }
+  }
+  .footer-heading {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1rem;
+  }
+  .footer-col ul { display: grid; gap: 0.15rem; }
+  .footer-col a {
+    display: inline-block;
+    padding-block: 0.4rem;
+    color: rgb(232 211 165 / 0.86);
+    transition: color 0.3s;
+  }
+  .footer-col a:hover { color: var(--gold-bright); }
+  .footer-base {
+    display: grid;
+    gap: 0.5rem;
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(232 211 165 / 0.18);
+    font-size: 0.85rem;
+    color: rgb(232 211 165 / 0.7);
+  }
+  @media (min-width: 900px) {
+    .footer-base { grid-template-columns: 1fr auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .site-menu,
+    :global(.menu-open) .site-menu { transition: none; }
+    .menu-list li { opacity: 1; transform: none; }
+  }
+</style>

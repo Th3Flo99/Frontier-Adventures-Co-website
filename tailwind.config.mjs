@@ -10,17 +10,25 @@ export default {
         hero: { raw: '(min-width: 1024px) and (min-aspect-ratio: 5/4)' },
         'hero-xl': { raw: '(min-width: 1280px) and (min-aspect-ratio: 5/4)' },
       },
+      // Frontier Adventurers palette. Gold is an accent for dark surfaces only:
+      // on parchment it does not have enough contrast for text, use mahogany there.
       colors: {
-        ink: '#0B1419',
-        gold: '#E0A84A',
-        parchment: '#F5F0E6',
-        crimson: '#C4504A',
-        teal: '#2A9D8F',
-        deep: '#061014',
+        jungle: { DEFAULT: '#142A24', deep: '#0C1B17', light: '#1E3B33' },
+        gold: { DEFAULT: '#C49A50', bright: '#DDB96F', dim: '#8E7038' },
+        parchment: { DEFAULT: '#E8D3A5', light: '#F3E8CC', dark: '#D4BC88' },
+        mahogany: { DEFAULT: '#482A1B', deep: '#2C190F' },
+        midnight: { DEFAULT: '#192338', deep: '#101828' },
       },
       fontFamily: {
-        display: ['Fraunces', 'serif'],
-        sans: ['Outfit', 'system-ui', 'sans-serif'],
+        display: ['"Besley Variable"', 'Besley', 'Georgia', 'serif'],
+        fell: ['"IM Fell English"', 'Georgia', 'serif'],
+        sans: ['"Instrument Sans Variable"', '"Instrument Sans"', 'system-ui', 'sans-serif'],
+      },
+      letterSpacing: {
+        label: '0.22em',
+      },
+      maxWidth: {
+        site: '76rem',
       },
     },
   },

@@ -1,0 +1,44 @@
+{
+  "name": "Frontier Adventurers",
+  "formerName": "The Frontier Adventures Co",
+  "tagline": "Five friends. Endless adventures.",
+  "description": "Frontier Adventurers is a Belgian crew of five friends and family sharing theme park adventures, Disney cruises, food reviews and honest travel stories.",
+  "homePort": "Belgium",
+  "socials": [
+    {
+      "id": "youtube",
+      "label": "YouTube",
+      "handle": "@The_Frontier_Adventures_Co",
+      "url": "https://www.youtube.com/@The_Frontier_Adventures_Co",
+      "blurb": "Walkthroughs, cruise days and full trip films."
+    },
+    {
+      "id": "instagram",
+      "label": "Instagram",
+      "handle": "@the_frontier_adventures_co",
+      "url": "https://www.instagram.com/the_frontier_adventures_co",
+      "blurb": "Photos, reels and stories from the road."
+    },
+    {
+      "id": "tiktok",
+      "label": "TikTok",
+      "handle": "@thefrontieradventuresco",
+      "url": "https://www.tiktok.com/@thefrontieradventuresco",
+      "blurb": "Short clips, snack verdicts and park moments."
+    },
+    {
+      "id": "x",
+      "label": "X",
+      "handle": "@florianronsse",
+      "url": "https://x.com/florianronsse",
+      "blurb": "Florian's notes between trips."
+    },
+    {
+      "id": "linktree",
+      "label": "Linktree",
+      "handle": "thefrontieradventuresco",
+      "url": "https://linktr.ee/thefrontieradventuresco",
+      "blurb": "Every link in one place."
+    }
+  ]
+}
