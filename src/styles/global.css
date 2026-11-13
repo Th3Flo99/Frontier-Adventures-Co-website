@@ -411,7 +411,10 @@ main:focus { outline: none; }
 }
 
 /* Image that unveils from behind a rising mask */
+/* overflow: hidden lets the browser start loading a lazy image behind the mask ahead of time;
+   without it the image is only fetched once the wipe has finished and the frame shows empty */
 .js .unveil {
+  overflow: hidden;
   clip-path: inset(0 0 100% 0);
   transition: clip-path 1.2s var(--ease-out);
   transition-delay: var(--reveal-delay, 0ms);
