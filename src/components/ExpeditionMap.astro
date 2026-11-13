@@ -34,7 +34,11 @@ const chart = buildChart(world, home, destinations);
 // ----- Destinations and what we have published from each -----
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 const words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
-const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+// Counts are set in IM Fell, whose old-style figures are hard to read ("1" looks like "I"),
+// so small numbers are written out.
+const WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const count = (n: number, one: string, many = `${one}s`) => `${WORDS[n] ?? n} ${n === 1 ? one : many}`;
+const cap = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
 // Where the brass tag hangs relative to the pin (in screen pixels), where its name goes, and
 // how much room (top, right, bottom, left, in pixels) the frame keeps free for both: on wide
@@ -66,7 +70,7 @@ const stops = destinations.map((d, i) => {
       { title: 'Reviews', items: reviewList },
       { title: 'Food notes', items: foodList },
     ].filter((g) => g.items.length > 0),
-    countLine: all.length ? `${parts.join(' and ')} logged here so far.` : 'Nothing logged here yet.',
+    countLine: all.length ? `${cap(parts.join(' and '))} logged here so far.` : 'Nothing logged here yet.',
     point: chart.points[i],
     route: chart.routes[i],
     tag: tagLayout(d),
@@ -488,7 +492,7 @@ const jokes = [
             </div>
           </dl>
           <p class="entry-count fell">
-            {count(stops.length, 'destination')} charted, {count(totalEntries, 'journal entry', 'journal entries')} pinned to {stops.length === 1 ? 'it' : 'them'}. The rest is blank paper.
+            {cap(count(stops.length, 'destination'))} charted, {count(totalEntries, 'journal entry', 'journal entries')} pinned to {stops.length === 1 ? 'it' : 'them'}. The rest is blank paper.
           </p>
         </article>
 
@@ -515,7 +519,7 @@ const jokes = [
                           <span class="ledger-kind fell">{e.label}{e.place && e.place !== s.name ? `, ${e.place}` : ''}</span>
                         </span>
                         <span class="ledger-score">
-                          <span class="ledger-figure fell" aria-hidden="true">{scoreText(e)}</span>
+                          <span class="ledger-figure display" aria-hidden="true">{scoreText(e)}</span>
                           <span class="ledger-outof" aria-hidden="true">/ 5</span>
                           <span class="sr-only">{e.scoreLabel}</span>
                         </span>
@@ -1242,7 +1246,7 @@ const jokes = [
   .ledger-row:hover .ledger-name { color: var(--gold-bright); text-decoration-color: currentColor; }
   .ledger-kind { font-size: 0.98rem; color: rgb(232 211 165 / 0.78); }
   .ledger-score { display: inline-flex; align-items: baseline; white-space: nowrap; }
-  .ledger-figure { font-size: 1.75rem; line-height: 1; color: var(--gold-bright); }
+  .ledger-figure { font-size: 1.6rem; line-height: 1; color: var(--gold-bright); }
   .ledger-outof {
     margin-left: 0.3rem;
     font-size: 0.7rem;
