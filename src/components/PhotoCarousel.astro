@@ -14,6 +14,7 @@ const multiple = photos.length > 1;
     id={id}
     data-track
     class:list={['photo-track', { portrait }]}
+    role={multiple ? 'group' : undefined}
     tabindex={multiple ? '0' : undefined}
     aria-label={multiple ? `${label}. Use left and right arrow keys to browse photos.` : undefined}
   >
@@ -44,15 +45,34 @@ const multiple = photos.length > 1;
 </photo-carousel>
 
 <style>
-  photo-carousel { display: block; min-width: 0; }
+  /* Colours follow the surface the carousel sits on: brass on the dark walls, mahogany on paper */
+  photo-carousel {
+    --pc-line: rgb(196 154 80 / 0.42);
+    --pc-accent: var(--gold);
+    --pc-accent-ink: var(--jungle-deep);
+    --pc-text: rgb(232 211 165 / 0.82);
+    --pc-mute: rgb(232 211 165 / 0.55);
+    display: block;
+    min-width: 0;
+  }
+  :global(.surface-paper) photo-carousel {
+    --pc-line: rgb(72 42 27 / 0.45);
+    --pc-accent: var(--mahogany);
+    --pc-accent-ink: var(--parchment-light);
+    --pc-text: rgb(72 42 27 / 0.86);
+    --pc-mute: rgb(72 42 27 / 0.6);
+  }
+
+  /* A single brass hairline round the track. Pages that mount it add their own keyline on top. */
   .photo-track {
     display: flex;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
-    background: var(--deep, #061014);
-    border: 1px solid rgb(255 255 255 / 0.1);
+    background: var(--jungle-deep, #0C1B17);
+    border: 1px solid var(--pc-line);
     scrollbar-width: thin;
+    scrollbar-color: var(--pc-accent) transparent;
   }
   .photo-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; aspect-ratio: 16 / 9; }
   .photo-slide :global(img) { display: block; width: 100%; height: 100%; object-fit: contain; }
@@ -60,17 +80,76 @@ const multiple = photos.length > 1;
      slide, so there are no dark bars. Mixed sets keep "contain" so nothing gets cropped. */
   .portrait .photo-slide { aspect-ratio: 3 / 4; }
   .portrait .photo-slide :global(img) { object-fit: cover; }
+
   .photo-controls { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; }
   .photo-controls[hidden] { display: none; }
-  .photo-controls > button { width: 44px; height: 44px; flex-shrink: 0; border: 1px solid rgb(255 255 255 / 0.3); font-size: 1.25rem; transition: border-color 0.2s, color 0.2s; }
-  .photo-controls > button:hover:enabled { border-color: var(--gold); color: var(--gold); }
-  .photo-controls > button:disabled { opacity: 0.3; cursor: not-allowed; }
+
+  /* Arrows: square brass keys with an engraved inner line */
+  .photo-controls > button {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--pc-line);
+    color: var(--pc-accent);
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: background-color 0.35s var(--ease-out), color 0.35s var(--ease-out), border-color 0.35s var(--ease-out);
+  }
+  .photo-controls > button::before {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid currentColor;
+    opacity: 0.28;
+    pointer-events: none;
+  }
+  .photo-controls > button > span { transition: transform 0.45s var(--ease-out); }
+  /* Hover only where there is a pointer that can hover, so a tap does not leave a key lit */
+  @media (hover: hover) {
+    .photo-controls > button:hover:enabled {
+      background: var(--pc-accent);
+      border-color: var(--pc-accent);
+      color: var(--pc-accent-ink);
+    }
+    .photo-controls > [data-prev]:hover:enabled > span { transform: translateX(-0.2rem); }
+    .photo-controls > [data-next]:hover:enabled > span { transform: translateX(0.2rem); }
+    .photo-dots button:hover span { border-color: var(--pc-accent); }
+  }
+  .photo-controls > button:active:enabled {
+    background: var(--pc-accent);
+    border-color: var(--pc-accent);
+    color: var(--pc-accent-ink);
+  }
+  .photo-controls > button:disabled { opacity: 0.35; cursor: not-allowed; }
+
   .photo-position { min-width: 0; text-align: center; }
-  .photo-position p { font-size: 0.75rem; color: rgb(255 255 255 / 0.7); }
-  .photo-dots { display: flex; flex-wrap: wrap; justify-content: center; }
-  .photo-dots button { width: 44px; height: 44px; display: grid; place-items: center; }
-  .photo-dots span { width: 6px; height: 6px; background: rgb(255 255 255 / 0.35); border-radius: 50%; }
-  .photo-dots [aria-current='true'] span { width: 20px; border-radius: 4px; background: var(--gold); }
+  .photo-position p {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.2;
+    color: var(--pc-text);
+  }
+
+  /* Dots: open diamonds, the current one inked in and a size larger */
+  .photo-dots { display: flex; justify-content: center; }
+  /* Dots may narrow to 28px so four fit beside the arrows on a 320px phone. */
+  .photo-dots button { flex: 0 1 44px; min-width: 28px; height: 44px; display: grid; place-items: center; }
+  .photo-dots span {
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--pc-mute);
+    transform: rotate(45deg);
+    transition: transform 0.45s var(--ease-out), background-color 0.3s, border-color 0.3s;
+  }
+  .photo-dots [aria-current='true'] span {
+    background: var(--pc-accent);
+    border-color: var(--pc-accent);
+    transform: rotate(45deg) scale(1.45);
+  }
 </style>
 
 <script>

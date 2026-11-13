@@ -1,4 +1,271 @@
 ---
-// STUB: replaced by the real component
+// Home page, Chapter II: the crew as a wall of portraits in the lodge.
+// Each portrait links to that member's file on /about (the ids there are the lower-cased
+// first names).
+import LocalPhoto from './LocalPhoto.astro';
+import group from '../data/group.json';
+import { href } from '../lib/paths';
+
+// Alt text describes what each lead photograph actually shows.
+const alts: Record<string, string> = {
+  'photos/florian/bus.jpg': 'Florian smiling on a bus, wearing a patterned shirt',
+  'photos/megan/food.jpg': 'Megan laughing at a restaurant table with plates of food',
+  'photos/elias/pooh.jpg': 'Elias sitting on a bench in a garden',
+  'photos/lotte/lake.jpg': 'Lotte in sunglasses standing by a lake',
+  'photos/thibeau/balcony.jpg': 'Tibeau holding a drink on a balcony with the sea behind him',
+};
+
+// How each frame hangs on wide screens: relative width and how far below the picture rail.
+const hang = [
+  { w: 1.18, drop: '2rem' },
+  { w: 1, drop: '6.5rem' },
+  { w: 1.1, drop: '3.5rem' },
+  { w: 0.96, drop: '8rem' },
+  { w: 1.14, drop: '4.75rem' },
+];
+
+const crew = group.map((person, i) => {
+  const first = person.name.split(' ')[0];
+  return {
+    first,
+    role: person.role,
+    slug: first.toLowerCase(),
+    no: String(i + 1).padStart(2, '0'),
+    src: person.image,
+    alt: alts[person.image] ?? `Photograph of ${first}`,
+    hang: hang[i % hang.length],
+  };
+});
 ---
-<section class="section"><div class="shell"><p class="eyebrow">CrewTeaser</p></div></section>
+
+<section id="crew" class="crew-teaser surface-jungle grain section" aria-labelledby="crew-teaser-title">
+  <div class="shell">
+    <div class="grid gap-8 lg:grid-cols-12 lg:gap-16 lg:items-end">
+      <div class="lg:col-span-7">
+        <p class="eyebrow reveal">Chapter II · Meet the Crew</p>
+        <h2 id="crew-teaser-title" class="display chapter-title mt-5 text-parchment-light reveal">The Five of Us.</h2>
+      </div>
+      <div class="lg:col-span-5">
+        <p class="lede reveal" style="--reveal-delay: 120ms">
+          One group lead, one food expert, one drink expert, one social media expert and one reliable third vote. Friends and family from Belgium, hung here in order of file number.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wall-shell">
+    <div class="wall" style={`--cols: ${crew.map((m) => `minmax(0, ${m.hang.w}fr)`).join(' ')}`}>
+      <p class="wall-note fell">Portraits from the lodge wall.</p>
+      <ul role="list" class="wall-list">
+        {crew.map((member, i) => (
+          <li class="wall-item" style={`--drop: ${member.hang.drop}`}>
+            <a href={href(`about#${member.slug}`)} class="portrait reveal" style={`--reveal-delay: ${i * 90}ms`}>
+              <span class="frame portrait-frame">
+                <LocalPhoto
+                  src={member.src}
+                  alt={member.alt}
+                  sizes="(min-width: 1440px) 300px, (min-width: 1024px) 20vw, (min-width: 640px) 30vw, 45vw"
+                  class="photo-grade portrait-img"
+                />
+              </span>
+              <span class="portrait-caption">
+                <span class="fell portrait-no">No. {member.no}</span>
+                <span class="display portrait-name">
+                  {member.first}
+                  <span class="portrait-arrow" aria-hidden="true">→</span>
+                </span>
+                <span class="portrait-role">{member.role}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <div class="wall-cta reveal">
+        <p class="fell wall-cta-note">Every portrait opens a file.</p>
+        <a href={href('about')} class="btn btn-brass">Meet the Crew <span class="arrow" aria-hidden="true">→</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .crew-teaser { overflow: hidden; }
+
+  /* The wall breaks out a little wider than the text column so the portraits get real size */
+  .wall-shell {
+    width: 100%;
+    max-width: 90rem;
+    margin-inline: auto;
+    margin-top: clamp(2.5rem, 6vw, 4.5rem);
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .wall-shell { padding-inline: 3rem; }
+  }
+
+  /* ---------- Small screens: two columns laid like brickwork ----------
+     The right-hand column hangs half a frame lower. The shift is worked out from the wall's
+     own width (a frame is 3:4 of a column), so it holds at every phone size. */
+  .wall {
+    --gap: 1rem;
+    --shift: calc((100cqw - var(--gap)) / 2 * 0.6667 + 2.75rem);
+    container-type: inline-size;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--gap);
+  }
+  .wall-list { display: contents; }
+  .wall-item { padding-bottom: 1.75rem; }
+  .wall-item:nth-child(odd) { grid-column: 1; }
+  .wall-item:nth-child(even) { grid-column: 2; position: relative; top: var(--shift); }
+  .wall-item:nth-child(1), .wall-item:nth-child(2) { grid-row: 1; }
+  .wall-item:nth-child(3), .wall-item:nth-child(4) { grid-row: 2; }
+  .wall-item:nth-child(5) { grid-row: 3; }
+  /* The two half-brick gaps carry the wall's captions: one top right, one bottom right */
+  .wall-note,
+  .wall-cta-note {
+    grid-column: 2;
+    padding-left: 0.9rem;
+    border-left: 1px solid rgb(196 154 80 / 0.45);
+    font-size: 1.05rem;
+    line-height: 1.35;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .wall-note { grid-row: 1; align-self: start; }
+  .wall-cta { display: contents; }
+  .wall-cta-note { grid-row: 3; align-self: end; margin-bottom: 1.75rem; }
+  .wall-cta .btn { grid-column: 1 / -1; grid-row: 4; margin-top: 0.75rem; }
+
+  /* ---------- Portrait ---------- */
+  .portrait { display: block; }
+  .portrait-frame { overflow: hidden; background: var(--jungle-deep); }
+  .portrait-frame :global(.portrait-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+  .portrait:hover :global(.portrait-img),
+  .portrait:focus-visible :global(.portrait-img) { transform: scale(1.035); }
+
+  /* Plate caption under the frame */
+  .portrait-caption {
+    display: grid;
+    gap: 0.15rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid transparent;
+  }
+  .portrait-no { font-size: 0.95rem; line-height: 1.2; color: var(--gold); }
+  .portrait-name {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    font-size: clamp(1.35rem, 1.1rem + 0.9vw, 1.9rem);
+    line-height: 1.1;
+    color: var(--parchment-light);
+    transition: transform 0.5s var(--ease-out), color 0.3s;
+  }
+  .portrait-arrow {
+    font-family: 'Instrument Sans Variable', 'Instrument Sans', system-ui, sans-serif;
+    font-size: 0.62em;
+    font-weight: 500;
+    color: var(--gold-bright);
+    opacity: 0;
+    transform: translateX(-0.5rem);
+    transition: opacity 0.4s var(--ease-out), transform 0.5s var(--ease-out);
+  }
+  .portrait-role {
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    line-height: 1.5;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.78);
+  }
+  .portrait:hover .portrait-name,
+  .portrait:focus-visible .portrait-name { transform: translateX(0.4rem); color: var(--gold-bright); }
+  .portrait:hover .portrait-arrow,
+  .portrait:focus-visible .portrait-arrow { opacity: 1; transform: none; }
+  /* Keyboard focus moves the keyline the same way the pointer does */
+  .portrait:focus-visible > .frame::after { inset: 0.9rem; border-color: var(--gold-bright); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .portrait:hover :global(.portrait-img),
+    .portrait:focus-visible :global(.portrait-img),
+    .portrait:hover .portrait-name,
+    .portrait:focus-visible .portrait-name,
+    .portrait-arrow { transform: none; }
+  }
+
+  /* ---------- Medium screens: three above, two below, set between them ---------- */
+  @media (min-width: 640px) {
+    .wall { grid-template-columns: repeat(6, minmax(0, 1fr)); column-gap: 1.5rem; }
+    .wall-item { padding-bottom: 2.25rem; }
+    .wall-item:nth-child(n) { position: static; grid-column: auto / span 2; }
+    .wall-item:nth-child(4) { grid-column: 2 / span 2; }
+    .wall-item:nth-child(5) { grid-column: 4 / span 2; }
+    .wall-item:nth-child(-n + 3) { grid-row: 1; }
+    .wall-item:nth-child(n + 4) { grid-row: 2; }
+    .wall-note { display: none; }
+    .wall-cta {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      margin-top: 0.5rem;
+      padding-top: 1.75rem;
+      border-top: 1px solid rgb(196 154 80 / 0.3);
+    }
+    .wall-cta-note { margin: 0; padding: 0; border: 0; font-size: 1.1rem; }
+    .wall-cta .btn { margin-top: 0; }
+  }
+
+  /* ---------- Wide screens: five frames hung from a picture rail ---------- */
+  @media (min-width: 1024px) {
+    .wall {
+      grid-template-columns: var(--cols);
+      column-gap: clamp(1.25rem, 2.2vw, 2.25rem);
+      align-items: start;
+      border-top: 1px solid rgb(196 154 80 / 0.45);
+    }
+    .wall-item:nth-child(n) {
+      grid-column: auto;
+      grid-row: 1;
+      position: relative;
+      top: auto;
+      padding-top: var(--drop);
+      padding-bottom: 0;
+    }
+    /* The wire from the rail to the frame, and the pin it hangs from */
+    .wall-item::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      width: 1px;
+      height: var(--drop);
+      background: rgb(196 154 80 / 0.45);
+    }
+    .wall-item::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: 50%;
+      width: 5px;
+      height: 5px;
+      margin-left: -2px;
+      background: var(--gold);
+      transform: rotate(45deg);
+    }
+    .wall-cta {
+      grid-row: 2;
+      margin-top: clamp(2.5rem, 4vw, 3.5rem);
+      padding-top: 0;
+      border-top: 0;
+    }
+  }
+</style>

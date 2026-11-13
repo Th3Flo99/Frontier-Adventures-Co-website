@@ -1,4 +1,1342 @@
 ---
-// STUB: replaced by the real component
+// The Expedition Map: a world chart in the manner of an old nautical plate, drawn at build
+// time as plain inline SVG (see ./map/chart.ts). The browser receives static markup; the
+// script at the bottom only moves the frame, marks the chosen destination and opens its
+// journal entry. Without JavaScript every entry is listed under the chart.
+//
+// Content honesty: the chart shows the home port and the destinations in
+// src/data/destinations.json, nothing else. A new destination in that file appears here
+// by itself; `tagLayout` below decides where its brass tag hangs.
+import LocalPhoto from './LocalPhoto.astro';
+// @ts-ignore: JSON from a build-only package
+import world from 'world-atlas/countries-50m.json';
+import { home, destinations, entriesByDestination, type Destination } from '../lib/adventures';
+import { href } from '../lib/paths';
+import { buildChart, W, H, sheetBox, worldBox, lonToX, latToY, unionBox } from './map/chart';
+import { fitFrame, toViewBox, round } from './map/frame';
+
+interface Props {
+  eyebrow?: string;
+  title?: string;
+  headingLevel?: 2 | 3 | 4;
+}
+const {
+  eyebrow = 'Chapter I · The Expedition Map',
+  title = 'A Chart of Known Adventures',
+  headingLevel = 2,
+} = Astro.props;
+const Heading = `h${headingLevel}`;
+const SubHeading = `h${headingLevel + 1}`;
+const MinorHeading = `h${headingLevel + 2}`;
+
+const chart = buildChart(world, home, destinations);
+
+// ----- Destinations and what we have published from each -----
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+const words = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Eleven', 'Twelve'];
+const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+// Where the brass tag hangs relative to the pin (in screen pixels), where its name goes, and
+// how much room (top, right, bottom, left, in pixels) the frame keeps free for both: on wide
+// screens, and on phones, where every name sits under its tag.
+// A position at sea is symbolic, so its tag sits on the spot inside a dashed ring instead.
+const tagLayout = (d: Destination) =>
+  d.approximate
+    ? { dx: 0, dy: 0, label: 'left' as const, pads: [52, 66, 86, 158], padsCompact: [52, 60, 94, 86] }
+    : { dx: 15, dy: 25, label: 'below' as const, pads: [52, 88, 86, 48], padsCompact: [52, 88, 86, 48] };
+
+const stops = destinations.map((d, i) => {
+  const all = entriesByDestination(d.id);
+  const reviewList = all.filter((e) => e.kind === 'review');
+  const foodList = all.filter((e) => e.kind === 'food');
+  const parts = [
+    reviewList.length ? count(reviewList.length, 'review') : '',
+    foodList.length ? count(foodList.length, 'food note') : '',
+  ].filter(Boolean);
+  return {
+    ...d,
+    numeral: roman[i] ?? String(i + 1),
+    kindLabel: d.kind === 'cruise' ? 'At sea' : 'Theme park resort',
+    archive:
+      d.kind === 'cruise'
+        ? { url: href('adventures#cruises'), label: 'All cruise entries' }
+        : { url: href('adventures#theme-parks'), label: 'All theme park entries' },
+    total: all.length,
+    groups: [
+      { title: 'Reviews', items: reviewList },
+      { title: 'Food notes', items: foodList },
+    ].filter((g) => g.items.length > 0),
+    countLine: all.length ? `${parts.join(' and ')} logged here so far.` : 'Nothing logged here yet.',
+    point: chart.points[i],
+    route: chart.routes[i],
+    tag: tagLayout(d),
+  };
+});
+const totalEntries = stops.reduce((sum, s) => sum + s.total, 0);
+const destinationWord = words[stops.length] ?? String(stops.length);
+const scoreText = (e: { kind: string; score: number }) => (e.kind === 'food' ? e.score.toFixed(1) : String(e.score));
+
+// ----- Frames -----
+// Everything we have charted, in one box: this is what a phone shows first.
+const contentBox = unionBox(stops.map((s) => s.route.box));
+const compactPads = { top: 52, right: 88, bottom: 86, left: 48 };
+// First paint on a phone (334 x 267 is the chart window of a 390px screen). A one-line inline
+// script right after the SVG applies it before the module script arrives, which then refines it.
+const compactFrame = fitFrame(contentBox, 334, 267, sheetBox, compactPads);
+const worldRatio = `${W} / ${worldBox.h}`;
+// The same phone framing for visitors without JavaScript, as a transform of the drawing.
+// The SVG then still has the whole-chart viewBox, sliced to the 5:4 window.
+const sliceW = worldBox.h * 1.25;
+const noJsScale = sliceW / compactFrame.w;
+const noJsTransform = `translate(${round((W - sliceW) / 2 - compactFrame.x * noJsScale)}px, ${round(worldBox.y - compactFrame.y * noJsScale)}px) scale(${round(noJsScale, 4)})`;
+const noJsK = round(compactFrame.w / 334, 4);
+
+// ----- Chart furniture -----
+// Compass rose in the mid-Atlantic, on the Equator between Brazil and West Africa
+const rose = { x: round(lonToX(-24), 1), y: round(latToY(-4), 1), r: 30 };
+// Each point of the rose is a kite from the hub, split into an inked and a plain half
+const turn = (px: number, py: number, deg: number) => {
+  const a = (deg * Math.PI) / 180;
+  return `${round(px * Math.cos(a) - py * Math.sin(a))} ${round(px * Math.sin(a) + py * Math.cos(a))}`;
+};
+const points = (angles: number[], len: number, side: number, halfAngle: number) => {
+  const h = (halfAngle * Math.PI) / 180;
+  const sx = side * Math.sin(h);
+  const sy = -side * Math.cos(h);
+  return {
+    dark: angles.map((a) => `M0 0L${turn(0, -len, a)}L${turn(-sx, sy, a)}Z`).join(''),
+    light: angles.map((a) => `M0 0L${turn(0, -len, a)}L${turn(sx, sy, a)}Z`).join(''),
+  };
+};
+const quarter = (a: number) => [0, 90, 180, 270].map((q) => a + q);
+// Drawn in this order: sixteen small points, then the half-winds and ordinals, cardinals on top
+const rosePoints = [
+  points([11.25, 33.75, 56.25, 78.75].flatMap(quarter), 11.5, 3.4, 11.25),
+  points([22.5, 67.5].flatMap(quarter), 15.5, 4.2, 22.5),
+  points(quarter(45), 20, 5.4, 45),
+  points(quarter(0), 27, 6.6, 45),
+];
+const roseTicks = Array.from({ length: 32 }, (_, i) => {
+  const a = i * 11.25;
+  return `M${turn(0, -(rose.r - 2.6), a)}L${turn(0, -(i % 4 === 0 ? rose.r + 1.6 : rose.r), a)}`;
+}).join('');
+// Rhumb lines: on Mercator a constant compass bearing is a straight line
+const rhumb = (deg: number) => {
+  const a = (deg * Math.PI) / 180;
+  const dx = round(Math.sin(a) * 1400, 1);
+  const dy = round(-Math.cos(a) * 1400, 1);
+  return `M${round(rose.x - dx, 1)} ${round(rose.y - dy, 1)}L${round(rose.x + dx, 1)} ${round(rose.y + dy, 1)}`;
+};
+const rhumbsMajor = [0, 45, 90, 135].map(rhumb).join('');
+const rhumbsMinor = [11.25, 22.5, 33.75, 56.25, 67.5, 78.75, 101.25, 112.5, 123.75, 146.25, 157.5, 168.75].map(rhumb).join('');
+
+const y = (lat: number) => round(latToY(lat), 1);
+const x = (lon: number) => round(lonToX(lon), 1);
+const circles = [
+  { lat: 66.56, name: 'Arctic Circle', at: [x(-10)] },
+  { lat: 23.44, name: 'Tropic of Cancer', at: [22, x(-52)] },
+  { lat: -23.44, name: 'Tropic of Capricorn', at: [x(-22), x(56)] },
+];
+const equator = { y: y(0), at: [22, x(-8), x(60)] };
+
+// Lettering engraved on the sheet (it grows with the chart when the frame moves in)
+const seaNames = [
+  { lines: ['North Atlantic', 'Ocean'], x: x(-41), y: y(35.5), size: 10.5 },
+  { lines: ['South Atlantic', 'Ocean'], x: x(-14), y: y(-30), size: 10.5 },
+  { lines: ['Pacific', 'Ocean'], x: x(-138), y: y(14.5), size: 10.5 },
+  { lines: ['Indian', 'Ocean'], x: x(78), y: y(-31), size: 10.5 },
+];
+const uncharted = { x: x(92), y: y(47.5) };
+const churros = { x: x(-17), y: y(40.4) };
+const serpent = { x: x(-61.5), y: y(26.6) };
+
+// Title cartouche in the empty South Pacific, with a scale that is true on the Equator:
+// the Equator is 21,600 sea miles round, and the chart is W units wide.
+const cartouche = { x: 14, y: round(worldBox.y + worldBox.h - 146, 1), w: 238, h: 132 };
+const notched = (w: number, h: number, n: number, inset = 0) => {
+  const a = inset;
+  const b = inset + n;
+  return `M${b} ${a}H${w - b}L${w - a} ${b}V${h - b}L${w - b} ${h - a}H${b}L${a} ${h - b}V${b}Z`;
+};
+const mile1000 = W / 21.6;
+const scaleBar = { x: round(cartouche.w / 2 - mile1000, 2), y: 87, seg: round(mile1000 / 2, 2) };
+
+const chartLabel = `Chart of the world on Mercator's projection. Dashed courses run from our home port in ${home.name} to ${stops
+  .map((s) => (s.approximate ? `${s.name} (position approximate)` : s.name))
+  .join(', ')}.`;
+
+const jokes = [
+  'Skipper’s log: north is up. Everything else is negotiable.',
+  'Skipper’s log: lost again, but making excellent time.',
+  'Skipper’s log: when in doubt, steer towards the smell of waffles.',
+];
 ---
-<section class="section"><div class="shell"><p class="eyebrow">ExpeditionMap</p></div></section>
+
+<section
+  id="expedition-map"
+  class="expedition surface-jungle grain section"
+  aria-labelledby="expedition-map-title"
+  style={`--chart-ratio:${worldRatio};--nojs-transform:${noJsTransform};--nojs-k:${noJsK}`}
+>
+  <div class="shell">
+    <div class="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-16">
+      <div class="lg:col-span-7">
+        <p class="eyebrow reveal">{eyebrow}</p>
+        <Heading id="expedition-map-title" class="display chapter-title mt-5 text-parchment-light reveal">{title}</Heading>
+      </div>
+      <div class="lg:col-span-5">
+        <p class="lede reveal" style="--reveal-delay: 120ms">
+          Every pin on this chart is somewhere we have actually written about. Choose one and the chart takes you there, with the journal open at the right page.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div class="plate-wrap">
+    <div class="plate-layout">
+      <div class="plate-col">
+        <figure class="plate reveal">
+          <div class="sheet">
+            <div class="sheet-window" data-chart-window>
+              <!-- The chart is three stacked drawings with one shared frame, so that moving it stays
+                   smooth: the coast lining (costly to draw) rests while the chart moves and fades
+                   back in; the land sheet is static; pins, courses and discoveries are "live". -->
+              <svg class="chart chart-lining" data-chart-layer="lining" viewBox={toViewBox(worldBox)} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                <g class="world">
+                  <!-- Rhumb lines from the compass rose: sea only, the coast lining covers them near land -->
+                  <path class="rhumb" d={rhumbsMinor} />
+                  <path class="rhumb rhumb-major" d={rhumbsMajor} />
+                  <!-- Coast water-lining: three fine lines that follow the shore outward -->
+                  <use href="#fa-chart-land" class="wl wl-line wl-a" />
+                  <use href="#fa-chart-land" class="wl wl-gap wl-a" />
+                  <use href="#fa-chart-land" class="wl wl-line wl-b" />
+                  <use href="#fa-chart-land" class="wl wl-gap wl-b" />
+                  <use href="#fa-chart-land" class="wl wl-line wl-c" />
+                  <use href="#fa-chart-land" class="wl wl-gap wl-c" />
+                </g>
+              </svg>
+
+              <svg
+                class="chart chart-land"
+                data-chart
+                data-chart-layer="land"
+                viewBox={toViewBox(worldBox)}
+                preserveAspectRatio="xMidYMid slice"
+                role="img"
+                aria-label={chartLabel}
+                focusable="false"
+                data-sheet={toViewBox(sheetBox)}
+                data-world={toViewBox(worldBox)}
+                data-content={toViewBox(contentBox)}
+                data-compact={toViewBox(compactFrame)}
+                data-compact-pads={`${compactPads.top} ${compactPads.right} ${compactPads.bottom} ${compactPads.left}`}
+              >
+                <defs>
+                  <path id="fa-chart-land" d={chart.landPath} />
+                </defs>
+                <g class="world">
+                  <use href="#fa-chart-land" class="land" />
+                  <path class="borders" d={chart.borderPath} />
+
+                  <!-- Graticule, Equator, tropics -->
+                  <path class="graticule" d={chart.graticule} />
+                  <path class="equator" d={`M0 ${equator.y}H${W}`} />
+                  {equator.at.map((ex) => <text class="line-name" x={ex} y={equator.y - 2}>Equator</text>)}
+                  {circles.map((c) => (
+                    <>
+                      <path class="circle-line" d={`M0 ${y(c.lat)}H${W}`} />
+                      {c.at.map((cx) => <text class="line-name" x={cx} y={y(c.lat) - 2}>{c.name}</text>)}
+                    </>
+                  ))}
+
+                  <!-- Lettering -->
+                  {seaNames.map((n) => (
+                    <text class="sea-name" x={n.x} y={n.y} font-size={n.size} text-anchor="middle">
+                      {n.lines.map((line, i) => <tspan x={n.x} dy={i === 0 ? 0 : n.size * 1.35}>{line}</tspan>)}
+                    </text>
+                  ))}
+                  <text class="uncharted" x={uncharted.x} y={uncharted.y} text-anchor="middle">uncharted, for now</text>
+                  <text class="whisper" x={churros.x} y={churros.y} text-anchor="middle">
+                    <tspan x={churros.x}>here be churros</tspan>
+                    <tspan x={churros.x} dy="2.9">(unconfirmed)</tspan>
+                  </text>
+
+                  <!-- Title cartouche -->
+                  <g class="cartouche" transform={`translate(${cartouche.x} ${cartouche.y})`}>
+                    <path class="cartouche-ground" d={notched(cartouche.w, cartouche.h, 8)} />
+                    <path class="cartouche-rule" d={notched(cartouche.w, cartouche.h, 6.2, 3.6)} />
+                    <text class="cartouche-caps" x={cartouche.w / 2} y="23" text-anchor="middle">A chart of</text>
+                    <text class="cartouche-title" x={cartouche.w / 2} y="46.5" text-anchor="middle">Known Adventures</text>
+                    <text class="cartouche-note" x={cartouche.w / 2} y="61.5" text-anchor="middle">compiled by the crew of Frontier Adventurers</text>
+                    <path class="cartouche-rule" d={`M36 71.5H${cartouche.w / 2 - 6}M${cartouche.w / 2 + 6} 71.5H${cartouche.w - 36}`} />
+                    <path class="cartouche-diamond" d={`M${cartouche.w / 2} 68.9l2.6 2.6-2.6 2.6-2.6-2.6z`} />
+                    <g transform={`translate(${scaleBar.x} ${scaleBar.y})`}>
+                      {[0, 1, 2, 3].map((i) => (
+                        <rect class:list={['scale-seg', { 'scale-seg-solid': i % 2 === 0 }]} x={round(i * scaleBar.seg)} y="0" width={scaleBar.seg} height="3.4" />
+                      ))}
+                      {[0, 1, 2].map((i) => (
+                        <text class="scale-num" x={round(i * mile1000)} y="-2.8" text-anchor="middle">{i === 0 ? '0' : `${i},000`}</text>
+                      ))}
+                    </g>
+                    <text class="cartouche-note cartouche-note-small" x={cartouche.w / 2} y="103" text-anchor="middle">sea miles, true on the Equator</text>
+                    <text class="cartouche-caps cartouche-caps-small" x={cartouche.w / 2} y="118.5" text-anchor="middle">Mercator’s projection · Not for navigation</text>
+                  </g>
+                </g>
+              </svg>
+
+              <svg class="chart chart-live" data-chart-layer="live" viewBox={toViewBox(worldBox)} preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+                <defs>
+                  {stops.map((s, i) => (
+                    <mask id={`fa-chart-course-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width={W} height={H}>
+                      <path class="course-reveal" data-course-reveal={s.id} d={s.route.d} pathLength="1" style={`--d:${0.25 + i * 0.3}s`} />
+                    </mask>
+                  ))}
+                </defs>
+                <g class="world">
+                  <!-- Compass rose -->
+                  <g transform={`translate(${rose.x} ${rose.y})`}>
+                    <g class="rose" data-rose={`${rose.x} ${rose.y} ${rose.r + 6}`}>
+                      <circle class="rose-ground" r={rose.r + 0.6} />
+                      <circle class="rose-ring" r={rose.r} />
+                      <circle class="rose-ring rose-ring-fine" r={rose.r - 2.6} />
+                      <path class="rose-tick" d={roseTicks} />
+                      {rosePoints.map((p) => (
+                        <>
+                          <path class="rose-light" d={p.light} />
+                          <path class="rose-dark" d={p.dark} />
+                        </>
+                      ))}
+                      <circle class="rose-hub" r="1.5" />
+                      <text class="rose-north" y={-(rose.r + 4.4)} text-anchor="middle">N</text>
+                    </g>
+                  </g>
+
+                  <!-- A small resident of the empty ocean -->
+                  <g transform={`translate(${serpent.x} ${serpent.y})`}>
+                    <g class="serpent" data-serpent>
+                      <circle class="serpent-hit" r="17" />
+                      <g transform="scale(.74)">
+                        <path class="serpent-ripple" d="M-25 3.4h5M-11.5 3.4h3M-.5 3.4h2.5M9 3.4h2.4M16.6 3.4h4" />
+                        <path class="serpent-part" style="--i:0" d="M-13.5 2.2c0-6-2-10.8-5.9-10.8-2.4 0-3.9 1.4-4.4 3.1l3.2.4M-19.2-6.4v.1" />
+                        <path class="serpent-part" style="--i:1" d="M-10.4 2.2a4.3 5 0 0 1 8.6 0" />
+                        <path class="serpent-part" style="--i:2" d="M.8 2.2a3.5 3.9 0 0 1 7 0" />
+                        <path class="serpent-part" style="--i:3" d="M10.6 2.2a2.7 2.8 0 0 1 5.4 0M18.2 2.2c1.5-1.4 2.4-3.6 1.8-5.8l2.2 1.6" />
+                      </g>
+                    </g>
+                  </g>
+
+                  <!-- Courses from the home port -->
+                  {stops.map((s, i) => (
+                    <path class="course" data-course={s.id} d={s.route.d} mask={`url(#fa-chart-course-${i})`} />
+                  ))}
+
+                  <!-- Home port -->
+                  <g transform={`translate(${chart.home.x} ${chart.home.y})`}>
+                    <g class="k">
+                      <g class="settle home" style="--d:0.15s">
+                        <path class="home-ticks" d="M0-10V-6.4M0 6.4V10M-10 0H-6.4M6.4 0H10" />
+                        <circle class="home-ring" r="5.6" />
+                        <circle class="home-dot" r="2.2" />
+                        <text class="tag-label" y="-15.5" text-anchor="middle">{home.label}</text>
+                      </g>
+                    </g>
+                  </g>
+
+                  <!-- Destinations: a pin on the spot, a brass tag beside it -->
+                  {stops.map((s, i) => {
+                    const { dx, dy, label } = s.tag;
+                    const dist = Math.hypot(dx, dy) || 1;
+                    return (
+                      <g transform={`translate(${s.point.x} ${s.point.y})`}>
+                        <g class="k">
+                          <a href={`#journal-${s.id}`} class="tag" data-tag={s.id} tabindex="-1" aria-hidden="true" style={`--d:${0.45 + i * 0.16}s`}>
+                            <g class="settle">
+                              <circle class="tag-hit" cx={dx} cy={dy} r="25" />
+                              {s.approximate ? (
+                                <circle class="tag-approx" cx={dx} cy={dy} r="17.5" />
+                              ) : (
+                                <>
+                                  <line class="tag-leader" x1="0" y1="0" x2={round(dx - (dx / dist) * 11.5)} y2={round(dy - (dy / dist) * 11.5)} />
+                                  <circle class="tag-pin" r="3" />
+                                </>
+                              )}
+                              <g transform={`translate(${dx} ${dy})`}>
+                                <circle class="tag-ring" r="15.2" />
+                                <circle class="tag-medal" r="11.5" />
+                                <circle class="tag-engrave" r="9.1" />
+                                {s.kind === 'cruise' ? (
+                                  <>
+                                    <circle class="glyph-line" cy="-5.5" r="1.5" />
+                                    <path class="glyph-line" d="M0-4V6.2M-3.1-1.8h6.2M-5.3 1.5c0 2.8 2.3 4.7 5.3 4.7s5.3-1.9 5.3-4.7" />
+                                    <path class="glyph-fill" d="M-6.7 3.3l1.3-3 1.8 2.4zM6.7 3.3l-1.3-3-1.8 2.4z" />
+                                  </>
+                                ) : (
+                                  <>
+                                    <path class="glyph-line" d="M-3.2 6.6V-6.9M-6 6.6h5.6" />
+                                    <path class="glyph-fill" d="M-3.2-6.7L5.8-3.7L-3.2-.7Z" />
+                                  </>
+                                )}
+                              </g>
+                              {label === 'left' ? (
+                                <>
+                                  <text class="tag-label tag-name tag-name-wide" x={dx - 22} y={dy + 4.5} text-anchor="end">{s.name}{s.approximate && <tspan class="tag-pa"> (PA)</tspan>}</text>
+                                  <text class="tag-label tag-name tag-name-compact" x={dx} y={dy + 34} text-anchor="middle">{s.name}{s.approximate && <tspan class="tag-pa"> (PA)</tspan>}</text>
+                                  <text class="tag-label tag-num" x={dx - 22} y={dy + 5} text-anchor="end">{s.numeral}</text>
+                                </>
+                              ) : (
+                                <>
+                                  <text class="tag-label tag-name" x={dx} y={dy + 28} text-anchor="middle">{s.name}</text>
+                                  <text class="tag-label tag-num" x={dx + 16} y={dy + 5}>{s.numeral}</text>
+                                </>
+                              )}
+                            </g>
+                          </a>
+                        </g>
+                      </g>
+                    );
+                  })}
+                </g>
+              </svg>
+              <script is:inline>(function(){var w=document.currentScript.parentElement,l=w.querySelectorAll('svg'),c=matchMedia('(max-width:767px)').matches,i,v;if(!w.clientWidth)return;for(i=0;i<l.length;i++){v=c?l[1].dataset.compact:l[i].getAttribute('viewBox');l[i].setAttribute('viewBox',v);l[i].style.setProperty('--k',(v.split(' ')[2]/w.clientWidth).toFixed(4))}})()</script>
+
+              <p class="sheet-tab" aria-hidden="true" data-chart-tab>Whole chart</p>
+              <button type="button" class="rose-btn" data-rose-btn aria-label="Turn the compass rose" hidden></button>
+              <p class="skipper fell" role="status" data-skipper data-jokes={JSON.stringify(jokes)}></p>
+            </div>
+          </div>
+          <figcaption class="plate-caption fell">Plate II. The world, as far as our journal goes.</figcaption>
+        </figure>
+
+        <!-- Chart index: the real controls. The pins on the chart are pointer shortcuts to the same thing. -->
+        <div class="index reveal" role="group" aria-label="Destinations on the chart">
+          {stops.map((s) => (
+            <button
+              type="button"
+              class="index-btn"
+              data-dest={s.id}
+              data-name={s.name}
+              data-region={s.region}
+              data-count={count(s.total, 'entry', 'entries')}
+              data-box={toViewBox(s.route.box)}
+              data-pads={s.tag.pads.join(' ')}
+              data-pads-compact={s.tag.padsCompact.join(' ')}
+              aria-pressed="false"
+              aria-controls="chart-journal"
+            >
+              <span class="index-num fell" aria-hidden="true">{s.numeral}.</span>
+              <span class="index-name display">{s.name}</span>
+              <span class="index-note fell">{s.kindLabel} · {count(s.total, 'entry', 'entries')}</span>
+            </button>
+          ))}
+          <button type="button" class="index-btn index-whole" data-whole aria-pressed="true" aria-controls="chart-journal">
+            <svg class="index-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <rect x="3.5" y="5.5" width="17" height="13" />
+              <path d="M3.5 12h17M12 5.5v13M7.5 5.5c2 4 2 9 0 13M16.5 5.5c-2 4-2 9 0 13" />
+            </svg>
+            <span class="index-whole-label">Whole chart</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Journal: one entry per destination. All are listed when JavaScript is off. -->
+      <div class="journal" id="chart-journal">
+        <article class="entry entry-key is-active" data-entry="">
+          <p class="eyebrow">Key to the chart</p>
+          <SubHeading class="display entry-title">Where shall we open the journal?</SubHeading>
+          <p class="entry-blurb js-only">
+            {destinationWord} {stops.length === 1 ? 'destination is' : 'destinations are'} on the chart so far. Pick one from the index, or press its brass tag, and the chart will take you there.
+          </p>
+          <dl class="legend">
+            <div>
+              <dt>
+                <svg viewBox="-16 -16 32 32" aria-hidden="true" focusable="false">
+                  <path class="lg-line" d="M0-10V-6.4M0 6.4V10M-10 0H-6.4M6.4 0H10" />
+                  <circle class="lg-line" r="5.6" />
+                  <circle class="lg-fill" r="2.2" />
+                </svg>
+              </dt>
+              <dd><strong>{home.label}.</strong> {home.name}, where every course on the chart begins.</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="-16 -16 32 32" aria-hidden="true" focusable="false">
+                  <circle class="lg-medal" r="11.5" />
+                  <path class="lg-ink" d="M-3.2 6.6V-6.9M-6 6.6h5.6" />
+                  <path class="lg-ink-fill" d="M-3.2-6.7L5.8-3.7L-3.2-.7Z" />
+                </svg>
+              </dt>
+              <dd><strong>Theme park resort.</strong> A flag planted where we have reviews or food notes.</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="-19 -19 38 38" aria-hidden="true" focusable="false">
+                  <circle class="lg-line lg-dashed" r="17" />
+                  <circle class="lg-medal" r="11.5" />
+                  <circle class="lg-ink" cy="-5.5" r="1.5" />
+                  <path class="lg-ink" d="M0-4V6.2M-3.1-1.8h6.2M-5.3 1.5c0 2.8 2.3 4.7 5.3 4.7s5.3-1.9 5.3-4.7" />
+                </svg>
+              </dt>
+              <dd><strong>At sea (PA).</strong> Position approximate: the anchor marks open water, not a port of call.</dd>
+            </div>
+            <div>
+              <dt>
+                <svg viewBox="-16 -16 32 32" aria-hidden="true" focusable="false">
+                  <path class="lg-line lg-course" d="M-14 6C-6-6 6-8 14-4" />
+                </svg>
+              </dt>
+              <dd><strong>Course.</strong> The great circle from the home port: the shortest line on a globe, not the route we actually took.</dd>
+            </div>
+          </dl>
+          <p class="entry-count fell">
+            {count(stops.length, 'destination')} charted, {count(totalEntries, 'journal entry', 'journal entries')} pinned to {stops.length === 1 ? 'it' : 'them'}. The rest is blank paper.
+          </p>
+        </article>
+
+        {stops.map((s) => (
+          <article class="entry" id={`journal-${s.id}`} data-entry={s.id}>
+            <p class="eyebrow">Journal entry · {s.numeral} of {roman[stops.length - 1] ?? stops.length}</p>
+            <SubHeading class="display entry-title">{s.name}</SubHeading>
+            <p class="entry-region fell">{s.region}{s.approximate && ' · position approximate'}</p>
+            <p class="entry-blurb">{s.blurb}</p>
+            {s.photo && (
+              <div class="entry-photo frame">
+                <LocalPhoto src={s.photo.src} alt={s.photo.alt} class="photo-grade" sizes="(min-width: 1280px) 384px, (min-width: 768px) 44vw, 100vw" />
+              </div>
+            )}
+            {s.groups.map((group) => (
+              <div class="ledger">
+                <MinorHeading class="ledger-title">{group.title}</MinorHeading>
+                <ul>
+                  {group.items.map((e) => (
+                    <li>
+                      <a href={e.url} class="ledger-row">
+                        <span class="ledger-text">
+                          <span class="ledger-name">{e.title}</span>
+                          <span class="ledger-kind fell">{e.label}{e.place && e.place !== s.name ? `, ${e.place}` : ''}</span>
+                        </span>
+                        <span class="ledger-score">
+                          <span class="ledger-figure fell" aria-hidden="true">{scoreText(e)}</span>
+                          <span class="ledger-outof" aria-hidden="true">/ 5</span>
+                          <span class="sr-only">{e.scoreLabel}</span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+            <p class="entry-count fell">{s.countLine}</p>
+            <a href={s.archive.url} class="link entry-more">{s.archive.label} <span class="arrow" aria-hidden="true">→</span></a>
+          </article>
+        ))}
+      </div>
+    </div>
+    <p class="sr-only" role="status" data-chart-status></p>
+  </div>
+</section>
+
+<script>
+  import { gsap } from '../scripts/motion';
+  import { fitFrame, parseBox, toViewBox, type Box, type Pads } from './map/frame';
+
+  const root = document.getElementById('expedition-map');
+  const svg = root?.querySelector<SVGSVGElement>('[data-chart]');
+  const layers = [...(root?.querySelectorAll<SVGSVGElement>('[data-chart-layer]') ?? [])];
+  // The coast lining is expensive to draw, so it is not redrawn while the chart moves
+  const lining = layers.find((l) => l.dataset.chartLayer === 'lining');
+  const moving = layers.filter((l) => l !== lining);
+  const frame = root?.querySelector<HTMLElement>('[data-chart-window]');
+
+  if (root && svg && frame) {
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const compact = window.matchMedia('(max-width: 767px)');
+
+    const sheet = parseBox(svg.dataset.sheet)!;
+    const worldBox = parseBox(svg.dataset.world)!;
+    const contentBox = parseBox(svg.dataset.content)!;
+    const toPads = (value?: string): Pads => {
+      const [top = 0, right = 0, bottom = 0, left = 0] = (value ?? '').split(' ').map(Number);
+      return { top, right, bottom, left };
+    };
+    const compactPads = toPads(svg.dataset.compactPads);
+    const noPads: Pads = { top: 0, right: 0, bottom: 0, left: 0 };
+
+    const destButtons = [...root.querySelectorAll<HTMLButtonElement>('[data-dest]')];
+    const wholeButton = root.querySelector<HTMLButtonElement>('[data-whole]');
+    const tags = [...root.querySelectorAll<SVGAElement>('[data-tag]')];
+    const courses = [...root.querySelectorAll<SVGPathElement>('[data-course]')];
+    const entries = [...root.querySelectorAll<HTMLElement>('[data-entry]')];
+    const status = root.querySelector<HTMLElement>('[data-chart-status]');
+    const tab = root.querySelector<HTMLElement>('[data-chart-tab]');
+    const roseEl = root.querySelector<SVGGElement>('[data-rose]');
+    const roseBtn = root.querySelector<HTMLButtonElement>('[data-rose-btn]');
+    const skipper = root.querySelector<HTMLElement>('[data-skipper]');
+    const serpent = root.querySelector<SVGGElement>('[data-serpent]');
+
+    let selected: string | null = null;
+    // On a phone the chart opens on the charted waters; "Whole chart" then shows the world
+    let whole = false;
+    const view: Box = parseBox(svg.getAttribute('viewBox')) ?? { ...worldBox };
+
+    // ----- Framing -----
+    const targetFrame = (): Box => {
+      const cw = frame.clientWidth;
+      const ch = frame.clientHeight;
+      const button = destButtons.find((b) => b.dataset.dest === selected);
+      const box = button && parseBox(button.dataset.box);
+      if (button && box) {
+        // Never closer than 8 screen pixels per chart unit: beyond that the coastline runs out of detail
+        const pads = toPads(compact.matches ? button.dataset.padsCompact : button.dataset.pads);
+        return fitFrame(box, cw, ch, sheet, pads, Math.max(cw / 8, 84));
+      }
+      if (compact.matches && !whole) return fitFrame(contentBox, cw, ch, sheet, compactPads);
+      return fitFrame(worldBox, cw, ch, sheet, noPads);
+    };
+
+    const [roseX, roseY, roseR] = (roseEl?.dataset.rose ?? '').split(' ').map(Number);
+    const render = (settled = true) => {
+      const cw = frame.clientWidth || 1;
+      const box = toViewBox(view);
+      // --k: chart units per screen pixel. Pins, tags and line weights are sized with it,
+      // so they keep the same size on screen however far the chart has moved in.
+      const k = view.w / cw;
+      (settled ? layers : moving).forEach((layer) => {
+        layer.setAttribute('viewBox', box);
+        layer.style.setProperty('--k', k.toFixed(4));
+      });
+      frame.classList.toggle('is-moving', !settled);
+      // The compass rose is part of the drawing; the real button rides on top of it
+      if (roseBtn && Number.isFinite(roseX)) {
+        const size = Math.max((roseR * 2) / k, 44);
+        const left = (roseX - view.x) / k;
+        const top = (roseY - view.y) / k;
+        const visible = left > size / 2 && left < cw - size / 2 && top > size / 2 && top < frame.clientHeight - size / 2;
+        roseBtn.hidden = !visible;
+        if (visible) {
+          roseBtn.style.width = roseBtn.style.height = `${size.toFixed(1)}px`;
+          roseBtn.style.transform = `translate(${(left - size / 2).toFixed(1)}px, ${(top - size / 2).toFixed(1)}px)`;
+        }
+      }
+    };
+
+    let tween: gsap.core.Tween | null = null;
+    const moveTo = (target: Box, animate = true) => {
+      tween?.kill();
+      if (!animate || reduceMotion.matches) {
+        Object.assign(view, target);
+        render();
+        return;
+      }
+      tween = gsap.to(view, {
+        ...target,
+        duration: 1.1,
+        ease: 'power2.inOut',
+        onUpdate: () => render(false),
+        onComplete: () => render(),
+      });
+    };
+
+    // ----- Selection -----
+    const select = (id: string | null, { showWhole = false, animate = true } = {}) => {
+      selected = id;
+      whole = id ? false : showWhole;
+      const button = destButtons.find((b) => b.dataset.dest === id);
+
+      root.classList.toggle('has-selection', Boolean(id));
+      destButtons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.dest === id)));
+      const worldShown = !id && (whole || !compact.matches);
+      wholeButton?.setAttribute('aria-pressed', String(worldShown));
+      tags.forEach((t) => t.classList.toggle('is-active', t.dataset.tag === id));
+      courses.forEach((c) => c.classList.toggle('is-active', c.dataset.course === id));
+      entries.forEach((e) => e.classList.toggle('is-active', e.dataset.entry === (id ?? '')));
+
+      // Draw the chosen course again from the home port
+      const reveal = id ? root.querySelector<SVGPathElement>(`[data-course-reveal="${id}"]`) : null;
+      if (reveal && animate && !reduceMotion.matches) {
+        reveal.classList.remove('is-redrawn');
+        void reveal.getBoundingClientRect();
+        reveal.classList.add('is-redrawn');
+      }
+
+      if (tab) tab.textContent = button ? `Detail · ${button.dataset.name}` : worldShown ? 'Whole chart' : 'The charted waters';
+      if (status && animate) {
+        status.textContent = button
+          ? `Journal opened: ${button.dataset.name}, ${button.dataset.region}. ${button.dataset.count}.`
+          : worldShown
+            ? 'Whole chart shown. No destination selected.'
+            : 'Charted waters shown. No destination selected.';
+      }
+      if (skipper) skipper.textContent = '';
+      moveTo(targetFrame(), animate);
+    };
+
+    destButtons.forEach((b) =>
+      b.addEventListener('click', () => select(b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.dest!))
+    );
+    wholeButton?.addEventListener('click', () => {
+      // On a phone a second press returns to the charted waters
+      const showingWorld = wholeButton.getAttribute('aria-pressed') === 'true';
+      select(null, { showWhole: compact.matches ? !showingWorld : true });
+    });
+    tags.forEach((t) =>
+      t.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (t.dataset.tag !== selected) select(t.dataset.tag!);
+      })
+    );
+
+    // ----- Discoveries -----
+    const jokes: string[] = JSON.parse(skipper?.dataset.jokes ?? '[]');
+    let turns = 0;
+    roseBtn?.addEventListener('click', () => {
+      turns += 1;
+      if (!reduceMotion.matches) roseEl?.style.setProperty('--turn', `${turns * 360}deg`);
+      if (skipper && jokes.length) skipper.textContent = jokes[(turns - 1) % jokes.length];
+    });
+    // Touch screens have no hover: a tap sends the serpent under as well
+    serpent?.addEventListener('click', () => {
+      if (reduceMotion.matches || serpent.classList.contains('is-diving')) return;
+      serpent.classList.add('is-diving');
+      window.setTimeout(() => serpent.classList.remove('is-diving'), 2200);
+    });
+
+    // ----- Start -----
+    select(null, { animate: false });
+    new ResizeObserver(() => moveTo(targetFrame(), false)).observe(frame);
+    compact.addEventListener('change', () => select(selected, { animate: false }));
+
+    // Courses draw in and pins settle once the plate is on screen
+    if ('IntersectionObserver' in window) {
+      const seen = new IntersectionObserver(
+        (items) => {
+          if (items.some((i) => i.isIntersecting)) {
+            root.classList.add('is-drawn');
+            seen.disconnect();
+          }
+        },
+        { threshold: 0.25 }
+      );
+      seen.observe(frame);
+    } else {
+      root.classList.add('is-drawn');
+    }
+  }
+</script>
+
+<style>
+  .expedition {
+    --ink: #482a1b;
+    --ink-deep: #2c190f;
+    --sea: #f3e9cf;
+    --land: #dfcb9a;
+    --brass: #c49a50;
+    --hair: rgb(232 211 165 / 0.2);
+    overflow: hidden;
+  }
+
+  /* The plate breaks out of the text column, like the title-card keyline of the hero */
+  .plate-wrap {
+    width: 100%;
+    max-width: 92rem;
+    margin: clamp(2.5rem, 6vw, 4.5rem) auto 0;
+    padding-inline: 1.5rem;
+  }
+  .plate-layout { display: grid; gap: 2.5rem; }
+
+  /* ---------- The mounted plate ---------- */
+  .plate {
+    margin-inline: -0.75rem;
+    padding: 0.5rem;
+    background: var(--jungle-deep);
+    border: 1px solid rgb(196 154 80 / 0.45);
+  }
+  .sheet {
+    --tick: rgb(72 42 27 / 0.8);
+    position: relative;
+    padding: 7px;
+    /* Neatline: a border of alternating bars, as on the edge of a chart */
+    background:
+      linear-gradient(90deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 0 2px / calc(100% / 16) 3px repeat-x,
+      linear-gradient(90deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 0 calc(100% - 2px) / calc(100% / 16) 3px repeat-x,
+      linear-gradient(0deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 2px 0 / 3px calc(100% / 10) repeat-y,
+      linear-gradient(0deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) calc(100% - 2px) 0 / 3px calc(100% / 10) repeat-y,
+      var(--sea);
+  }
+  .sheet-window {
+    position: relative;
+    aspect-ratio: 5 / 4;
+    overflow: hidden;
+    background: var(--sea);
+    box-shadow: 0 0 0 1px var(--ink);
+  }
+  /* The shared paper grain and a little foxing towards the edges, laid over the whole drawing */
+  .sheet-window::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(95% 85% at 50% 45%, transparent 58%, rgb(72 42 27 / 0.2) 100%),
+      var(--grain);
+    background-size: auto, 180px 180px;
+    mix-blend-mode: multiply;
+    opacity: 0.3;
+    pointer-events: none;
+  }
+  .chart {
+    --k: 1;
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  /* The lining rests while the chart moves, then fades back in like ink settling */
+  .chart-lining { transition: opacity 0.9s var(--ease-out); }
+  .is-moving .chart-lining { visibility: hidden; opacity: 0; transition: none; }
+  .plate-caption {
+    padding: 0.55rem 0.25rem 0.1rem;
+    font-size: 0.98rem;
+    color: rgb(232 211 165 / 0.8);
+  }
+
+  /* ---------- The drawing ---------- */
+  /* Sizes written as calc(var(--k) * Npx) are N screen pixels at any zoom. */
+  .k { transform: scale(var(--k)); }
+
+  .rhumb {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.13;
+    stroke-width: calc(var(--k) * 0.5px);
+  }
+  .rhumb-major { stroke-opacity: 0.22; }
+
+  .wl { fill: none; stroke-linejoin: round; }
+  .wl-line { stroke: var(--ink); }
+  .wl-gap { stroke: var(--sea); }
+  .wl-a.wl-line { stroke-width: calc(var(--k) * 15.6px); stroke-opacity: 0.2; }
+  .wl-a.wl-gap { stroke-width: calc(var(--k) * 14.4px); }
+  .wl-b.wl-line { stroke-width: calc(var(--k) * 9.4px); stroke-opacity: 0.3; }
+  .wl-b.wl-gap { stroke-width: calc(var(--k) * 8.2px); }
+  .wl-c.wl-line { stroke-width: calc(var(--k) * 4.6px); stroke-opacity: 0.42; }
+  .wl-c.wl-gap { stroke-width: calc(var(--k) * 3.4px); }
+  .land {
+    fill: var(--land);
+    stroke: var(--ink);
+    stroke-width: calc(var(--k) * 0.9px);
+    stroke-linejoin: round;
+  }
+  .borders {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.42;
+    stroke-width: calc(var(--k) * 0.6px);
+    stroke-dasharray: calc(var(--k) * 1.5px) calc(var(--k) * 2.5px);
+    stroke-linecap: round;
+  }
+  .graticule,
+  .equator,
+  .circle-line {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.17;
+    stroke-width: calc(var(--k) * 0.5px);
+  }
+  .equator { stroke-opacity: 0.4; }
+  .circle-line {
+    stroke-opacity: 0.34;
+    stroke-dasharray: calc(var(--k) * 5px) calc(var(--k) * 4px);
+  }
+
+  .line-name,
+  .sea-name,
+  .uncharted,
+  .whisper,
+  .cartouche-note,
+  .tag-label {
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+  }
+  .line-name { font-size: 6px; fill: var(--ink); fill-opacity: 0.78; letter-spacing: 0.06em; }
+  .sea-name { fill: var(--ink); fill-opacity: 0.8; letter-spacing: 0.32em; }
+  .uncharted { font-size: 11.5px; fill: var(--ink); fill-opacity: 0.66; letter-spacing: 0.62em; }
+  .whisper { font-size: 2.3px; fill: var(--ink); fill-opacity: 0.8; letter-spacing: 0.04em; }
+
+  /* Compass rose */
+  .rose {
+    transform: rotate(var(--turn, 0deg));
+    transition: transform 2s cubic-bezier(0.3, 1.25, 0.4, 1);
+  }
+  .rose-ground { fill: var(--sea); }
+  .rose-ring { fill: none; stroke: var(--ink); stroke-width: 0.7px; }
+  .rose-ring-fine { stroke-width: 0.35px; }
+  .rose-tick { fill: none; stroke: var(--ink); stroke-width: 0.4px; }
+  .rose-light { fill: #f6ecd2; stroke: var(--ink); stroke-width: 0.35px; stroke-linejoin: round; }
+  .rose-dark { fill: var(--ink); stroke: var(--ink); stroke-width: 0.35px; stroke-linejoin: round; }
+  .rose-hub { fill: var(--brass); stroke: var(--ink); stroke-width: 0.4px; }
+  .rose-north {
+    font-family: 'Besley Variable', Besley, Georgia, serif;
+    font-weight: 600;
+    font-size: 8.5px;
+    fill: var(--ink);
+  }
+
+  /* Cartouche */
+  .cartouche-ground { fill: #f6ecd2; stroke: var(--ink); stroke-width: 0.9px; }
+  .cartouche-rule { fill: none; stroke: var(--ink); stroke-width: 0.4px; }
+  .cartouche-diamond { fill: var(--ink); }
+  .cartouche-caps {
+    font-family: 'Instrument Sans Variable', 'Instrument Sans', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 6.3px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    fill: var(--ink);
+  }
+  .cartouche-caps-small { font-size: 4.9px; letter-spacing: 0.22em; }
+  .cartouche-title {
+    font-family: 'Besley Variable', Besley, Georgia, serif;
+    font-weight: 560;
+    font-size: 21.5px;
+    letter-spacing: -0.01em;
+    fill: var(--ink-deep);
+  }
+  .cartouche-note { font-size: 8.7px; fill: var(--ink-deep); }
+  .cartouche-note-small { font-size: 7.3px; }
+  .scale-seg { fill: #f6ecd2; stroke: var(--ink); stroke-width: 0.4px; }
+  .scale-seg-solid { fill: var(--ink); }
+  .scale-num {
+    font-family: 'Instrument Sans Variable', 'Instrument Sans', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 4.9px;
+    letter-spacing: 0.08em;
+    fill: var(--ink);
+  }
+
+  /* Sea serpent: goes under when the pointer comes near, and comes back up */
+  .serpent-hit { fill: transparent; }
+  .serpent-part,
+  .serpent-ripple {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.3px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .serpent-ripple { stroke-width: 0.6px; stroke-opacity: 0.7; }
+  @media (prefers-reduced-motion: no-preference) {
+    .serpent:hover .serpent-part,
+    .serpent.is-diving .serpent-part {
+      animation: chart-serpent-dive 2s var(--ease-out) both;
+      animation-delay: calc(var(--i) * 0.11s);
+    }
+    .serpent:hover .serpent-ripple,
+    .serpent.is-diving .serpent-ripple {
+      animation: chart-serpent-ripple 2s ease-out both;
+    }
+  }
+  @keyframes chart-serpent-dive {
+    0% { transform: translateY(0); opacity: 1; }
+    28%, 62% { transform: translateY(6px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes chart-serpent-ripple {
+    0%, 100% { transform: scaleX(1); stroke-opacity: 0.7; }
+    45% { transform: scaleX(1.25); stroke-opacity: 0.25; }
+  }
+
+  /* Courses */
+  .course {
+    fill: none;
+    stroke: var(--ink-deep);
+    stroke-opacity: 0.9;
+    stroke-width: calc(var(--k) * 1.3px);
+    stroke-dasharray: calc(var(--k) * 5px) calc(var(--k) * 4px);
+    transition: stroke-opacity 0.5s var(--ease-out);
+  }
+  .has-selection .course { stroke-opacity: 0.28; }
+  .has-selection .course.is-active {
+    stroke-opacity: 1;
+    stroke-width: calc(var(--k) * 1.9px);
+  }
+  .course-reveal {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 14px;
+    stroke-dasharray: 1 1.01;
+    stroke-dashoffset: 0;
+  }
+  .course-reveal.is-redrawn { animation: chart-course-draw 1.25s var(--ease-out) 0.15s both; }
+  @keyframes chart-course-draw {
+    from { stroke-dashoffset: 1; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Home port */
+  .home-ticks { fill: none; stroke: var(--ink-deep); stroke-width: 1.1px; }
+  .home-ring { fill: #f6ecd2; stroke: var(--ink-deep); stroke-width: 1.4px; }
+  .home-dot { fill: var(--ink-deep); }
+
+  /* Brass tags */
+  .tag { cursor: pointer; outline: none; }
+  .tag-hit { fill: transparent; }
+  .tag-leader { stroke: var(--ink-deep); stroke-width: 1px; }
+  .tag-pin { fill: var(--ink-deep); stroke: #f6ecd2; stroke-width: 1px; }
+  .tag-approx {
+    fill: rgb(243 233 207 / 0.55);
+    stroke: var(--ink-deep);
+    stroke-width: 0.9px;
+    stroke-dasharray: 2.6px 2.6px;
+  }
+  .tag-ring { fill: none; stroke: var(--ink-deep); stroke-width: 1px; opacity: 0; transition: opacity 0.4s var(--ease-out); }
+  .tag-medal {
+    fill: var(--brass);
+    stroke: var(--ink-deep);
+    stroke-width: 1.2px;
+    transition: fill 0.4s var(--ease-out);
+  }
+  .tag-engrave { fill: none; stroke: rgb(243 232 204 / 0.6); stroke-width: 0.7px; transition: stroke 0.4s var(--ease-out); }
+  .glyph-line {
+    fill: none;
+    stroke: var(--ink-deep);
+    stroke-width: 1.25px;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: stroke 0.4s var(--ease-out);
+  }
+  .glyph-fill { fill: var(--ink-deep); transition: fill 0.4s var(--ease-out); }
+  .tag-label {
+    font-size: 14.5px;
+    fill: var(--ink-deep);
+    stroke: var(--sea);
+    stroke-width: 3.6px;
+    stroke-linejoin: round;
+    paint-order: stroke fill;
+    transition: opacity 0.4s var(--ease-out);
+  }
+  .tag-pa { font-size: 11.5px; }
+  /* On a phone the unselected tags carry their index numeral instead of the full name */
+  .tag-num,
+  .tag-name-compact { display: none; }
+  .tag-num { font-size: 15.5px; }
+  @media (max-width: 767px) {
+    .tag:not(.is-active) .tag-name { display: none; }
+    .tag:not(.is-active) .tag-num { display: block; }
+    /* No room to the left of a pin on a phone: the name goes underneath */
+    .tag-name-wide { display: none; }
+    .tag.is-active .tag-name-compact { display: block; }
+  }
+  @media (hover: hover) {
+    .tag:hover .tag-medal { fill: var(--gold-bright); }
+  }
+  .tag.is-active .tag-medal { fill: var(--ink-deep); }
+  .tag.is-active .tag-engrave { stroke: rgb(196 154 80 / 0.7); }
+  .tag.is-active .glyph-line { stroke: var(--gold-bright); }
+  .tag.is-active .glyph-fill { fill: var(--gold-bright); }
+  .tag.is-active .tag-ring { opacity: 1; }
+  .has-selection .tag:not(.is-active) { opacity: 0.62; }
+  .has-selection .tag:not(.is-active) .tag-name { opacity: 0; }
+
+  /* Entrance: courses draw in and pins settle once the plate is on screen.
+     Only when a script is there to finish the job, and only for visitors who accept motion. */
+  @media (prefers-reduced-motion: no-preference) {
+    .course-reveal { transition: stroke-dashoffset 1.7s var(--ease-out) var(--d, 0s); }
+    .settle {
+      transition: opacity 0.6s var(--ease-out) var(--d, 0s), transform 1s cubic-bezier(0.2, 1.35, 0.4, 1) var(--d, 0s);
+    }
+    :global(.js) .expedition:not(.is-drawn) .course-reveal { stroke-dashoffset: 1; }
+    :global(.js) .expedition:not(.is-drawn) .settle { opacity: 0; transform: translateY(-16px); }
+  }
+
+  /* ---------- Things that sit on the sheet ---------- */
+  /* The tab names the current frame, which only a script can change */
+  .sheet-tab { display: none; }
+  :global(.js) .sheet-tab { display: block; }
+  .sheet-tab {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    padding: 0.3rem 0.65rem 0.28rem;
+    background: #f6ecd2;
+    border-right: 1px solid var(--ink);
+    border-bottom: 1px solid var(--ink);
+    color: var(--ink-deep);
+    font-size: 0.6rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .rose-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+  .rose-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .skipper {
+    position: absolute;
+    left: 50%;
+    bottom: 0.7rem;
+    z-index: 2;
+    width: max-content;
+    max-width: calc(100% - 1.4rem);
+    padding: 0.4rem 0.9rem 0.45rem;
+    background: #f6ecd2;
+    border: 1px solid var(--ink);
+    color: var(--ink-deep);
+    font-size: 1.02rem;
+    line-height: 1.3;
+    text-align: center;
+    transform: translateX(-50%);
+    animation: chart-note-in 0.6s var(--ease-out);
+  }
+  .skipper:empty { display: none; }
+  @keyframes chart-note-in {
+    from { opacity: 0; transform: translate(-50%, 8px); }
+  }
+
+  /* ---------- Chart index ---------- */
+  .index {
+    display: none;
+    margin-top: 1.25rem;
+    border-top: 1px solid var(--hair);
+  }
+  :global(.js) .index { display: grid; }
+  .index-btn {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    align-items: baseline;
+    column-gap: 0.25rem;
+    min-height: 3.75rem;
+    padding: 0.8rem 0.25rem 0.8rem 0;
+    border-bottom: 1px solid var(--hair);
+    text-align: left;
+    color: var(--parchment);
+    transition: color 0.3s, padding-left 0.5s var(--ease-out);
+  }
+  .index-num { font-size: 1.05rem; color: var(--gold); }
+  .index-name { font-size: 1.28rem; line-height: 1.15; color: var(--parchment-light); transition: color 0.3s; }
+  .index-note { grid-column: 2; margin-top: 0.15rem; font-size: 0.98rem; color: rgb(232 211 165 / 0.78); }
+  /* Brass diamond: the same mark the header uses for the current page */
+  .index-btn::after {
+    content: '';
+    position: absolute;
+    right: 0.6rem;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    background: var(--gold);
+    transform: translateY(-50%) rotate(45deg) scale(0);
+    transition: transform 0.45s var(--ease-out);
+  }
+  .index-btn[aria-pressed='true']::after { transform: translateY(-50%) rotate(45deg) scale(1); }
+  .index-btn[aria-pressed='true'] { box-shadow: inset 0 2px 0 var(--gold); }
+  .index-btn[aria-pressed='true'] .index-name { color: var(--gold-bright); }
+  @media (hover: hover) {
+    .index-btn:hover .index-name { color: var(--gold-bright); }
+  }
+  .index-whole {
+    grid-template-columns: 2.4rem 1fr;
+    align-items: center;
+    min-height: 3.25rem;
+  }
+  .index-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 1.1;
+  }
+  .index-whole-label {
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.9);
+    transition: color 0.3s;
+  }
+  .index-whole[aria-pressed='true'] .index-whole-label { color: var(--gold-bright); }
+  @media (hover: hover) {
+    .index-whole:hover .index-whole-label { color: var(--gold-bright); }
+  }
+
+  /* ---------- Journal ---------- */
+  /* Without JavaScript: every entry, one after another. */
+  .journal { display: grid; gap: 3rem; }
+  .entry { min-width: 0; }
+  .js-only { display: none; }
+  :global(.js) .js-only { display: block; }
+  /* With JavaScript: the entries share one cell, so the tallest reserves the room and
+     changing destination never moves the page. */
+  :global(.js) .journal { gap: 0; }
+  :global(.js) .entry {
+    grid-area: 1 / 1;
+    visibility: hidden;
+    opacity: 0;
+  }
+  :global(.js) .entry.is-active {
+    visibility: visible;
+    opacity: 1;
+    animation: chart-entry-in 0.8s var(--ease-out);
+  }
+  @keyframes chart-entry-in {
+    from { opacity: 0; transform: translateY(12px); }
+  }
+
+  .entry-title {
+    margin-top: 1rem;
+    font-size: clamp(1.9rem, 1.5rem + 1.4vw, 2.5rem);
+    color: var(--parchment-light);
+  }
+  .entry-region { margin-top: 0.5rem; font-size: 1.15rem; color: rgb(232 211 165 / 0.82); }
+  .entry-blurb { margin-top: 1rem; max-width: 34rem; color: rgb(232 211 165 / 0.88); text-wrap: pretty; }
+  .entry-photo {
+    margin-top: 1.4rem;
+    aspect-ratio: 16 / 9;
+    overflow: hidden;
+    background: var(--jungle-deep);
+  }
+  .entry-photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 38%;
+  }
+  .ledger { margin-top: 1.6rem; }
+  .ledger-title {
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid rgb(196 154 80 / 0.5);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .ledger-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 1rem;
+    min-height: 3rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dotted rgb(232 211 165 / 0.38);
+    color: var(--parchment-light);
+    transition: padding-left 0.5s var(--ease-out);
+  }
+  .ledger-row:hover { padding-left: 0.4rem; }
+  .ledger-text { display: grid; gap: 0.1rem; }
+  .ledger-name {
+    font-weight: 600;
+    line-height: 1.35;
+    text-decoration: underline transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 0.3s, color 0.3s;
+  }
+  .ledger-row:hover .ledger-name { color: var(--gold-bright); text-decoration-color: currentColor; }
+  .ledger-kind { font-size: 0.98rem; color: rgb(232 211 165 / 0.78); }
+  .ledger-score { display: inline-flex; align-items: baseline; white-space: nowrap; }
+  .ledger-figure { font-size: 1.75rem; line-height: 1; color: var(--gold-bright); }
+  .ledger-outof {
+    margin-left: 0.3rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: rgb(232 211 165 / 0.72);
+  }
+  .entry-count { margin-top: 1.1rem; font-size: 1.02rem; color: rgb(232 211 165 / 0.8); }
+  .entry-more { position: relative; margin-top: 1.1rem; }
+  /* The text link keeps its look; its touch target grows to 44px */
+  .entry-more::after { content: ''; position: absolute; inset: -0.6rem 0; }
+
+  /* Key to the chart */
+  .legend { display: grid; gap: 0.85rem; margin-top: 1.5rem; padding-top: 1.4rem; border-top: 1px solid var(--hair); }
+  .legend > div { display: grid; grid-template-columns: 2.6rem 1fr; align-items: start; gap: 0.9rem; }
+  .legend dt svg { display: block; width: 2.6rem; height: 2.6rem; overflow: visible; }
+  .legend dd { font-size: 0.95rem; line-height: 1.5; color: rgb(232 211 165 / 0.84); }
+  .legend dd strong { font-weight: 600; color: var(--parchment-light); }
+  .lg-line { fill: none; stroke: var(--parchment); stroke-width: 1.3; }
+  .lg-fill { fill: var(--parchment); }
+  .lg-dashed { stroke-dasharray: 2.6 2.6; stroke-width: 1; }
+  .lg-course { stroke-dasharray: 4.5 3.5; stroke-width: 1.5; }
+  .lg-medal { fill: var(--brass); }
+  .lg-ink { fill: none; stroke: var(--jungle-deep); stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+  .lg-ink-fill { fill: var(--jungle-deep); }
+
+  /* Phones without JavaScript: the same charted-waters framing, as a transform of the drawing */
+  @media (max-width: 767px) {
+    :global(html:not(.js)) .world { transform: var(--nojs-transform); }
+    :global(html:not(.js)) .chart { --k: var(--nojs-k); }
+  }
+
+  /* ---------- Tablet ---------- */
+  @media (min-width: 768px) {
+    .plate { margin-inline: 0; padding: 0.65rem; }
+    .sheet { padding: 9px; }
+    .sheet {
+      background:
+        linear-gradient(90deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 0 3px / calc(100% / 24) 3px repeat-x,
+        linear-gradient(90deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 0 calc(100% - 3px) / calc(100% / 24) 3px repeat-x,
+        linear-gradient(0deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) 3px 0 / 3px calc(100% / 14) repeat-y,
+        linear-gradient(0deg, transparent 25%, var(--tick) 25% 75%, transparent 75%) calc(100% - 3px) 0 / 3px calc(100% / 14) repeat-y,
+        var(--sea);
+    }
+    .sheet-window { aspect-ratio: var(--chart-ratio); }
+    .sheet-tab { font-size: 0.64rem; padding: 0.4rem 0.8rem 0.36rem; }
+    .journal { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3.5rem 3rem; }
+    :global(.js) .journal { grid-template-columns: minmax(0, 1fr); max-width: 44rem; }
+
+    .journal { padding-inline: 1.5rem; }
+    :global(.js) .index { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .index-btn {
+      grid-template-columns: 1fr;
+      align-content: start;
+      padding: 1rem 1.6rem 1.1rem 1.25rem;
+      border-left: 1px solid var(--hair);
+    }
+    .index-btn:nth-child(odd) { border-left: 0; padding-left: 0.25rem; }
+    .index-num { font-size: 1rem; }
+    .index-name { margin-top: 0.1rem; font-size: 1.2rem; }
+    .index-note { grid-column: 1; }
+    .index-btn::after { top: 1.45rem; right: 0.7rem; transform: rotate(45deg) scale(0); }
+    .index-btn[aria-pressed='true']::after { transform: rotate(45deg) scale(1); }
+    .index-whole {
+      grid-template-columns: 1fr;
+      justify-items: start;
+      align-content: center;
+      gap: 0.5rem;
+      padding-right: 2.2rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :global(.js) .index { grid-template-columns: repeat(3, minmax(0, 1fr)) auto; }
+    .index-btn:nth-child(odd) { border-left: 1px solid var(--hair); padding-left: 1.25rem; }
+    .index-btn:first-child { border-left: 0; padding-left: 0.25rem; }
+  }
+
+  /* ---------- Wide: the journal lies beside the plate ---------- */
+  @media (min-width: 1280px) {
+    :global(.js) .plate-layout {
+      grid-template-columns: minmax(0, 1fr) clamp(20.5rem, 26vw, 24rem);
+      align-items: start;
+      gap: clamp(2.5rem, 3.4vw, 3.75rem);
+    }
+    .journal { padding-inline: 0; }
+    :global(.js) .journal { padding-top: 0.4rem; }
+    .journal { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 2.5rem; }
+    .index-name { font-size: 1.3rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rose { transition: none; }
+    .skipper,
+    :global(.js) .entry.is-active { animation: none; }
+  }
+</style>

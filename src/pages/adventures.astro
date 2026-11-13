@@ -1,0 +1,1025 @@
+---
+// The Adventure Archive: everything we have published, bound as one journal.
+// A contents page, the expedition chart, then four chapters (one per category in
+// src/lib/adventures.ts). Each chapter is laid out differently on purpose:
+//   I   Theme Parks        a featured review as a journal page, with a tipped-in photograph
+//   II  Cruise Adventures  a spread: tall photograph against a narrow column of log entries
+//   III Food & Discoveries a ruled ledger with crew averages
+//   IV  Travel Journals    an honestly blank page
+// Content honesty: every line below comes from src/data. A chapter with no entries says so.
+import Layout from '../layouts/Layout.astro';
+import LocalPhoto from '../components/LocalPhoto.astro';
+import ExpeditionMap from '../components/ExpeditionMap.astro';
+import reviewData from '../data/reviews.json';
+import { categories, entriesByCategory, destinations, reviews, food, type CategoryId, type Entry } from '../lib/adventures';
+import { href } from '../lib/paths';
+
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+const words = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const count = (n: number, one: string, many = `${one}s`) => `${words[n] ?? n} ${n === 1 ? one : many}`;
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+const pad = (n: number) => String(n).padStart(2, '0');
+
+// Review dates are "YYYY-MM" or "YYYY-MM-DD". Formatted in UTC so no timezone can shift the day.
+const formatDate = (value?: string) => {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(value ?? '');
+  if (!m) return null;
+  const date = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, m[3] ? Number(m[3]) : 1));
+  const text = new Intl.DateTimeFormat('en-GB', {
+    day: m[3] ? 'numeric' : undefined,
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+  return { text, iso: value as string };
+};
+
+const tally = (list: Entry[]) => {
+  const r = list.filter((e) => e.kind === 'review').length;
+  const f = list.filter((e) => e.kind === 'food').length;
+  const parts = [r ? count(r, 'review') : '', f ? count(f, 'food note') : ''].filter(Boolean);
+  return parts.length ? capital(parts.join(', ')) : 'Still being written';
+};
+
+const chapters = categories.map((c, i) => {
+  const list = entriesByCategory(c.id);
+  return { ...c, numeral: roman[i], list, tally: tally(list) };
+});
+const chapter = (id: CategoryId) => chapters.find((c) => c.id === id)!;
+const byScore = (a: Entry, b: Entry) => b.score - a.score;
+
+// ----- Chapter I: theme parks -----
+const parks = chapter('theme-parks');
+const parkReviews = parks.list
+  .filter((e) => e.kind === 'review')
+  .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
+const featured = parkReviews[0];
+const moreParkReviews = parkReviews.slice(1);
+const parkFood = parks.list.filter((e) => e.kind === 'food');
+const featuredDate = formatDate(featured?.date);
+// The headings inside the full review, as a short "in this entry" line
+const featuredSections = (
+  (reviewData.find((r) => r.id === featured?.id) as { sections?: { title: string }[] } | undefined)?.sections ?? []
+).map((s) => s.title);
+
+// ----- Chapter II: cruises -----
+const cruises = chapter('cruises');
+const cruiseLog = [...cruises.list.filter((e) => e.kind === 'review'), ...cruises.list.filter((e) => e.kind === 'food')];
+const cruiseOnlyFood = cruiseLog.length > 0 && cruiseLog.every((e) => e.kind === 'food');
+
+// ----- Chapter III: food -----
+const foodChapter = chapter('food');
+const ledger = [...foodChapter.list].sort(byScore);
+
+// ----- Chapter IV: journals -----
+const journals = chapter('journals');
+
+const onFile = [count(reviews.length, 'review'), count(food.length, 'food note'), `${count(destinations.length, 'destination')} on the chart`].join(', ');
+const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String(e.score));
+---
+
+<Layout
+  title="Adventures · Frontier Adventurers"
+  description="The Frontier Adventurers archive: the expedition map, theme park reviews, cruise notes and every food find, scored by the crew."
+>
+  <!-- Title page and contents -->
+  <section class="archive-head surface-deep grain lantern" aria-labelledby="archive-title">
+    <div class="shell">
+      <p class="eyebrow reveal">The crew’s journal</p>
+      <h1 id="archive-title" class="display page-title head-title text-parchment-light reveal" style="--reveal-delay: 80ms">
+        The Adventure Archive
+      </h1>
+
+      <div class="rule-double head-rule reveal" style="--reveal-delay: 120ms" aria-hidden="true"></div>
+
+      <div class="head-grid">
+        <div class="head-intro reveal" style="--reveal-delay: 160ms">
+          <p class="lede">
+            Everything we have written down so far, filed the way we remember it: by park, by ship and by plate. Four chapters. One of them is still blank, and we would rather say so.
+          </p>
+          <p class="fell head-tally">On file: {onFile}.</p>
+        </div>
+
+        <nav class="toc reveal" aria-label="Chapters" style="--reveal-delay: 240ms">
+          <p class="toc-label">Contents</p>
+          <ol class="toc-list">
+            {chapters.map((c) => (
+              <li>
+                <a href={`#${c.id}`} class="toc-link">
+                  <span class="fell toc-num" aria-hidden="true">{c.numeral}.</span>
+                  <span class="display toc-name">{c.title}</span>
+                  <span class="toc-leader" aria-hidden="true"></span>
+                  <span class="fell toc-count">{c.tally}</span>
+                </a>
+              </li>
+            ))}
+          </ol>
+          <p class="toc-foot">
+            <a href="#expedition-map" class="link">First, the chart <span class="arrow" aria-hidden="true">↓</span></a>
+          </p>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <ExpeditionMap eyebrow="The chart" />
+
+  <!-- Chapter I: a featured review, set as a journal page -->
+  <section id="theme-parks" class="parks surface-paper grain section" aria-labelledby="theme-parks-title">
+    <div class="shell">
+      <div class="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-16">
+        <div class="lg:col-span-7">
+          <p class="eyebrow reveal">Chapter {parks.numeral} · {parks.kicker}</p>
+          <h2 id="theme-parks-title" class="display chapter-title mt-5 text-mahogany reveal">{parks.title}</h2>
+        </div>
+        <div class="lg:col-span-5">
+          <p class="lede reveal" style="--reveal-delay: 120ms">{parks.description}</p>
+        </div>
+      </div>
+
+      <div class="parks-body">
+        {featured && (
+          <article class="entry reveal" aria-labelledby="featured-title">
+            <div class="rule-double" aria-hidden="true"></div>
+            <p class="entry-meta">
+              <span>{featured.label}</span>
+              {featured.place && <span>{featured.place}</span>}
+              {featuredDate && <time datetime={featuredDate.iso}>{featuredDate.text}</time>}
+            </p>
+            <h3 id="featured-title" class="display entry-title">
+              <a href={featured.url}>{featured.title}</a>
+            </h3>
+            <blockquote class="fell entry-pull">
+              <p>{featured.summary}</p>
+            </blockquote>
+
+            <div class="entry-foot">
+              <div class="verdict">
+                <p class="verdict-label">Our rating</p>
+                <p class="verdict-score">
+                  <span class="sr-only">{featured.scoreLabel}</span>
+                  <span aria-hidden="true"><span class="display verdict-num">{featured.score}</span><span class="fell verdict-of">of 5</span></span>
+                </p>
+                <p class="pips" aria-hidden="true">
+                  {[1, 2, 3, 4, 5].map((n) => <span class:list={['pip', { 'pip-on': n <= Math.round(featured.score) }]}></span>)}
+                </p>
+              </div>
+              <div class="entry-detail">
+                {featuredSections.length > 0 && (
+                  <>
+                    <p class="verdict-label">In this entry</p>
+                    <ul class="entry-sections fell">
+                      {featuredSections.map((s) => <li>{s}</li>)}
+                    </ul>
+                  </>
+                )}
+                <a href={featured.url} class="btn btn-ink entry-btn">Read the full review <span class="arrow" aria-hidden="true">→</span></a>
+              </div>
+            </div>
+          </article>
+        )}
+
+        <figure class="tipped reveal">
+          <div class="tipped-mount">
+            <LocalPhoto
+              src="photos/florian/churro.jpg"
+              alt="Florian in sunglasses biting into a churro, with a red rollercoaster track behind him"
+              sizes="(min-width: 1024px) 360px, (min-width: 700px) 240px, 304px"
+              class="photo-grade tipped-img"
+            />
+          </div>
+          <figcaption class="fell tipped-caption">Plate I. Florian, a churro and a rollercoaster. In that order.</figcaption>
+        </figure>
+
+        {(moreParkReviews.length > 0 || parkFood.length > 0) && (
+          <div class="notes reveal">
+            {moreParkReviews.length > 0 && (
+              <>
+                <h3 class="notes-title">More reviews from the parks</h3>
+                <ul class="notes-list" role="list">
+                  {moreParkReviews.map((e) => (
+                    <li>
+                      <a href={e.url} class="note">
+                        <span class="note-main">
+                          <span class="display note-name">{e.title}</span>
+                          <span class="fell note-place">{[e.label, formatDate(e.date)?.text].filter(Boolean).join(', ')}</span>
+                        </span>
+                        <span class="note-score">
+                          <span class="sr-only">{e.scoreLabel}</span>
+                          <span aria-hidden="true"><span class="display">{scoreText(e)}</span><span class="fell note-of">of 5</span></span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+            {parkFood.length > 0 && (
+              <>
+                <h3 class="notes-title">Also eaten in the parks</h3>
+                <ul class="notes-list" role="list">
+                  {parkFood.map((e) => (
+                    <li>
+                      <a href={e.url} class="note">
+                        <span class="note-main">
+                          <span class="display note-name">{e.title}</span>
+                          <span class="fell note-place">{e.label}, {e.place}</span>
+                        </span>
+                        <span class="note-score">
+                          <span class="sr-only">{e.scoreLabel}</span>
+                          <span aria-hidden="true"><span class="display">{scoreText(e)}</span><span class="fell note-of">crew avg.</span></span>
+                        </span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  </section>
+
+  <!-- Chapter II: a spread. Tall photograph, narrow column of log entries -->
+  <section id="cruises" class="cruise surface-deep grain section" aria-labelledby="cruises-title">
+    <div class="shell cruise-grid">
+      <div class="cruise-head">
+        <p class="eyebrow reveal">Chapter {cruises.numeral} · {cruises.kicker}</p>
+        <h2 id="cruises-title" class="display chapter-title mt-5 text-parchment-light reveal">{cruises.title}</h2>
+        <p class="lede mt-7 reveal" style="--reveal-delay: 120ms">{cruises.description}</p>
+      </div>
+
+      <figure class="cruise-plate">
+        <div class="frame cruise-photo unveil" data-parallax-root>
+          <div class="cruise-drift" data-parallax="5">
+            <LocalPhoto
+              src="photos/thibeau/balcony.jpg"
+              alt="Tibeau in a white shirt holding a drink at a balcony railing, with the sea and a cloudy sky behind him"
+              sizes="(min-width: 1280px) 620px, (min-width: 1024px) 50vw, 100vw"
+              class="photo-grade cruise-img"
+            />
+          </div>
+        </div>
+        <figcaption class="fell cruise-caption reveal">Plate II. Tibeau, a drink and a great deal of sea.</figcaption>
+      </figure>
+
+      <div class="cruise-log">
+        {cruiseLog.length > 0 ? (
+          <ol class="log" role="list">
+            {cruiseLog.map((e, i) => (
+              <li class="log-entry reveal">
+                <p class="log-meta">
+                  <span class="fell log-no">Log no. {i + 1}</span>
+                  <span class="log-kind">{[e.label, e.trip ?? formatDate(e.date)?.text].filter(Boolean).join(' · ')}</span>
+                </p>
+                <h3 class="display log-title"><a href={e.url}>{e.title}</a></h3>
+                <p class="log-body">{e.summary}</p>
+                <p class="log-score">
+                  <span class="sr-only">{e.scoreLabel}</span>
+                  <span aria-hidden="true" class="log-score-vis">
+                    <span class="meter" style={`--score:${(e.score / 5).toFixed(3)}`}></span>
+                    <span class="display log-score-num">{scoreText(e)}</span>
+                    <span class="log-score-of">{e.kind === 'food' ? 'crew average, out of 5' : 'out of 5'}</span>
+                  </span>
+                </p>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p class="fell cruise-aside">Nothing filed from the ship yet.</p>
+        )}
+        {cruiseOnlyFood && (
+          <p class="fell cruise-aside reveal">So far this chapter is all dining. Make of that what you will.</p>
+        )}
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Chapter III: the ledger -->
+  <section id="food" class="foodc surface-jungle grain section" aria-labelledby="food-title">
+    <div class="shell">
+      <div class="food-head">
+        <div class="food-intro">
+          <p class="eyebrow reveal">Chapter {foodChapter.numeral} · {foodChapter.kicker}</p>
+          <h2 id="food-title" class="display chapter-title mt-5 text-parchment-light reveal">{foodChapter.title}</h2>
+          <p class="lede mt-7 reveal" style="--reveal-delay: 120ms">{foodChapter.description}</p>
+          <p class="fell food-note reveal" style="--reveal-delay: 160ms">
+            The ledger keeps the crew average out of five, highest first. Ties are settled at the table.
+          </p>
+        </div>
+        <figure class="food-plate">
+          <div class="frame food-photo unveil">
+            <LocalPhoto
+              src="photos/megan/food.jpg"
+              alt="Megan laughing at a restaurant table, knife and fork raised over two plates of food"
+              sizes="(min-width: 1024px) 380px, (min-width: 720px) 42vw, (min-width: 640px) 384px, 100vw"
+              class="photo-grade food-img"
+            />
+          </div>
+          <figcaption class="fell food-caption reveal">Plate III. Megan, cutlery at the ready.</figcaption>
+        </figure>
+      </div>
+
+      <div class="ledger">
+        <div class="ledger-head" aria-hidden="true">
+          <span>No.</span>
+          <span>Entry</span>
+          <span>Where</span>
+          <span class="ledger-head-score">Crew average</span>
+        </div>
+        <ol class="ledger-list" role="list">
+          {ledger.map((e, i) => (
+            <li class="ledger-row reveal">
+              <span class="fell ledger-no" aria-hidden="true">{pad(i + 1)}</span>
+              <div class="ledger-main">
+                <h3 class="display ledger-name"><a href={e.url}>{e.title}</a></h3>
+                <p class="ledger-summary">{e.summary}</p>
+              </div>
+              <p class="ledger-where">
+                <span class="ledger-kind">{e.label}</span>
+                <span class="fell ledger-place">{e.place}</span>
+              </p>
+              <p class="ledger-score">
+                <span class="sr-only">{e.scoreLabel}</span>
+                <span aria-hidden="true" class="ledger-score-vis">
+                  <span class="display ledger-score-num">{scoreText(e)}</span>
+                  <span class="meter" style={`--score:${(e.score / 5).toFixed(3)}`}></span>
+                </span>
+              </p>
+            </li>
+          ))}
+        </ol>
+        <div class="ledger-foot reveal">
+          <p class="fell ledger-foot-note">The complete food log, plate by plate, has a page of its own.</p>
+          <a href={href('food')} class="btn btn-brass">Open the Food Log <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Chapter IV: nothing published yet, and the page says so -->
+  <section id="journals" class="journals surface-deep grain section" aria-labelledby="journals-title">
+    <div class="shell journals-grid">
+      <div class="journals-text">
+        <p class="eyebrow reveal">Chapter {journals.numeral} · {journals.kicker}</p>
+        <h2 id="journals-title" class="display chapter-title mt-5 text-parchment-light reveal">{journals.title}</h2>
+        {journals.list.length === 0 ? (
+          <div class="reveal" style="--reveal-delay: 120ms">
+            <p class="lede mt-7">
+              Longer stories and practical guides from our trips will live here. None are published yet: the first entries are being written, and we would rather leave a page blank than fill it with something that did not happen.
+            </p>
+            <p class="journals-body">Until they are ready, the newest reports from the road are on our channels.</p>
+            <div class="journals-cta">
+              <a href={href('socials')} class="btn btn-ghost">Find Our Channels <span class="arrow" aria-hidden="true">→</span></a>
+            </div>
+          </div>
+        ) : (
+          <div class="reveal" style="--reveal-delay: 120ms">
+            <p class="lede mt-7">{journals.description}</p>
+            <ul class="journals-list" role="list">
+              {journals.list.map((e) => (
+                <li>
+                  <a href={e.url} class="journals-link">
+                    <span class="display">{e.title}</span>
+                    <span class="fell">{e.summary}</span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {journals.list.length === 0 && (
+        <div class="blank-wrap reveal" style="--reveal-delay: 200ms">
+          <div class="blank surface-paper grain">
+            <p class="blank-top"><span>Travel journal</span><span>Page 1</span></p>
+            <p class="fell blank-line">This page is still blank.</p>
+            <p class="fell blank-sub">Not for long.</p>
+            <div class="blank-stamp"><p class="stamp">Entries in progress</p></div>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- Shared small type ---------- */
+  .toc-label,
+  .entry-meta,
+  .verdict-label,
+  .notes-title,
+  .log-kind,
+  .ledger-head,
+  .ledger-kind,
+  .blank-top {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  /* A thin brass gauge for crew averages: hairline track, filled to the score */
+  .meter {
+    position: relative;
+    display: block;
+    width: 4.5rem;
+    height: 3px;
+    background: linear-gradient(rgb(232 211 165 / 0.3), rgb(232 211 165 / 0.3)) 0 50% / 100% 1px no-repeat;
+  }
+  .meter::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--score, 0) * 100%);
+    background: var(--gold);
+  }
+
+  /* ---------- Title page ---------- */
+  .archive-head {
+    padding-top: calc(var(--header-h) + clamp(3rem, 9vw, 7rem));
+    padding-bottom: clamp(3.5rem, 8vw, 6.5rem);
+    overflow: hidden;
+  }
+  .head-title { margin-top: 1.5rem; }
+  .head-rule { margin-top: clamp(2rem, 4.5vw, 3.25rem); color: var(--gold); }
+  .head-grid {
+    display: grid;
+    gap: 3rem;
+    margin-top: clamp(2rem, 4.5vw, 3.25rem);
+  }
+  .head-intro { max-width: 34rem; }
+  .head-tally {
+    margin-top: 1.5rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgb(196 154 80 / 0.5);
+    font-size: 1.1rem;
+    line-height: 1.4;
+    color: rgb(232 211 165 / 0.82);
+  }
+
+  .toc-label { color: var(--gold); }
+  .toc-list {
+    margin-top: 1rem;
+    border-top: 1px solid rgb(196 154 80 / 0.4);
+  }
+  .toc-list li { border-bottom: 1px solid rgb(232 211 165 / 0.16); }
+  .toc-link {
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    min-height: 3.5rem;
+    padding: 0.9rem 0;
+    color: var(--parchment-light);
+    transition: padding-left 0.5s var(--ease-out), color 0.3s;
+  }
+  .toc-link:hover,
+  .toc-link:focus-visible { padding-left: 0.6rem; color: var(--gold-bright); }
+  .toc-num { font-size: 1.05rem; color: var(--gold); }
+  .toc-name { font-size: clamp(1.45rem, 1.2rem + 1.2vw, 2rem); line-height: 1.15; }
+  .toc-leader { display: none; }
+  .toc-count {
+    grid-column: 2;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .toc-foot { margin-top: 1.5rem; }
+  .toc-foot .link { min-height: 2.75rem; align-items: center; }
+
+  @media (min-width: 560px) {
+    .toc-link { grid-template-columns: 2.8rem auto 1fr auto; column-gap: 0.9rem; }
+    /* Dotted leader, as in a printed table of contents */
+    .toc-leader {
+      display: block;
+      align-self: end;
+      height: 0;
+      margin-bottom: 0.45em;
+      border-bottom: 1px dotted rgb(232 211 165 / 0.45);
+    }
+    .toc-count { grid-column: auto; text-align: right; }
+  }
+  @media (min-width: 1024px) {
+    .head-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: clamp(3rem, 6vw, 6rem);
+      align-items: start;
+    }
+  }
+
+  /* ---------- Chapter I: theme parks (parchment) ---------- */
+  .parks-body {
+    display: grid;
+    gap: 3rem;
+    margin-top: clamp(2.5rem, 6vw, 4.5rem);
+  }
+
+  .entry .rule-double { color: var(--mahogany); opacity: 0.55; }
+  /* Items are divided by a mid dot that sits in each item's left padding. The row is pulled
+     left by that padding and clipped there, so a dot never starts a wrapped line. */
+  .entry-meta,
+  .entry-sections {
+    --sep: 1.5em;
+    display: flex;
+    flex-wrap: wrap;
+    margin-left: calc(-1 * var(--sep));
+    clip-path: inset(0 0 0 var(--sep));
+  }
+  .entry-meta > *,
+  .entry-sections > * { position: relative; padding-left: var(--sep); }
+  .entry-meta > *::before,
+  .entry-sections > *::before {
+    content: '·';
+    position: absolute;
+    left: 0;
+    width: var(--sep);
+    text-align: center;
+    opacity: 0.7;
+  }
+  .entry-meta {
+    row-gap: 0.25rem;
+    margin-top: 1.25rem;
+    color: var(--mahogany);
+  }
+  .entry-title {
+    margin-top: 1.25rem;
+    font-size: clamp(1.75rem, 1.2rem + 2.4vw, 3rem);
+    line-height: 1.08;
+    color: var(--mahogany-deep);
+  }
+  .entry-title a {
+    text-decoration: underline transparent;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.16em;
+    transition: text-decoration-color 0.4s var(--ease-out), color 0.3s;
+  }
+  .entry-title a:hover { color: var(--mahogany); text-decoration-color: currentColor; }
+
+  /* The summary of the review, pulled out as the note in the margin */
+  .entry-pull {
+    position: relative;
+    margin-top: clamp(1.75rem, 4vw, 2.75rem);
+    padding-left: clamp(1.25rem, 3vw, 2rem);
+    border-left: 3px double rgb(72 42 27 / 0.55);
+    font-size: clamp(1.35rem, 1.1rem + 1.2vw, 1.95rem);
+    line-height: 1.32;
+    color: var(--mahogany);
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+
+  .entry-foot {
+    display: grid;
+    gap: 2rem;
+    margin-top: clamp(2rem, 5vw, 3rem);
+    padding-top: 1.75rem;
+    border-top: 1px solid rgb(72 42 27 / 0.3);
+  }
+  .verdict-label { color: rgb(72 42 27 / 0.86); }
+  .verdict-score { margin-top: 0.35rem; }
+  .verdict-num { font-size: clamp(3.5rem, 2.6rem + 3vw, 5rem); line-height: 0.9; color: var(--mahogany); }
+  .verdict-of { margin-left: 0.5rem; font-size: 1.35rem; color: rgb(72 42 27 / 0.86); }
+  .pips { display: flex; gap: 0.7rem; margin-top: 1rem; padding-left: 0.2rem; }
+  .pip {
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 1px solid var(--mahogany);
+    transform: rotate(45deg);
+  }
+  .pip-on { background: var(--mahogany); }
+  .entry-sections {
+    --sep: 1.3em;
+    row-gap: 0.1rem;
+    margin-top: 0.5rem;
+    font-size: 1.12rem;
+    line-height: 1.5;
+    color: rgb(44 25 15 / 0.9);
+  }
+  .entry-btn { margin-top: 1.5rem; }
+
+  /* A photograph tipped into the journal, held by four photo corners */
+  .tipped { max-width: 19rem; margin-left: auto; }
+  .tipped-mount {
+    position: relative;
+    padding: 0.55rem;
+    background: var(--parchment-light);
+    border: 1px solid rgb(72 42 27 / 0.28);
+    transform: rotate(1.6deg);
+  }
+  .tipped-mount::after {
+    --c: var(--mahogany);
+    --s: 1.5rem;
+    content: '';
+    position: absolute;
+    inset: 0.2rem;
+    background:
+      linear-gradient(135deg, var(--c) 50%, transparent 50%) 0 0 / var(--s) var(--s) no-repeat,
+      linear-gradient(225deg, var(--c) 50%, transparent 50%) 100% 0 / var(--s) var(--s) no-repeat,
+      linear-gradient(315deg, var(--c) 50%, transparent 50%) 100% 100% / var(--s) var(--s) no-repeat,
+      linear-gradient(45deg, var(--c) 50%, transparent 50%) 0 100% / var(--s) var(--s) no-repeat;
+    pointer-events: none;
+  }
+  .tipped-mount :global(.tipped-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    object-fit: cover;
+    object-position: 50% 35%;
+  }
+  .tipped-caption {
+    margin-top: 1.1rem;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    color: rgb(72 42 27 / 0.9);
+  }
+
+  /* Margin notes: shorter entries filed under the same chapter */
+  .notes-title { color: var(--mahogany); }
+  .notes-title:not(:first-child) { margin-top: 2.5rem; }
+  .notes-list {
+    margin-top: 0.9rem;
+    border-top: 1px solid rgb(72 42 27 / 0.45);
+  }
+  .notes-list li { border-bottom: 1px solid rgb(72 42 27 / 0.22); }
+  .note {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1.25rem;
+    min-height: 3.5rem;
+    padding: 0.85rem 0;
+    color: var(--mahogany-deep);
+    transition: padding-left 0.5s var(--ease-out), color 0.3s;
+  }
+  .note:hover,
+  .note:focus-visible { padding-left: 0.6rem; color: var(--mahogany); }
+  .note-main { display: grid; gap: 0.1rem; }
+  .note-name { font-size: clamp(1.2rem, 1.1rem + 0.5vw, 1.45rem); line-height: 1.2; }
+  .note-place { font-size: 1rem; line-height: 1.4; color: rgb(72 42 27 / 0.86); }
+  .note-score { flex: none; text-align: right; white-space: nowrap; }
+  .note-score .display { font-size: 1.45rem; color: var(--mahogany); }
+  .note-of { margin-left: 0.4rem; font-size: 0.95rem; color: rgb(72 42 27 / 0.86); }
+
+  @media (min-width: 640px) {
+    .entry-foot { grid-template-columns: auto 1fr; gap: clamp(2.5rem, 6vw, 4.5rem); }
+  }
+  @media (min-width: 700px) and (max-width: 1023.98px) {
+    .parks-body {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      column-gap: 3rem;
+      align-items: start;
+    }
+    .entry { grid-column: 1 / -1; }
+    .notes { grid-column: 1; grid-row: 2; }
+    .tipped { grid-column: 2; grid-row: 2; max-width: none; margin: 0; }
+  }
+  @media (min-width: 1024px) {
+    .parks-body {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      row-gap: 3.5rem;
+      align-items: start;
+    }
+    .entry { grid-column: 5 / -1; grid-row: 1; }
+    .notes { grid-column: 5 / -1; grid-row: 2; }
+    .tipped {
+      grid-column: 1 / span 3;
+      grid-row: 1 / span 2;
+      position: sticky;
+      top: calc(var(--header-h) + 2.5rem);
+      max-width: none;
+      margin: 0.5rem 0 0;
+    }
+  }
+  @media (min-width: 1280px) {
+    .entry, .notes { grid-column: 6 / -1; }
+    .tipped { grid-column: 1 / span 4; padding-right: 1.5rem; }
+  }
+
+  /* ---------- Chapter II: cruises (spread) ---------- */
+  .cruise-grid { display: grid; gap: 2.5rem; }
+  .log {
+    border-top: 1px solid rgb(196 154 80 / 0.45);
+  }
+  .log-entry {
+    position: relative;
+    padding: 1.75rem 0 2rem;
+    border-bottom: 1px solid rgb(232 211 165 / 0.16);
+  }
+  .log-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 1.25rem;
+  }
+  .log-no { font-size: 1.1rem; color: var(--gold); }
+  .log-kind { color: rgb(232 211 165 / 0.8); }
+  .log-title {
+    margin-top: 0.6rem;
+    font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.5rem);
+    line-height: 1.1;
+    color: var(--parchment-light);
+  }
+  /* The whole entry is the target; the title carries the link */
+  .log-title a::after { content: ''; position: absolute; inset: 0; }
+  .log-title a { transition: color 0.3s; }
+  .log-entry:hover .log-title a { color: var(--gold-bright); }
+  .log-body {
+    margin-top: 0.85rem;
+    max-width: 34rem;
+    color: rgb(232 211 165 / 0.86);
+    text-wrap: pretty;
+  }
+  .log-score { margin-top: 1.25rem; }
+  .log-score-vis { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 0.9rem; }
+  .log-score-num { font-size: 1.5rem; line-height: 1; color: var(--gold); }
+  .log-score-of {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.78);
+  }
+  .cruise-aside {
+    margin-top: 1.75rem;
+    font-size: 1.15rem;
+    line-height: 1.4;
+    color: rgb(232 211 165 / 0.8);
+  }
+
+  .cruise-photo {
+    overflow: hidden;
+    aspect-ratio: 4 / 5;
+    background: var(--jungle);
+  }
+  /* Taller than its box, so the scroll drift never shows an edge */
+  .cruise-drift { position: absolute; inset: -6% 0; }
+  .cruise-drift :global(.cruise-img) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 66% 42%;
+  }
+  .cruise-caption {
+    margin-top: 1rem;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    color: rgb(232 211 165 / 0.82);
+  }
+
+  @media (min-width: 600px) and (max-width: 1023.98px) {
+    .cruise-photo { aspect-ratio: 1 / 1; }
+    .cruise-drift :global(.cruise-img) { object-position: 50% 42%; }
+  }
+  @media (min-width: 1024px) {
+    .cruise-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      align-items: start;
+    }
+    .cruise-grid { grid-template-rows: auto 1fr; row-gap: clamp(2.25rem, 4vw, 3.5rem); }
+    .cruise-head { grid-column: 1 / span 5; grid-row: 1; }
+    .cruise-log { grid-column: 1 / span 5; grid-row: 2; }
+    /* The plate stays in view while the log beside it is read, and never outgrows the screen */
+    .cruise-plate {
+      grid-column: 7 / -1;
+      grid-row: 1 / span 2;
+      position: sticky;
+      top: calc(var(--header-h) + 1.5rem);
+    }
+    .cruise-photo {
+      aspect-ratio: 2 / 3;
+      width: 100%;
+      min-height: 30rem;
+      max-height: min(54rem, calc(100vh - var(--header-h) - 6.5rem));
+    }
+    .cruise-caption { text-align: right; }
+  }
+
+  /* ---------- Chapter III: food (ledger) ---------- */
+  .food-head { display: grid; gap: 2.5rem; }
+  .food-note {
+    margin-top: 1.5rem;
+    padding-left: 1rem;
+    border-left: 1px solid rgb(196 154 80 / 0.5);
+    max-width: 30rem;
+    font-size: 1.1rem;
+    line-height: 1.4;
+    color: rgb(232 211 165 / 0.82);
+  }
+  .food-photo { overflow: hidden; background: var(--jungle-deep); }
+  .food-photo :global(.food-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    object-position: 50% 42%;
+  }
+  .food-caption {
+    margin-top: 1rem;
+    font-size: 1.05rem;
+    line-height: 1.35;
+    color: rgb(232 211 165 / 0.82);
+  }
+
+  .ledger { margin-top: clamp(3rem, 7vw, 5.5rem); }
+  .ledger-head { display: none; color: var(--gold); }
+  .ledger-list { border-top: 1px solid rgb(196 154 80 / 0.55); }
+  .ledger-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+    column-gap: 0.75rem;
+    row-gap: 0.5rem;
+    align-items: baseline;
+    padding: 1.4rem 0 1.5rem;
+    border-bottom: 1px solid rgb(232 211 165 / 0.16);
+  }
+  /* Ledger rule: a second hairline under every row, as on ruled account paper */
+  .ledger-row::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 2px 0;
+    height: 1px;
+    background: rgb(232 211 165 / 0.07);
+    pointer-events: none;
+  }
+  .ledger-no { font-size: 1.1rem; color: var(--gold); }
+  .ledger-main { grid-column: 2; grid-row: 1 / span 1; }
+  .ledger-name {
+    font-size: clamp(1.4rem, 1.2rem + 1.1vw, 2rem);
+    line-height: 1.12;
+    color: var(--parchment-light);
+  }
+  .ledger-name { transition: transform 0.5s var(--ease-out); }
+  .ledger-name a { transition: color 0.3s; }
+  .ledger-name a::after { content: ''; position: absolute; inset: 0; z-index: 1; }
+  .ledger-row:hover .ledger-name a { color: var(--gold-bright); }
+  .ledger-summary {
+    margin-top: 0.55rem;
+    max-width: 36rem;
+    font-size: 0.98rem;
+    line-height: 1.6;
+    color: rgb(232 211 165 / 0.84);
+    text-wrap: pretty;
+  }
+  .ledger-where {
+    grid-column: 2 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.15rem 0.9rem;
+  }
+  .ledger-kind { color: rgb(232 211 165 / 0.78); }
+  .ledger-place { font-size: 1.02rem; line-height: 1.4; color: rgb(232 211 165 / 0.82); }
+  .ledger-score { grid-column: 3; grid-row: 1; justify-self: end; }
+  .ledger-score-vis { display: grid; justify-items: end; gap: 0.5rem; }
+  .ledger-score-num { font-size: clamp(1.5rem, 1.3rem + 1vw, 2.1rem); line-height: 1; color: var(--gold); }
+  .ledger-score .meter { width: 3rem; }
+
+  .ledger-foot {
+    display: grid;
+    gap: 1.25rem;
+    margin-top: 2.25rem;
+  }
+  .ledger-foot-note { font-size: 1.1rem; line-height: 1.4; color: rgb(232 211 165 / 0.8); max-width: 26rem; }
+  .ledger-foot .btn { justify-self: start; }
+
+  @media (min-width: 640px) {
+    .food-photo :global(.food-img) { aspect-ratio: 4 / 5; }
+    .food-plate { max-width: 24rem; }
+    .ledger-foot { grid-template-columns: 1fr auto; align-items: center; }
+  }
+  @media (min-width: 720px) and (max-width: 1023.98px) {
+    .food-head {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: 2.5rem;
+      align-items: end;
+    }
+    .food-plate { grid-column: 1; grid-row: 1; max-width: none; }
+    .food-intro { grid-column: 2; grid-row: 1; padding-bottom: 2.75rem; }
+  }
+  @media (min-width: 900px) {
+    .ledger-head,
+    .ledger-row {
+      display: grid;
+      grid-template-columns: 4rem minmax(0, 1fr) minmax(0, 15rem) 8.5rem;
+      column-gap: 2rem;
+    }
+    .ledger-head { padding-bottom: 0.9rem; }
+    .ledger-head-score { text-align: right; }
+    .ledger-row { padding: 1.75rem 0 1.85rem; }
+    .ledger-row:hover .ledger-name { transform: translateX(0.5rem); }
+    .ledger-no { font-size: 1.35rem; }
+    .ledger-main { grid-column: 2; }
+    .ledger-where {
+      grid-column: 3;
+      grid-row: 1;
+      display: grid;
+      gap: 0.3rem;
+      align-content: start;
+      padding-top: 0.5rem;
+    }
+    .ledger-score { grid-column: 4; }
+    .ledger-score .meter { width: 4.5rem; }
+  }
+  @media (min-width: 1024px) {
+    .food-head {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      align-items: end;
+    }
+    .food-plate { grid-column: 1 / span 4; grid-row: 1; max-width: none; }
+    .food-intro { grid-column: 6 / -1; grid-row: 1; padding-bottom: 2.75rem; }
+  }
+
+  /* ---------- Chapter IV: travel journals (the blank page) ---------- */
+  .journals-grid { display: grid; gap: 3.5rem; }
+  .journals-body { margin-top: 1.25rem; max-width: 34rem; color: rgb(232 211 165 / 0.86); }
+  .journals-cta { margin-top: 2.25rem; }
+  .journals-list { margin-top: 2rem; border-top: 1px solid rgb(196 154 80 / 0.45); }
+  .journals-list li { border-bottom: 1px solid rgb(232 211 165 / 0.16); }
+  .journals-link { display: grid; gap: 0.3rem; padding: 1.25rem 0; color: var(--parchment-light); }
+  .journals-link .display { font-size: 1.6rem; line-height: 1.15; }
+  .journals-link .fell { color: rgb(232 211 165 / 0.82); }
+  .journals-link:hover .display { color: var(--gold-bright); }
+
+  /* A second sheet shows under the first, so the page reads as part of a book */
+  .blank-wrap { position: relative; max-width: 26rem; width: 100%; margin-inline: auto; }
+  .blank-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #b9a273;
+    transform: rotate(2.2deg) translate(0.5rem, 0.35rem);
+  }
+  .blank {
+    --line: 2.25rem;
+    --rule-top: 4.25rem;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    aspect-ratio: 4 / 5;
+    padding: 1.5rem 1.5rem 1.75rem 2.75rem;
+    transform: rotate(-1.2deg);
+  }
+  /* Ruled lines and a margin line, like the first page of a new notebook */
+  .blank::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, transparent calc(1.9rem - 1px), rgb(140 60 40 / 0.4) calc(1.9rem - 1px), rgb(140 60 40 / 0.4) 1.9rem, transparent 1.9rem),
+      repeating-linear-gradient(180deg, transparent 0 calc(var(--line) - 1px), rgb(72 42 27 / 0.2) calc(var(--line) - 1px) var(--line)) 0 var(--rule-top) / 100% calc(100% - var(--rule-top) - 1.25rem) no-repeat;
+    pointer-events: none;
+  }
+  .blank-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1px solid rgb(72 42 27 / 0.5);
+    color: var(--mahogany);
+  }
+  .blank-line,
+  .blank-sub {
+    position: relative;
+    font-size: clamp(1.45rem, 1.2rem + 1.2vw, 1.85rem);
+    line-height: var(--line);
+    color: var(--mahogany);
+  }
+  .blank-line { margin-top: 1.2rem; }
+  .blank-sub { color: rgb(72 42 27 / 0.86); }
+  .blank-stamp {
+    position: relative;
+    margin-top: auto;
+    align-self: flex-end;
+    color: var(--mahogany);
+  }
+
+  @media (min-width: 1024px) {
+    .journals-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      align-items: center;
+    }
+    .journals-text { grid-column: 1 / span 6; }
+    .blank-wrap { grid-column: 8 / -1; max-width: 27rem; margin-inline: auto 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toc-link:hover,
+    .toc-link:focus-visible,
+    .note:hover,
+    .note:focus-visible { padding-left: 0; }
+    .ledger-row:hover .ledger-name { transform: none; }
+  }
+</style>

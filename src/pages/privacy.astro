@@ -1,0 +1,243 @@
+---
+// Privacy and disclaimer. Plain language, and only statements that are true of this site:
+// it is static, sets no cookies, has no analytics, forms or accounts.
+import Layout from '../layouts/Layout.astro';
+import site from '../data/site.json';
+import { href } from '../lib/paths';
+
+// The short version, as a ledger
+const tally = [
+  { item: 'Cookies', value: 'None' },
+  { item: 'Analytics', value: 'None' },
+  { item: 'Tracking', value: 'None' },
+  { item: 'Forms', value: 'None' },
+  { item: 'Accounts', value: 'None' },
+  { item: 'Cookie banners', value: 'Not needed' },
+];
+---
+
+<Layout
+  title="Privacy & Disclaimer · Frontier Adventurers"
+  description="How this website handles your privacy (no cookies, no tracking, no forms) and the disclaimer: Frontier Adventurers is an independent fan project."
+>
+  <section class="fine-head surface-deep grain lantern" aria-labelledby="fine-title">
+    <div class="shell fine-head-inner">
+      <p class="eyebrow reveal">The fine print</p>
+      <h1 id="fine-title" class="display page-title fine-title text-parchment-light mt-5 reveal" style="--reveal-delay: 80ms">
+        Privacy &amp; Disclaimer
+      </h1>
+      <p class="lede fine-lede mt-7 reveal" style="--reveal-delay: 160ms">
+        The short version: this website does not collect anything about you. The long version is not much longer.
+      </p>
+      <nav class="fine-nav reveal" style="--reveal-delay: 240ms" aria-label="On this page">
+        <ol role="list">
+          <li><a href="#privacy"><span class="fell" aria-hidden="true">I.</span> Privacy</a></li>
+          <li><a href="#disclaimer"><span class="fell" aria-hidden="true">II.</span> Disclaimer</a></li>
+        </ol>
+      </nav>
+    </div>
+  </section>
+
+  <!-- Part I: privacy -->
+  <section id="privacy" class="surface-paper grain section" aria-labelledby="privacy-title">
+    <div class="shell part">
+      <div class="part-side">
+        <p class="eyebrow reveal">Part I</p>
+        <h2 id="privacy-title" class="display chapter-title mt-5 text-mahogany reveal">Privacy</h2>
+
+        <div class="tally reveal" style="--reveal-delay: 120ms">
+          <h3 class="tally-title">What this site keeps on you</h3>
+          <dl class="tally-list">
+            {tally.map((row) => (
+              <div>
+                <dt>{row.item}</dt>
+                <dd class="fell">{row.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+
+      <div class="part-body">
+        <div class="clause reveal">
+          <h3 class="display clause-title">A static website</h3>
+          <p>
+            This is a static website. It sets no cookies, uses no analytics or tracking, and has no forms or accounts. That is also why there is no cookie banner: there is nothing to ask your permission for.
+          </p>
+        </div>
+
+        <div class="clause reveal">
+          <h3 class="display clause-title">Fonts</h3>
+          <p>The fonts are served from this site itself, not from a font service.</p>
+        </div>
+
+        <div class="clause reveal">
+          <h3 class="display clause-title">Hosting</h3>
+          <p>
+            The site is hosted on GitHub Pages. Like any web host, GitHub may log technical data such as IP addresses in order to deliver the site to you. The details are in
+            <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" target="_blank" rel="noopener">GitHub’s privacy statement<span class="sr-only"> (opens in a new tab)</span> <span aria-hidden="true">↗</span></a>.
+          </p>
+        </div>
+
+        <div class="clause reveal">
+          <h3 class="display clause-title">Videos</h3>
+          <p>
+            Videos are only loaded from YouTube after you press play, using YouTube’s privacy-enhanced mode. Until then, nothing is requested from YouTube. From the moment you press play, Google’s privacy policy applies.
+          </p>
+        </div>
+
+        <div class="clause reveal">
+          <h3 class="display clause-title">Links to our channels</h3>
+          <p>Links to our social channels lead to those platforms, which have their own policies.</p>
+        </div>
+
+        <div class="clause reveal">
+          <h3 class="display clause-title">Questions</h3>
+          <p>
+            Reach us through one of the channels on the <a href={href('socials')}>contact page</a>.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Part II: disclaimer -->
+  <section id="disclaimer" class="surface-jungle grain section" aria-labelledby="disclaimer-title">
+    <div class="shell part">
+      <div class="part-side">
+        <p class="eyebrow reveal">Part II</p>
+        <h2 id="disclaimer-title" class="display chapter-title mt-5 text-parchment-light reveal">Disclaimer</h2>
+        <div class="part-stamp reveal" style="--reveal-delay: 120ms"><p class="stamp">Independent fan project</p></div>
+      </div>
+
+      <div class="part-body on-dark">
+        <p class="statement display reveal">
+          {site.name} is an independent fan project by a group of friends.
+        </p>
+        <div class="clause reveal">
+          <p>
+            We are not affiliated with, sponsored or endorsed by The Walt Disney Company or any of its subsidiaries.
+          </p>
+        </div>
+        <div class="clause reveal">
+          <p>
+            Names of parks, ships, restaurants and attractions belong to their owners and are used only to describe our own experiences.
+          </p>
+        </div>
+        <div class="clause reveal">
+          <p>Reviews and scores are our personal opinions.</p>
+        </div>
+        <p class="fell formerly reveal">Formerly known as {site.formerName}.</p>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- Title page ---------- */
+  .fine-head {
+    padding-top: calc(var(--header-h) + clamp(2.5rem, 7vw, 5.5rem));
+    padding-bottom: clamp(3rem, 6vw, 5rem);
+    overflow: hidden;
+  }
+  .fine-head-inner { position: relative; }
+  .fine-title { font-size: clamp(2.5rem, 1.2rem + 6vw, 5.8rem); }
+  .fine-lede { max-width: 36rem; }
+
+  .fine-nav { margin-top: clamp(2.5rem, 5vw, 3.5rem); border-top: 1px solid rgb(232 211 165 / 0.2); }
+  .fine-nav ol { display: flex; flex-wrap: wrap; gap: 0 2.5rem; }
+  .fine-nav a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    min-height: 2.75rem;
+    padding-top: 1rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.86);
+    transition: color 0.3s;
+  }
+  .fine-nav a .fell {
+    font-size: 1.05rem;
+    font-weight: 400;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--gold);
+  }
+  .fine-nav a:hover { color: var(--gold-bright); }
+
+  /* ---------- A part: heading in the margin, text on a readable measure ---------- */
+  .part { display: grid; gap: 3rem; }
+  @media (min-width: 1024px) {
+    .part {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      gap: 5rem;
+      align-items: start;
+    }
+    .part-side { position: sticky; top: calc(var(--header-h) + 2.5rem); }
+  }
+
+  .part-body { max-width: 39rem; }
+  .clause { padding-block: 1.6rem; border-top: 1px solid rgb(72 42 27 / 0.3); }
+  .clause:last-child { border-bottom: 1px solid rgb(72 42 27 / 0.3); }
+  .clause-title {
+    font-size: 1.35rem;
+    line-height: 1.2;
+    letter-spacing: -0.005em;
+    color: var(--mahogany);
+  }
+  .clause p { color: var(--mahogany-deep); text-wrap: pretty; }
+  .clause-title + p { margin-top: 0.6rem; }
+  .clause a {
+    color: var(--mahogany);
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: color 0.3s, text-decoration-thickness 0.3s;
+  }
+  .clause a:hover { color: var(--mahogany-deep); text-decoration-thickness: 2px; }
+
+  /* The short version, as a ledger with dotted leaders */
+  .tally { margin-top: clamp(2rem, 4vw, 3rem); max-width: 24rem; }
+  .tally-title {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mahogany);
+  }
+  .tally-list { margin-top: 0.75rem; }
+  .tally-list > div {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding: 0.35rem 0;
+  }
+  .tally-list dt { color: var(--mahogany-deep); }
+  /* Dotted leader between the item and its entry */
+  .tally-list dt::after { content: none; }
+  .tally-list > div::before {
+    content: '';
+    order: 1;
+    flex: 1;
+    min-width: 1.5rem;
+    border-bottom: 1px dotted rgb(72 42 27 / 0.6);
+    transform: translateY(-0.25em);
+  }
+  .tally-list dd { order: 2; font-size: 1.12rem; color: var(--mahogany); }
+
+  /* ---------- Disclaimer (dark) ---------- */
+  .part-stamp { margin-top: 2.25rem; color: var(--gold); }
+  .statement {
+    font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.5rem);
+    line-height: 1.18;
+    color: var(--parchment-light);
+    padding-bottom: 2rem;
+  }
+  .on-dark .clause { border-color: rgb(232 211 165 / 0.2); }
+  .on-dark .clause p { color: rgb(232 211 165 / 0.88); }
+  .formerly { margin-top: 1.75rem; font-size: 1.1rem; color: rgb(232 211 165 / 0.78); }
+</style>

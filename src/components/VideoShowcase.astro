@@ -1,4 +1,825 @@
 ---
-// STUB: replaced by the real component
+// Home page, Chapter IV: the Screening Room.
+// Films come from src/data/videos.json (see the "_readme" in that file).
+//  - With films: one screen with a click-to-load YouTube player (nothing is requested from
+//    YouTube until the visitor presses play) and the programme list beside it.
+//  - Without films (videos is empty): the three channels as admission tickets. Nothing is
+//    invented: no thumbnails, no titles, no counts.
+import Compass from './Compass.astro';
+import LocalPhoto from './LocalPhoto.astro';
+import site from '../data/site.json';
+import videoData from '../data/videos.json';
+import photoSizes from '../data/image-sizes.json';
+import { href } from '../lib/paths';
+
+interface VideoEntry {
+  platform?: string;
+  id?: string;
+  url?: string;
+  title?: string;
+  published?: string;
+  poster?: string;
+}
+
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+const platformNames: Record<string, string> = { youtube: 'YouTube', instagram: 'Instagram', tiktok: 'TikTok' };
+
+// Dates are formatted in UTC so no timezone can shift the day.
+const formatDate = (value?: string) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value ?? '');
+  if (!m) return null;
+  const date = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3])));
+  if (Number.isNaN(date.getTime())) return null;
+  const text = new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date);
+  return { text, iso: value as string };
+};
+
+// Only complete, well-formed entries are shown. A YouTube entry needs a plain video id,
+// an Instagram or TikTok entry needs an https link.
+const films = ((videoData.videos ?? []) as unknown as VideoEntry[])
+  .filter((v) => v && typeof v.title === 'string' && v.title.trim() !== '')
+  .map((v) => {
+    const platform = String(v.platform ?? '').toLowerCase();
+    const title = (v.title as string).trim();
+    const date = formatDate(v.published);
+    const poster = typeof v.poster === 'string' ? v.poster.replace(/^\/+/, '') : '';
+    if (platform === 'youtube' && /^[\w-]{6,20}$/.test(v.id ?? '')) {
+      return { kind: 'youtube' as const, platform, id: v.id as string, url: `https://www.youtube.com/watch?v=${v.id}`, title, date, poster };
+    }
+    if ((platform === 'instagram' || platform === 'tiktok') && /^https:\/\//.test(v.url ?? '')) {
+      return { kind: 'link' as const, platform, id: '', url: v.url as string, title, date, poster };
+    }
+    return null;
+  })
+  .filter((v): v is NonNullable<typeof v> => v !== null)
+  .map((v, i) => ({ ...v, numeral: roman[i] ?? String(i + 1), platformName: platformNames[v.platform] }));
+
+const hasFilms = films.length > 0;
+const featured = films.find((f) => f.kind === 'youtube');
+const showProgramme = films.length > 1 || (films.length === 1 && !featured);
+const posterIsLocal = featured?.poster ? featured.poster in photoSizes : false;
+
+// The three video channels, as tickets. The programme notes only restate the blurbs in the data.
+const billing: Record<string, string> = {
+  youtube: 'The main feature',
+  instagram: 'The newsreel',
+  tiktok: 'The short subjects',
+};
+const channels = ['youtube', 'instagram', 'tiktok']
+  .map((id) => site.socials.find((s) => s.id === id))
+  .filter((s): s is NonNullable<typeof s> => Boolean(s))
+  .map((s, i) => ({ ...s, numeral: roman[i], billing: billing[s.id] }));
 ---
-<section class="section"><div class="shell"><p class="eyebrow">VideoShowcase</p></div></section>
+
+<section
+  id="screening-room"
+  class:list={['screening surface-midnight grain lantern section', hasFilms ? 'has-films' : 'no-films']}
+  aria-labelledby="screening-title"
+>
+  <div class="sprockets" aria-hidden="true"></div>
+
+  <div class="shell screening-shell">
+    <div class="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-16">
+      <div class="lg:col-span-7">
+        <p class="eyebrow reveal">Chapter IV · The Screening Room</p>
+        <h2 id="screening-title" class="display chapter-title mt-5 text-parchment-light reveal">Lights Down, Please.</h2>
+      </div>
+      <div class="lg:col-span-5">
+        {hasFilms ? (
+          <p class="lede reveal" style="--reveal-delay: 120ms">
+            Most of what we do ends up on film. Take a seat for the latest reel, or follow the whole programme on our channels.
+          </p>
+        ) : (
+          <p class="lede reveal" style="--reveal-delay: 120ms">
+            Most of what we do ends up on film. No reel is threaded on this page yet: our latest films live on our channels, so take a ticket and we will see you there.
+          </p>
+        )}
+      </div>
+    </div>
+
+    {hasFilms && (
+      <div class:list={['house', { 'house-solo': !showProgramme || !featured }]} data-screening>
+        {featured && (
+          <div class="screen reveal">
+            <div class="screen-frame" data-frame>
+              <div class="screen-poster" data-poster>
+                {featured.poster ? (
+                  posterIsLocal ? (
+                    <LocalPhoto src={featured.poster} alt="" sizes="(min-width: 1024px) 760px, 100vw" class="screen-img photo-grade" />
+                  ) : (
+                    <img src={href(featured.poster)} alt="" width="1280" height="720" loading="lazy" decoding="async" class="screen-img photo-grade" />
+                  )
+                ) : (
+                  <div class="plate">
+                    <p class="fell plate-line">{site.name} present</p>
+                    <div class="plate-compass"><Compass /></div>
+                  </div>
+                )}
+                <div class="screen-shade" aria-hidden="true"></div>
+              </div>
+
+              <div class="screen-slot" data-slot></div>
+
+              <div class="screen-loader" data-loader aria-hidden="true">
+                <div class="loader-compass"><Compass /></div>
+                <p class="loader-text">Threading the reel</p>
+              </div>
+
+              <button type="button" class="screen-play" data-play data-main-play data-id={featured.id} data-title={featured.title}>
+                <span class="play-ring" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false"><path d="M9 6.5 L18 12 L9 17.5 Z" fill="currentColor" /></svg>
+                </span>
+                <span class="play-label">Play<span class="sr-only">: {featured.title}</span></span>
+              </button>
+              <a class="screen-nojs" href={featured.url} target="_blank" rel="noopener">
+                Watch on YouTube <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span>
+              </a>
+            </div>
+
+            <div class="screen-caption">
+              <p class="caption-label"><span data-now-label>Now showing</span> · Reel <span data-now-numeral>{featured.numeral}</span></p>
+              <h3 class="display caption-title" data-now-title>{featured.title}</h3>
+              <p class="fell caption-date" data-now-date hidden={!featured.date}>
+                <time datetime={featured.date?.iso}>{featured.date?.text}</time>
+              </p>
+            </div>
+
+            <p class="screen-notice">
+              Pressing play loads the film from YouTube; nothing is requested from them before that.
+              <a href={href('privacy')}>Read the privacy note</a>.
+            </p>
+            <p class="sr-only" role="status" data-status></p>
+          </div>
+        )}
+
+        {showProgramme && (
+          <div class="programme reveal" style="--reveal-delay: 140ms">
+            <h3 class="programme-title">{featured ? 'On the programme' : 'The programme'}</h3>
+            <ol class="programme-list" role="list">
+              {films.map((film) => (
+                <li>
+                  {film.kind === 'youtube' ? (
+                    <>
+                      <button
+                        type="button"
+                        class="reel"
+                        data-play
+                        data-id={film.id}
+                        data-title={film.title}
+                        data-numeral={film.numeral}
+                        data-date={film.date?.text}
+                        data-date-iso={film.date?.iso}
+                      >
+                        <span class="fell reel-no" aria-hidden="true">{film.numeral}.</span>
+                        <span class="reel-main">
+                          <span class="display reel-title">{film.title}</span>
+                          <span class="fell reel-meta">{film.platformName}{film.date && `, ${film.date.text}`}</span>
+                        </span>
+                        <span class="reel-cue"><span class="sr-only">, </span><span data-cue>Play</span></span>
+                      </button>
+                      <a class="reel reel-nojs" href={film.url} target="_blank" rel="noopener">
+                        <span class="fell reel-no" aria-hidden="true">{film.numeral}.</span>
+                        <span class="reel-main">
+                          <span class="display reel-title">{film.title}</span>
+                          <span class="fell reel-meta">{film.platformName}{film.date && `, ${film.date.text}`}</span>
+                        </span>
+                        <span class="reel-cue"><span class="sr-only">, opens </span>YouTube <span aria-hidden="true">↗</span></span>
+                      </a>
+                    </>
+                  ) : (
+                    <a class="reel" href={film.url} target="_blank" rel="noopener">
+                      <span class="fell reel-no" aria-hidden="true">{film.numeral}.</span>
+                      <span class="reel-main">
+                        <span class="display reel-title">{film.title}</span>
+                        <span class="fell reel-meta">{film.platformName}{film.date && `, ${film.date.text}`}</span>
+                      </span>
+                      <span class="reel-cue"><span class="sr-only">, opens </span>{film.platformName} <span aria-hidden="true">↗</span></span>
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ol>
+            <p class="fell programme-note">
+              {featured ? 'Reels marked with an arrow open on their own platform.' : 'Each reel opens on its own platform.'}
+            </p>
+          </div>
+        )}
+      </div>
+    )}
+
+    <div class="box-office">
+      {hasFilms && <h3 class="box-office-title reveal">The rest is on our channels</h3>}
+      <ul class="tickets" role="list">
+        {channels.map((c, i) => (
+          <li class:list={['ticket-slot reveal', `slot-${i + 1}`]} style={`--reveal-delay: ${i * 110}ms`}>
+            <div class="ticket">
+              <div class="ticket-stub" aria-hidden="true">
+                <span class="stub-admit">Admit one</span>
+                <span class="fell stub-no">No. {c.numeral}</span>
+              </div>
+              <div class="ticket-body">
+                <p class="ticket-billing">
+                  <span>{c.billing}</span>
+                  {i === 0 && !hasFilms && <span class="fell ticket-doors">Doors open whenever you like</span>}
+                </p>
+                {hasFilms ? <h4 class="display ticket-name">{c.label}</h4> : <h3 class="display ticket-name">{c.label}</h3>}
+                <p class="fell ticket-handle">{c.handle}</p>
+                <p class="ticket-blurb">{c.blurb}</p>
+                <p class="ticket-go">
+                  <a href={c.url} target="_blank" rel="noopener" class="link ticket-link">
+                    Watch on {c.label} <span class="arrow" aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span>
+                  </a>
+                </p>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <p class="fell house-note reveal">Seating is unreserved. Snacks are encouraged.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+  // Click-to-load player. Nothing is requested from YouTube until a visitor presses play.
+  // There is one screen, so starting another film always replaces (and stops) the first.
+  const house = document.querySelector<HTMLElement>('[data-screening]');
+  const frame = house?.querySelector<HTMLElement>('[data-frame]');
+  const slot = house?.querySelector<HTMLElement>('[data-slot]');
+
+  if (house && frame && slot) {
+    const status = house.querySelector<HTMLElement>('[data-status]');
+    const nowLabel = house.querySelector<HTMLElement>('[data-now-label]');
+    const nowTitle = house.querySelector<HTMLElement>('[data-now-title]');
+    const nowNumeral = house.querySelector<HTMLElement>('[data-now-numeral]');
+    const nowDate = house.querySelector<HTMLElement>('[data-now-date]');
+    const reels = Array.from(house.querySelectorAll<HTMLButtonElement>('.reel[data-play]'));
+    let current = '';
+    let giveUp = 0;
+
+    const markCurrent = (id: string) => {
+      reels.forEach((reel) => {
+        const on = reel.dataset.id === id;
+        reel.toggleAttribute('aria-current', on);
+        if (on) reel.setAttribute('aria-current', 'true');
+        const cue = reel.querySelector('[data-cue]');
+        if (cue) cue.textContent = on ? 'Now showing' : 'Play';
+      });
+    };
+
+    const play = (trigger: HTMLElement) => {
+      const id = trigger.dataset.id ?? '';
+      const title = trigger.dataset.title ?? 'Video';
+      if (!/^[\w-]{6,20}$/.test(id)) return;
+
+      if (id !== current) {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1`;
+        iframe.title = title;
+        iframe.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture';
+        iframe.setAttribute('allowfullscreen', '');
+        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+
+        const loaded = () => {
+          window.clearTimeout(giveUp);
+          if (slot.firstElementChild !== iframe) return;
+          frame.classList.remove('is-loading');
+          if (status) status.textContent = `Now showing: ${title}`;
+        };
+        window.clearTimeout(giveUp);
+        iframe.addEventListener('load', loaded, { once: true });
+        // If the load event never arrives (blocked network), do not leave the loader spinning
+        giveUp = window.setTimeout(loaded, 12000);
+
+        frame.classList.add('is-loading', 'is-playing');
+        if (status) status.textContent = `Loading: ${title}`;
+        slot.replaceChildren(iframe);
+        current = id;
+
+        if (nowLabel) nowLabel.textContent = 'Now showing';
+        if (nowTitle) nowTitle.textContent = title;
+        const listed = reels.find((reel) => reel.dataset.id === id);
+        if (nowNumeral && listed?.dataset.numeral) nowNumeral.textContent = listed.dataset.numeral;
+        if (nowDate && listed) {
+          const text = listed.dataset.date;
+          nowDate.hidden = !text;
+          const time = nowDate.querySelector('time');
+          if (time && text) {
+            time.textContent = text;
+            time.setAttribute('datetime', listed.dataset.dateIso ?? '');
+          }
+        }
+        markCurrent(id);
+      }
+
+      // The play button on the screen disappears, so keyboard focus moves to the player.
+      // From the programme list, focus stays on the list and the screen is brought into view.
+      const iframe = slot.querySelector('iframe');
+      if (trigger.hasAttribute('data-main-play')) {
+        iframe?.focus({ preventScroll: true });
+      } else {
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        frame.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'smooth' });
+      }
+    };
+
+    house.addEventListener('click', (event) => {
+      const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-play]');
+      if (trigger) play(trigger);
+    });
+  }
+</script>
+
+<style>
+  .screening {
+    overflow: hidden;
+    /* Lighter paper grain for the tickets (they are small, so the full grain reads as dirt) */
+    --ticket-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .28  0 0 0 0 .16  0 0 0 0 .1  0 0 0 .2 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .screening-shell { position: relative; }
+
+  /* A strip of film perforations along the top edge of the room */
+  .sprockets {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1.5rem;
+    border-bottom: 1px solid rgb(196 154 80 / 0.22);
+    background:
+      repeating-linear-gradient(90deg, rgb(196 154 80 / 0.2) 0 0.6rem, transparent 0.6rem 1.5rem) 0.45rem 50% / 100% 0.5rem no-repeat,
+      rgb(16 24 40 / 0.6);
+  }
+
+  /* ---------- The house: screen and programme ---------- */
+  .house {
+    display: grid;
+    gap: 3rem;
+    margin-top: clamp(2.75rem, 6vw, 4.5rem);
+  }
+  @media (min-width: 1024px) {
+    .house { grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 4rem; align-items: start; }
+    .house-solo { grid-template-columns: minmax(0, 1fr); max-width: 58rem; }
+  }
+
+  .screen-frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--midnight-deep);
+    box-shadow: 0 0 0 1px rgb(196 154 80 / 0.5);
+    overflow: hidden;
+  }
+  /* Inner keyline, like the mounted photographs elsewhere */
+  .screen-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0.6rem;
+    border: 1px solid rgb(232 211 165 / 0.4);
+    pointer-events: none;
+    transition: opacity 0.5s var(--ease-out);
+  }
+  .screen-frame.is-playing::after { opacity: 0; }
+
+  .screen-poster,
+  .screen-slot,
+  .screen-loader { position: absolute; inset: 0; }
+  .screen-poster :global(.screen-img) { width: 100%; height: 100%; object-fit: cover; }
+  .screen-shade {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(60% 70% at 50% 50%, rgb(16 24 40 / 0.5), transparent 75%),
+      linear-gradient(0deg, rgb(16 24 40 / 0.55), transparent 45%);
+  }
+  .screen-frame.is-playing .screen-poster { visibility: hidden; }
+
+  /* Title plate, shown when a film has no poster image */
+  .plate {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(70% 90% at 50% 45%, rgb(196 154 80 / 0.12), transparent 70%),
+      var(--midnight-deep);
+  }
+  .plate-line {
+    position: absolute;
+    inset: 12% 1.5rem auto;
+    text-align: center;
+    font-size: clamp(0.95rem, 0.8rem + 0.6vw, 1.3rem);
+    color: rgb(232 211 165 / 0.8);
+  }
+  .plate-compass {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: min(70%, 34rem);
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    color: var(--gold);
+    opacity: 0.1;
+  }
+  .plate-compass :global(circle),
+  .plate-compass :global(line) { vector-effect: non-scaling-stroke; stroke-width: 1px; }
+
+  .screen-slot :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    background: #000;
+  }
+
+  /* Branded loader: the compass needle turns until the player has loaded */
+  .screen-loader {
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 1rem;
+    background: var(--midnight-deep);
+    color: var(--gold);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.5s var(--ease-out), visibility 0s linear 0.5s;
+  }
+  .screen-frame.is-loading .screen-loader {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.2s, visibility 0s;
+  }
+  .loader-compass { width: 4.5rem; height: 4.5rem; }
+  .screen-frame.is-loading .loader-compass :global(.compass-needle) {
+    transition: none;
+    animation: reel-needle 1.5s cubic-bezier(0.6, 0, 0.3, 1) infinite;
+  }
+  @keyframes reel-needle {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .loader-text {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.85);
+  }
+
+  .screen-play {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    justify-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    color: var(--parchment-light);
+    cursor: pointer;
+  }
+  .screen-play:focus-visible { outline-offset: -0.45rem; }
+  .screen-frame.is-playing .screen-play { display: none; }
+  .play-ring {
+    display: grid;
+    place-items: center;
+    width: clamp(4rem, 3rem + 4vw, 5.5rem);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid var(--gold);
+    outline: 1px solid rgb(196 154 80 / 0.4);
+    outline-offset: 5px;
+    background: rgb(16 24 40 / 0.72);
+    color: var(--gold-bright);
+    transition: background-color 0.4s var(--ease-out), color 0.4s var(--ease-out), transform 0.6s var(--ease-out);
+  }
+  .play-ring svg { width: 46%; height: 46%; transform: translateX(4%); }
+  .screen-play:hover .play-ring {
+    background: var(--gold);
+    color: var(--midnight-deep);
+    transform: scale(1.05);
+  }
+  .play-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    /* A dark chip, so the word stays readable on any poster */
+    padding: 0.3rem 0.6rem 0.25rem 0.75rem;
+    background: rgb(16 24 40 / 0.78);
+  }
+
+  /* Without JavaScript the screen is a plain link to the film on YouTube */
+  .screen-nojs {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    padding: 1.5rem;
+    text-align: center;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--parchment-light);
+    background: rgb(16 24 40 / 0.66);
+  }
+  .screen-nojs:hover { color: var(--gold-bright); }
+  :global(.js) .screen-nojs,
+  :global(.js) .reel-nojs { display: none; }
+  :global(html:not(.js)) .screen-play,
+  :global(html:not(.js)) button.reel { display: none; }
+
+  .screen-caption { margin-top: 1.5rem; }
+  .caption-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .caption-title {
+    margin-top: 0.6rem;
+    font-size: clamp(1.6rem, 1.2rem + 1.8vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--parchment-light);
+  }
+  .caption-date { margin-top: 0.4rem; font-size: 1.05rem; color: rgb(232 211 165 / 0.8); }
+  .screen-notice {
+    max-width: 38rem;
+    margin-top: 1.1rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: rgb(232 211 165 / 0.78);
+  }
+  .screen-notice a {
+    color: var(--gold);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    transition: color 0.3s;
+  }
+  .screen-notice a:hover { color: var(--gold-bright); }
+
+  /* ---------- Programme list ---------- */
+  .programme-title,
+  .box-office-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .programme-list {
+    margin-top: 1rem;
+    border-top: 1px solid rgb(232 211 165 / 0.22);
+  }
+  .programme-list li { border-bottom: 1px solid rgb(232 211 165 / 0.22); }
+  .reel {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 0.6rem;
+    width: 100%;
+    min-height: 3.5rem;
+    padding: 1rem 0;
+    text-align: left;
+    color: var(--parchment);
+    transition: color 0.3s, padding-left 0.5s var(--ease-out);
+  }
+  .reel:hover { padding-left: 0.5rem; color: var(--parchment-light); }
+  .reel-no { font-size: 1rem; color: rgb(232 211 165 / 0.7); }
+  .reel-main { display: grid; gap: 0.2rem; }
+  .reel-title { font-size: 1.2rem; line-height: 1.2; overflow-wrap: anywhere; }
+  .reel-meta { font-size: 0.98rem; color: rgb(232 211 165 / 0.78); }
+  .reel-cue {
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    white-space: nowrap;
+  }
+  .reel[aria-current='true'] .reel-title { color: var(--gold-bright); }
+  .programme-note { margin-top: 1rem; color: rgb(232 211 165 / 0.72); }
+
+  /* ---------- Box office: the channels as admission tickets ---------- */
+  .box-office { margin-top: clamp(3rem, 7vw, 5.5rem); }
+  .has-films .box-office {
+    padding-top: clamp(2.5rem, 5vw, 3.5rem);
+    border-top: 1px solid rgb(232 211 165 / 0.18);
+  }
+
+  .tickets {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .has-films .tickets { margin-top: 1.75rem; }
+
+  .ticket {
+    --notch: 0.6rem;
+    --stub: 3.5rem;
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--stub) minmax(0, 1fr);
+    height: 100%;
+    color: var(--mahogany-deep);
+  }
+  .ticket-stub,
+  .ticket-body {
+    background:
+      var(--ticket-grain) 0 0 / 180px 180px,
+      linear-gradient(180deg, var(--parchment-light), var(--parchment));
+  }
+  /* The two halves meet at a perforation: each has a quarter-circle bite at the joint */
+  .ticket-stub {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1rem 0;
+    -webkit-mask-image:
+      radial-gradient(circle at 100% 0, transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle at 100% 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    -webkit-mask-composite: source-in;
+    mask-image:
+      radial-gradient(circle at 100% 0, transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle at 100% 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    mask-composite: intersect;
+    transform-origin: 100% 50%;
+    transition: transform 0.7s var(--ease-out);
+  }
+  .ticket-body {
+    padding: 1.4rem 1.25rem 1.5rem 1.35rem;
+    border-left: 1.5px dashed rgb(72 42 27 / 0.42);
+    -webkit-mask-image:
+      radial-gradient(circle at 0 0, transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle at 0 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    -webkit-mask-composite: source-in;
+    mask-image:
+      radial-gradient(circle at 0 0, transparent calc(var(--notch) - 0.5px), #000 var(--notch)),
+      radial-gradient(circle at 0 100%, transparent calc(var(--notch) - 0.5px), #000 var(--notch));
+    mask-composite: intersect;
+  }
+  /* On hover the stub comes loose, as if the ticket is being torn */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .ticket:hover .ticket-stub { transform: translateX(-0.3rem) rotate(-1.6deg); }
+  }
+
+  .stub-admit {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--mahogany);
+    white-space: nowrap;
+  }
+  .stub-no {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    font-size: 0.95rem;
+    color: rgb(72 42 27 / 0.82);
+    white-space: nowrap;
+  }
+
+  .ticket-billing {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.2rem 1.5rem;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mahogany);
+  }
+  .ticket-doors {
+    display: none;
+    font-size: 1rem;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+    text-transform: none;
+    color: rgb(72 42 27 / 0.85);
+  }
+  /* The feature ticket carries the largest name at every size */
+  .no-films .slot-1 .ticket-name { font-size: clamp(2.5rem, 1.6rem + 4.4vw, 5rem); }
+  .ticket-name {
+    margin-top: 0.55rem;
+    font-size: clamp(1.8rem, 1.5rem + 1.4vw, 2.4rem);
+    line-height: 1.05;
+    color: var(--mahogany);
+  }
+  .ticket-handle {
+    margin-top: 0.3rem;
+    font-size: 1rem;
+    color: rgb(72 42 27 / 0.85);
+    overflow-wrap: anywhere;
+  }
+  .ticket-blurb {
+    margin-top: 0.9rem;
+    max-width: 26rem;
+    font-size: 0.98rem;
+    line-height: 1.55;
+    color: var(--mahogany-deep);
+  }
+  .ticket-go { margin-top: 1.1rem; }
+  .ticket .ticket-link { color: var(--mahogany); min-height: 1.75rem; white-space: nowrap; }
+  .ticket .ticket-link:hover { color: var(--mahogany-deep); }
+  .ticket .ticket-link:focus-visible { outline-color: var(--mahogany); }
+  /* The whole ticket is the target */
+  .ticket-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  .ticket:hover .ticket-link .arrow { transform: translate(0.2rem, -0.2rem); }
+
+  .house-note {
+    margin-top: 2rem;
+    font-size: 1.05rem;
+    color: rgb(232 211 165 / 0.75);
+  }
+
+  /* Very narrow screens: keep "Watch on Instagram" on one line */
+  @media (max-width: 379px) {
+    .ticket { --stub: 3rem; }
+    .ticket-body { padding-inline: 1.1rem 0.9rem; }
+    .ticket .ticket-link { font-size: 0.72rem; letter-spacing: 0.1em; }
+  }
+  @media (min-width: 480px) {
+    .ticket { --stub: 4.25rem; }
+    .ticket-body { padding: 1.6rem 1.75rem 1.7rem; }
+  }
+
+  /* No films yet: the tickets carry the section. One large ticket for the feature, two
+     smaller ones hung lower beside it. */
+  @media (min-width: 768px) {
+    .no-films .tickets {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1.5rem;
+    }
+    .no-films .slot-1 { grid-column: 1 / -1; }
+    .no-films .slot-1 .ticket { --stub: 5.5rem; }
+    .no-films .slot-1 .ticket-body {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      column-gap: 2.5rem;
+      align-items: end;
+      padding: 2.25rem 2.5rem 2.4rem;
+    }
+    .no-films .slot-1 .ticket-billing { grid-column: 1 / -1; }
+    .no-films .slot-1 .ticket-name { grid-column: 1; font-size: 3.4rem; }
+    /* Two tickets side by side: keep the link on one line */
+    .no-films .slot-2 .ticket,
+    .no-films .slot-3 .ticket { --stub: 3.25rem; }
+    .no-films .slot-2 .ticket-body,
+    .no-films .slot-3 .ticket-body { padding-inline: 1.25rem 1rem; }
+    .no-films .slot-1 .ticket-handle { grid-column: 1; font-size: 1.15rem; }
+    .no-films .slot-1 .ticket-blurb { grid-column: 2; grid-row: 2; align-self: end; margin-top: 0; font-size: 1.1rem; }
+    .no-films .slot-1 .ticket-go { grid-column: 2; grid-row: 3; margin-top: 0; }
+  }
+  @media (min-width: 1024px) {
+    .no-films .tickets {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      grid-template-rows: auto auto;
+      column-gap: 2rem;
+      row-gap: 1.5rem;
+      align-items: stretch;
+    }
+    .no-films .slot-1 { grid-column: 1; grid-row: 1 / span 2; }
+    .no-films .slot-2 { grid-column: 2; grid-row: 1; }
+    .no-films .slot-3 { grid-column: 2; grid-row: 2; }
+    .no-films .slot-1 .ticket-body {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto 1fr auto auto auto;
+      align-items: start;
+      padding: 2.5rem 2.75rem 2.75rem;
+    }
+    .no-films .slot-1 .ticket-billing {
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgb(72 42 27 / 0.4);
+      box-shadow: 0 4px 0 -3px rgb(72 42 27 / 0.4);
+    }
+    .no-films .slot-1 .ticket-doors { display: inline; }
+    .no-films .slot-1 .ticket-name { align-self: end; margin-top: 2rem; font-size: clamp(3.4rem, 1.6rem + 4.4vw, 5rem); }
+    .no-films .slot-2 .ticket,
+    .no-films .slot-3 .ticket { --stub: 4.25rem; }
+    .no-films .slot-2 .ticket-body,
+    .no-films .slot-3 .ticket-body { padding-inline: 1.75rem; }
+    .no-films .slot-1 .ticket-blurb { grid-column: 1; grid-row: auto; margin-top: 1.5rem; }
+    .no-films .slot-1 .ticket-go { grid-column: 1; grid-row: auto; margin-top: 1.4rem; }
+    .no-films .house-note { text-align: right; }
+  }
+
+  /* With films on the screen, the tickets step back into a row */
+  @media (min-width: 900px) {
+    .has-films .tickets { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.25rem; }
+    .has-films .ticket { --stub: 3.25rem; }
+    .has-films .ticket-body { padding: 1.4rem 1.25rem 1.5rem 1.4rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .screen-frame.is-loading .loader-compass :global(.compass-needle) { animation: none; }
+    .reel:hover { padding-left: 0; }
+  }
+</style>

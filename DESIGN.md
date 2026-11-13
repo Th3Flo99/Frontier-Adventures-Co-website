@@ -42,6 +42,8 @@ Rules:
 
 Do not add other fonts. Do not use all-caps Besley. Do not set long paragraphs in `.fell`.
 
+IM Fell English has old-style figures: a `1` reads like a small capital I and a `5` drops below the baseline. Set scores and other numbers that must be read at a glance in Besley, or spell them out ("One entry", "out of five").
+
 ## Ready-made classes (see `src/styles/global.css`)
 
 - Layout: `.shell` (page container with side padding), `.section` (vertical rhythm).
@@ -93,4 +95,6 @@ Friendly, curious, a bit dry. We are five friends, not a travel agency. Write "w
 - `src/data/*.json`: all content (crew, food, reviews, destinations, videos, site details).
 - `src/lib/adventures.ts`: one combined list of entries, categories and destinations.
 - `src/lib/paths.ts`: `href('about')` builds links that respect the deploy base path. Always use it for internal links.
+- Scoped class names: do not reuse Tailwind utility names (`contents`, `container`, `hidden`, `block`, `grid`, `table`) as component class names. Tailwind's utility of the same name wins and silently changes the layout.
+- Anchor targets: `html` already has `scroll-padding-top` for the fixed header. Give a target at most a small `scroll-margin-top` (1.5rem); a full header height on top of it lands too low.
 - `src/components/Logo.astro`: the logo slot. Put the official file in `public/brand/` (see the comment in that file).

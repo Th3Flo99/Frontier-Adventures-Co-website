@@ -1,77 +1,560 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import LocalPhoto from '../components/LocalPhoto.astro';
 import food from '../data/food.json';
+import { href } from '../lib/paths';
+
+const typeLabel: Record<string, string> = { snack: 'Snack', restaurant: 'Restaurant' };
+
+const items = food.map((item) => {
+  const scores = Object.entries(item.scores as Record<string, number>);
+  const avg = scores.reduce((sum, [, score]) => sum + score, 0) / scores.length;
+  return {
+    ...item,
+    scores,
+    avg: avg.toFixed(1),
+    kind: typeLabel[item.type] ?? item.type,
+    // Only our own photographs are shown. Remote placeholder images in the data are skipped.
+    photo: item.image && !item.image.startsWith('http') ? item.image : null,
+  };
+});
+
+const count = (type: string) => items.filter((item) => item.type === type).length;
+const filters = [
+  { id: 'all', label: 'All', total: items.length },
+  { id: 'snack', label: 'Snacks', total: count('snack') },
+  { id: 'restaurant', label: 'Restaurants', total: count('restaurant') },
+];
+
+// Tally marks, drawn slightly unevenly like a pencil in a ledger: four strokes and a strike for five.
+const strokes = ['M7.2 3.6 6.5 20.6', 'M14.9 3 15.5 21', 'M22.7 3.9 23.4 20.4', 'M31.2 3.2 30.6 21.1'];
+const strike = 'M2.4 18.6 36.6 5.6';
 ---
 
-<Layout title="Disney Food Reviews · Frontier Adventures Co.">
-  <section class="pt-32 pb-12 px-6 md:px-12">
-    <div class="max-w-6xl mx-auto">
-      <div class="max-w-4xl">
-        <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Megan’s domain</p>
-        <h1 class="display text-5xl md:text-7xl leading-none reveal">Food</h1>
-        <p class="mt-6 text-lg text-white/80 max-w-2xl reveal">
-          Everything the group has eaten at Disney parks and on Disney Cruise Line. Scores are 1–5 from each person.
+<Layout
+  title="Food & Snacks · Frontier Adventurers"
+  description="Everything the Frontier Adventurers crew has eaten at Disney parks and on Disney Cruise Line, scored from 1 to 5 by each of us."
+>
+  <section class="fare-head surface-deep grain lantern" aria-labelledby="food-title">
+    <div class="shell fare-head-grid">
+      <div class="fare-title-block">
+        <p class="eyebrow reveal">Bill of fare · Megan’s domain</p>
+        <h1 id="food-title" class="display page-title text-parchment-light mt-5 reveal" style="--reveal-delay: 80ms">
+          Food &amp; Snacks
+        </h1>
+        <p class="lede fare-lede reveal" style="--reveal-delay: 160ms">
+          Everything our crew has eaten at Disney parks and on Disney Cruise Line, entered in the ledger and scored from 1 to 5 by each of us.
         </p>
       </div>
-    </div>
-  </section>
 
-  <section class="pb-8 px-6 md:px-12">
-    <div class="max-w-6xl mx-auto flex flex-wrap gap-3 reveal" id="filters">
-      <div class="flex flex-wrap gap-3" role="group" aria-label="Filter by type">
-        <button type="button" data-filter="all" aria-pressed="true" class="filter-btn">All</button>
-        <button type="button" data-filter="snack" aria-pressed="false" class="filter-btn">Snacks</button>
-        <button type="button" data-filter="restaurant" aria-pressed="false" class="filter-btn">Restaurants</button>
+      <div class="fare-intro">
+        <div class="legend reveal" style="--reveal-delay: 240ms">
+          <p class="eyebrow no-rule">How to read the ledger</p>
+          <p class="fell legend-note">One pencil stroke per point, and a strike through the lot for a five. The large numeral is the crew average.</p>
+          <ol class="legend-key" aria-hidden="true">
+            {[1, 2, 3, 4, 5].map((n) => (
+              <li>
+                <svg class="tally-marks" viewBox="0 0 39 24" width="39" height="24" focusable="false">
+                  {strokes.map((d, i) => <path d={d} class={i < Math.min(n, 4) ? 'on' : 'off'} />)}
+                  {n >= 5 && <path d={strike} class="on" />}
+                </svg>
+                <span class="display">{n}</span>
+              </li>
+            ))}
+          </ol>
+        </div>
       </div>
-      <button type="button" data-sort="avg" aria-pressed="false" class="filter-btn">Highest score</button>
     </div>
-    <p id="food-status" class="sr-only" aria-live="polite"></p>
   </section>
 
-  <section class="pb-32 px-6 md:px-12">
-    <div id="food-grid" class="max-w-6xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {food.map((item) => {
-        const avg = Object.values(item.scores).reduce((a, b) => a + b, 0) / Object.values(item.scores).length;
-        return (
-          <article class="food-card group reveal border border-white/10 hover:border-gold/40 transition-colors" data-type={item.type} data-avg={avg.toFixed(1)}>
-            <img loading="lazy" decoding="async" width="800" height="500" src={item.image} alt={item.name} class="w-full aspect-[16/10] object-cover" />
-            <div class="p-6">
-              <div class="flex justify-between items-start gap-4">
-                <h2 class="display text-2xl">{item.name}</h2>
-                <span class="text-gold text-sm"><span class="sr-only">Average score </span>{avg.toFixed(1)}<span class="sr-only"> out of 5</span></span>
+  <section class="ledger surface-jungle grain" aria-label="The tasting ledger">
+    <div class="shell">
+      <!-- Filter and sort. Hidden without JavaScript, where the full ledger is simply shown. -->
+      <div class="ledger-bar">
+        <div class="controls" id="filters">
+          <div class="filter-set" role="group" aria-label="Filter by type">
+            <span class="controls-label" aria-hidden="true">Show</span>
+            {filters.map((f, i) => (
+              <button type="button" data-filter={f.id} aria-pressed={i === 0 ? 'true' : 'false'} class="filter-btn">
+                {f.label}<span class="filter-count fell" aria-hidden="true">{f.total}</span>
+              </button>
+            ))}
+          </div>
+          <button type="button" data-sort="avg" aria-pressed="false" class="filter-btn sort-btn">
+            <span class="sort-mark" aria-hidden="true"></span>Highest score
+          </button>
+        </div>
+        <p id="food-status" class="ledger-status fell" aria-live="polite">Showing {items.length} of {items.length} items.</p>
+      </div>
+
+      <div id="food-grid" class="fare-list">
+        {items.map((item) => (
+          <article id={item.id} class="food-card fare reveal" data-type={item.type} data-avg={item.avg}>
+            <p class="fare-meta">
+              <span>{item.kind}</span>
+              <span class="fare-meta-sep" aria-hidden="true"></span>
+              <span><span class="sr-only">Trip: </span>{item.trip}</span>
+            </p>
+
+            <h2 class="display fare-name">{item.name}</h2>
+            <span class="fare-leader" aria-hidden="true"></span>
+
+            <p class="fare-avg">
+              <span class="sr-only">Crew average </span>
+              <span class="display fare-avg-num">{item.avg}</span>
+              <span class="fell fare-avg-of">out of five</span>
+              <span class="fare-avg-label" aria-hidden="true">Crew average</span>
+            </p>
+
+            <p class="fell fare-place">{item.location}</p>
+
+            {item.photo && (
+              <div class="fare-photo frame">
+                <LocalPhoto
+                  src={item.photo}
+                  alt={`${item.name}, ${item.location}`}
+                  sizes="(min-width: 720px) 352px, 100vw"
+                  class="photo-grade"
+                />
               </div>
-              <p class="text-sm text-white/60 mt-1">{item.location}</p>
-              <p class="mt-4 text-white/80 text-sm leading-relaxed">{item.review}</p>
-              <div class="mt-4 flex flex-wrap gap-x-4 gap-y-1 text-xs text-white/60">
-                {Object.entries(item.scores).map(([person, score]) => (
-                  <span>{person} {score}/5</span>
-                ))}
-              </div>
-              <p class="mt-3 text-xs text-white/60">{item.trip}</p>
-            </div>
+            )}
+
+            <p class="fare-review">{item.review}</p>
+
+            <ul class="tally" aria-label={`Scores for ${item.name}`}>
+              {item.scores.map(([person, score]) => (
+                <li>
+                  <span class="tally-name">{person}</span>
+                  <svg class="tally-marks" viewBox="0 0 39 24" width="39" height="24" aria-hidden="true" focusable="false">
+                    {strokes.map((d, i) => <path d={d} class={i < Math.min(score, 4) ? 'on' : 'off'} />)}
+                    {score >= 5 && <path d={strike} class="on" />}
+                  </svg>
+                  <span class="tally-num display">{score}<span class="sr-only"> out of 5</span></span>
+                </li>
+              ))}
+            </ul>
           </article>
-        );
-      })}
+        ))}
+      </div>
+
+      <div class="ledger-close">
+        <div class="ornament" aria-hidden="true"><span></span></div>
+        <p class="fell ledger-close-note reveal">That is the whole ledger, for now. Research continues, one snack at a time.</p>
+        <p class="ledger-close-links reveal">
+          <a href={href('reviews')} class="link">Read the reviews <span class="arrow" aria-hidden="true">→</span></a>
+          <a href={href('adventures')} class="link">See the adventures <span class="arrow" aria-hidden="true">→</span></a>
+        </p>
+      </div>
     </div>
   </section>
 </Layout>
 
 <style>
+  /* ---------- Title page ---------- */
+  .fare-head {
+    overflow: hidden;
+    padding-top: calc(var(--header-h) + clamp(2.5rem, 6vw, 5rem));
+    padding-bottom: clamp(3rem, 7vw, 5.5rem);
+  }
+  .fare-head-grid { display: grid; gap: 2.25rem; }
+  .fare-lede { max-width: 35rem; margin-top: clamp(1.5rem, 3vw, 2.25rem); }
+
+  .legend {
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(196 154 80 / 0.32);
+    max-width: 34rem;
+  }
+  .legend-note {
+    margin-top: 0.75rem;
+    font-size: 1.1rem;
+    line-height: 1.45;
+    color: rgb(232 211 165 / 0.86);
+  }
+  .legend-key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem clamp(0.9rem, 4vw, 1.5rem);
+    margin-top: 1.1rem;
+    color: var(--gold);
+  }
+  .legend-key li { display: grid; justify-items: center; gap: 0.1rem; }
+  .legend-key .display { font-size: 0.85rem; font-weight: 500; color: rgb(232 211 165 / 0.8); }
+
+  @media (min-width: 1024px) {
+    .fare-head-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      align-items: end;
+    }
+    .fare-title-block { grid-column: 1 / span 7; }
+    .fare-intro { grid-column: 9 / span 4; padding-bottom: 0.5rem; }
+  }
+
+  /* ---------- Tally marks ---------- */
+  .tally-marks { display: block; flex: none; overflow: visible; }
+  .tally-marks path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+  }
+  .tally-marks .off { opacity: 0.2; }
+
+  /* ---------- Ledger ---------- */
+  .ledger {
+    padding-top: clamp(2rem, 4vw, 3rem);
+    padding-bottom: clamp(4.5rem, 10vw, 8rem);
+  }
+
+  /* Filter and sort bar: ruled like the head of a ledger page */
+  :global(html:not(.js)) .ledger-bar { display: none; }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    justify-content: space-between;
+    column-gap: 2rem;
+    border-top: 1px solid rgb(196 154 80 / 0.34);
+    border-bottom: 1px solid rgb(196 154 80 / 0.34);
+  }
+  .filter-set {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    column-gap: clamp(1rem, 3.4vw, 2.25rem);
+  }
+  .controls-label {
+    display: none;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
   .filter-btn {
-    padding: 0.5rem 1rem;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    border: 1px solid rgb(255 255 255 / 0.3);
-    transition: border-color 0.2s, background-color 0.2s, color 0.2s;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    min-height: 3.5rem;
+    min-width: 2.75rem;
+    padding-inline: 0.15rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.8);
+    transition: color 0.3s;
   }
-  .filter-btn:hover {
-    border-color: var(--gold);
+  .filter-btn:hover,
+  .filter-btn[aria-pressed='true'] { color: var(--parchment-light); }
+  .filter-count {
+    font-size: 0.95rem;
+    letter-spacing: 0;
+    text-transform: none;
+    font-weight: 400;
+    color: rgb(232 211 165 / 0.7);
+    transform: translateY(-0.3em);
   }
-  .filter-btn[aria-pressed='true'] {
-    background-color: var(--gold);
-    border-color: var(--gold);
-    color: var(--ink);
+  /* The chosen filter is marked by a brass diamond riding the lower rule */
+  .filter-set .filter-btn::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -1px;
+    width: 9px;
+    height: 9px;
+    background: var(--gold);
+    transform: translate(-50%, 50%) rotate(45deg) scale(0);
+    transition: transform 0.45s var(--ease-out);
   }
+  .filter-set .filter-btn[aria-pressed='true']::after { transform: translate(-50%, 50%) rotate(45deg) scale(1); }
+
+  /* Sort toggle: an open diamond that is inked in when the sort is on */
+  .sort-btn { gap: 0.8rem; }
+  .sort-mark {
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--gold);
+    transform: rotate(45deg);
+    transition: background-color 0.3s, box-shadow 0.3s;
+  }
+  .sort-btn[aria-pressed='true'] .sort-mark {
+    background: var(--gold);
+    box-shadow: 0 0 0 3px var(--jungle), 0 0 0 4px var(--gold);
+  }
+
+  .ledger-status {
+    margin-top: 0.9rem;
+    font-size: 1.02rem;
+    color: rgb(232 211 165 / 0.78);
+  }
+
+  @media (max-width: 559px) {
+    .controls { flex-direction: column; }
+    .filter-set { justify-content: space-between; column-gap: 0.75rem; }
+    .sort-btn { border-top: 1px solid rgb(196 154 80 / 0.2); min-height: 3rem; }
+  }
+  @media (max-width: 359px) {
+    .filter-btn { letter-spacing: 0.1em; font-size: 0.7rem; }
+    .fare-avg { gap: 0.35rem; }
+    .fare-avg-label { letter-spacing: 0.14em; }
+    .fare-avg-num { font-size: 2.5rem; }
+    .fare-avg-of { font-size: 1.05rem; }
+    .fare-avg::before { min-width: 0.4rem; }
+  }
+  @media (min-width: 720px) {
+    .controls-label { display: inline-flex; }
+  }
+
+  /* ---------- Entries ---------- */
+  .fare-list {
+    counter-reset: fare;
+    margin-top: clamp(1rem, 3vw, 2rem);
+  }
+  .fare {
+    counter-increment: fare;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    padding-block: clamp(2.25rem, 5vw, 3.5rem);
+    border-bottom: 1px solid rgb(232 211 165 / 0.16);
+    /* added to the page's scroll-padding, which already clears the fixed header */
+    scroll-margin-top: 1.5rem;
+  }
+  /* Arriving from a link elsewhere on the site: mark the entry with a brass rule */
+  .fare:target { box-shadow: inset 2px 0 0 var(--gold); padding-left: 1.25rem; }
+
+  .fare-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .fare-meta::before {
+    content: counter(fare, upper-roman) '.';
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.1rem;
+    letter-spacing: 0.01em;
+    text-transform: none;
+    color: rgb(232 211 165 / 0.75);
+    margin-right: 0.25rem;
+  }
+  .fare-meta-sep {
+    width: 4px;
+    height: 4px;
+    background: currentColor;
+    transform: rotate(45deg);
+    opacity: 0.8;
+  }
+
+  .fare-name {
+    margin-top: 0.85rem;
+    font-size: clamp(1.9rem, 1.35rem + 2.6vw, 3rem);
+    line-height: 1.1;
+    color: var(--parchment-light);
+    text-wrap: wrap;
+    overflow-wrap: break-word;
+  }
+  .fare-leader { display: none; }
+  .fare-place {
+    margin-top: 0.7rem;
+    font-size: 1.15rem;
+    line-height: 1.35;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .fare-photo { margin-top: 1.5rem; max-width: 22rem; }
+  .fare-photo :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .fare-review {
+    margin-top: 1.1rem;
+    max-width: 35rem;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.15rem);
+    color: rgb(232 211 165 / 0.9);
+    text-wrap: pretty;
+  }
+
+  /* Average. Small screens: a leader line from the label to the numeral, as on a menu */
+  .fare-avg {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 1.6rem;
+  }
+  .fare-avg::before {
+    content: '';
+    order: 2;
+    flex: 1;
+    min-width: 1.5rem;
+    border-bottom: 2px dotted rgb(196 154 80 / 0.55);
+  }
+  .fare-avg-label {
+    order: 1;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .fare-avg-num {
+    order: 3;
+    font-size: clamp(2.9rem, 2.2rem + 3.4vw, 4.6rem);
+    line-height: 0.8;
+    letter-spacing: -0.03em;
+    color: var(--gold-bright);
+    font-variant-numeric: lining-nums;
+  }
+  .fare-avg-of {
+    order: 4;
+    font-size: 1.15rem;
+    color: rgb(232 211 165 / 0.75);
+    white-space: nowrap;
+  }
+
+  .tally {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.5rem;
+    margin-top: 1.1rem;
+    color: var(--gold);
+  }
+  .tally li {
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    justify-content: start;
+    column-gap: 0.6rem;
+  }
+  .tally-name {
+    grid-column: 1 / -1;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .tally-num {
+    font-size: 1.15rem;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--parchment-light);
+  }
+
+  /* Small screens read top to bottom: dish, place, verdict, then the numbers */
+  .fare-meta { order: 1; }
+  .fare-name { order: 2; }
+  .fare-place { order: 3; }
+  .fare-photo { order: 4; }
+  .fare-review { order: 5; }
+  .fare-avg { order: 6; }
+  .tally { order: 7; }
+
+  /* From tablet up: numeral in the gutter, dish and average joined by a leader, scores to the right */
+  @media (min-width: 720px) {
+    .fare {
+      grid-template-columns: 3.5rem auto minmax(2.5rem, 1fr) 12.5rem;
+      grid-template-areas:
+        'num meta   meta   avg'
+        'num name   name   avg'
+        '.   place  leader avg'
+        '.   photo  photo  tally'
+        '.   review review tally';
+      grid-template-rows: auto auto auto auto 1fr;
+      column-gap: 1.25rem;
+      align-items: start;
+    }
+    .fare > * { order: 0; }
+    .fare:target { padding-left: 0; box-shadow: none; }
+    .fare:target::before { color: var(--gold-bright); }
+
+    .fare::before {
+      content: counter(fare, upper-roman) '.';
+      grid-area: num;
+      font-family: 'IM Fell English', Georgia, serif;
+      font-style: italic;
+      font-size: 1.35rem;
+      line-height: 1.1;
+      color: rgb(232 211 165 / 0.72);
+    }
+    .fare-meta { grid-area: meta; }
+    .fare-meta::before { content: none; }
+    .fare-name { grid-area: name; margin-top: 1rem; padding-right: 1.5rem; }
+    /* Place, leader and numeral share one baseline: the last line of the entry's heading block */
+    .fare-place,
+    .fare-leader,
+    .fare-avg { align-self: end; align-self: last baseline; }
+    .fare-leader {
+      display: block;
+      grid-area: leader;
+      height: 0;
+      border-bottom: 2px dotted rgb(196 154 80 / 0.55);
+    }
+    .fare-avg {
+      grid-area: avg;
+      position: relative;
+      margin-top: 0;
+    }
+    .fare-avg::before { content: none; }
+    .fare-avg-num { order: 1; }
+    .fare-avg-of { order: 2; }
+    /* Hangs below the numeral without pushing the place line away from the dish name */
+    .fare-avg-label { position: absolute; left: 0; top: calc(100% + 0.7rem); white-space: nowrap; }
+    .fare-place { grid-area: place; }
+    .fare-photo { grid-area: photo; }
+    .fare-review { grid-area: review; margin-top: 1.5rem; padding-right: 2rem; }
+
+    .tally {
+      grid-area: tally;
+      display: grid;
+      gap: 0;
+      margin-top: 2.9rem;
+      border-top: 1px solid rgb(196 154 80 / 0.32);
+    }
+    .tally li {
+      grid-template-columns: minmax(0, 1fr) auto 1.4rem;
+      column-gap: 0.75rem;
+      padding-block: 0.55rem;
+      border-bottom: 1px solid rgb(232 211 165 / 0.14);
+    }
+    .tally-name { grid-column: auto; }
+    .tally-num { text-align: right; }
+  }
+  @media (min-width: 1024px) {
+    .fare {
+      grid-template-columns: 5rem auto minmax(3rem, 1fr) 15rem;
+      column-gap: 1.5rem;
+    }
+  }
+
+  /* ---------- Close ---------- */
+  .ledger-close { margin-top: clamp(3rem, 7vw, 5rem); text-align: center; }
+  .ledger-close-note {
+    margin-top: 2rem;
+    font-size: 1.3rem;
+    color: rgb(232 211 165 / 0.86);
+  }
+  .ledger-close-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1.25rem 2.5rem;
+    margin-top: 1.75rem;
+  }
+  /* 44px target, with the underline kept close to the words */
+  .ledger-close-links .link { min-height: 2.75rem; align-items: flex-end; }
 </style>
 
 <script>
@@ -83,17 +566,17 @@ import food from '../data/food.json';
 
   const announce = () => {
     if (!status) return;
-    const visible = cards.filter(c => c.style.display !== 'none').length;
+    const visible = cards.filter((c) => c.style.display !== 'none').length;
     const sorted = sortBtn?.getAttribute('aria-pressed') === 'true';
     status.textContent = `Showing ${visible} of ${cards.length} items${sorted ? ', sorted by highest score' : ''}.`;
   };
 
-  filterBtns.forEach(btn => {
+  filterBtns.forEach((btn) => {
     btn.addEventListener('click', () => {
       const type = btn.dataset.filter;
-      filterBtns.forEach(b => b.setAttribute('aria-pressed', String(b === btn)));
-      cards.forEach(card => {
-        card.style.display = (type === 'all' || card.dataset.type === type) ? '' : 'none';
+      filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      cards.forEach((card) => {
+        card.style.display = type === 'all' || card.dataset.type === type ? '' : 'none';
       });
       announce();
     });
@@ -106,7 +589,7 @@ import food from '../data/food.json';
     const ordered = sortOn
       ? [...cards].sort((a, b) => parseFloat(b.dataset.avg ?? '0') - parseFloat(a.dataset.avg ?? '0'))
       : cards;
-    ordered.forEach(card => grid?.appendChild(card));
+    ordered.forEach((card) => grid?.appendChild(card));
     announce();
   });
 </script>

@@ -1,31 +1,412 @@
 ---
+// Contact: where to find and reach the crew. (The route is still /socials.)
+// There is no public email address and no form, so the page says so and points to the channels.
 import Layout from '../layouts/Layout.astro';
+import site from '../data/site.json';
+import { href } from '../lib/paths';
+
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+
+// Notes that only restate what we know about each account
+const filedAs: Record<string, string> = {
+  youtube: 'Crew channel',
+  instagram: 'Crew channel',
+  tiktok: 'Crew channel',
+  x: 'Florian’s personal account',
+  linktree: 'Link list',
+};
+
+const entries = site.socials.map((s, i) => ({
+  ...s,
+  numeral: roman[i] ?? String(i + 1),
+  filed: filedAs[s.id] ?? '',
+  personal: s.id === 'x',
+}));
+
+const numberWords = ['No', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+const entryCount = numberWords[entries.length] ?? String(entries.length);
+
+const channelNames = site.socials.filter((s) => ['youtube', 'instagram', 'tiktok'].includes(s.id)).map((s) => s.label);
+const channelList =
+  channelNames.length > 1 ? `${channelNames.slice(0, -1).join(', ')} or ${channelNames[channelNames.length - 1]}` : channelNames[0];
 ---
 
-<Layout title="Socials · Frontier Adventures Co.">
-  <section class="min-h-screen flex flex-col items-center justify-center px-6 py-32">
-    <div class="text-center max-w-lg">
-      <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Link in bio</p>
-      <h1 class="display text-5xl md:text-7xl leading-none reveal">The Frontier Adventures Co</h1>
-      <p class="mt-6 text-white/70 reveal">Parks, cruises, food, and the occasional story.</p>
-    </div>
+<Layout
+  title="Contact · Frontier Adventurers"
+  description="Where to find and reach the Frontier Adventurers crew: YouTube, Instagram, TikTok and more. The quickest way to reach us is a message on one of our channels."
+>
+  <!-- Title page: the telegraph office -->
+  <section class="wire-head surface-deep grain lantern" aria-labelledby="contact-title">
+    <div class="shell wire-grid">
+      <div class="wire-copy">
+        <p class="eyebrow reveal">Contact · The Telegraph Office</p>
+        <h1 id="contact-title" class="display page-title text-parchment-light mt-5 reveal" style="--reveal-delay: 80ms">Send Word</h1>
+        <p class="lede wire-lede mt-7 reveal" style="--reveal-delay: 160ms">
+          We keep no office, no switchboard and, so far, no carrier pigeons. The quickest way to reach the crew is a message on one of our channels.
+        </p>
+        <div class="mt-9 flex flex-wrap gap-4 reveal" style="--reveal-delay: 240ms">
+          <a href="#address-book" class="btn btn-brass">Open the address book <span class="arrow arrow-down" aria-hidden="true">↓</span></a>
+        </div>
+      </div>
 
-    <div class="mt-16 w-full max-w-md space-y-4">
-      <a href="https://www.instagram.com/the_frontier_adventures_co" target="_blank" rel="noopener" class="block reveal py-4 px-6 border border-white/20 hover:border-gold hover:text-gold text-center transition-colors">
-        Instagram
-      </a>
-      <a href="https://www.youtube.com/@The_Frontier_Adventures_Co" target="_blank" rel="noopener" class="block reveal py-4 px-6 border border-white/20 hover:border-gold hover:text-gold text-center transition-colors">
-        YouTube
-      </a>
-      <a href="https://www.tiktok.com/@thefrontieradventuresco" target="_blank" rel="noopener" class="block reveal py-4 px-6 border border-white/20 hover:border-gold hover:text-gold text-center transition-colors">
-        TikTok
-      </a>
-      <a href="https://x.com/florianronsse" target="_blank" rel="noopener" class="block reveal py-4 px-6 border border-white/20 hover:border-gold hover:text-gold text-center transition-colors">
-        X
-      </a>
-      <a href="https://linktr.ee/thefrontieradventuresco" target="_blank" rel="noopener" class="block reveal py-4 px-6 border border-white/20 hover:border-gold hover:text-gold text-center transition-colors">
-        Linktree
-      </a>
+      <div class="wire-form reveal" style="--reveal-delay: 200ms">
+        <figure class="telegram surface-paper grain">
+          <div class="telegram-top">
+            <p class="telegram-office">{site.name}<span aria-hidden="true"> · </span><span class="telegram-office-sub">Telegraph Office</span></p>
+            <p class="fell telegram-port">Home port: {site.homePort}</p>
+          </div>
+          <div class="rule-double" aria-hidden="true"></div>
+          <p class="display telegram-title">Telegram</p>
+
+          <dl class="telegram-fields">
+            <div><dt>To</dt><dd class="fell">The crew</dd></div>
+            <div><dt>From</dt><dd class="fell">You, presumably</dd></div>
+            <div><dt>Via</dt><dd class="fell">{channelList}</dd></div>
+          </dl>
+
+          <p class="telegram-tape">
+            <span>Hello crew <b>stop</b></span>
+            <span>Watched the film <b>stop</b></span>
+            <span>Have questions about the snacks <b>stop</b></span>
+          </p>
+
+          <figcaption class="fell telegram-foot">Specimen only. The real thing is a message on one of our channels.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- The address book -->
+  <section id="address-book" class="book surface-paper grain section" aria-labelledby="book-title">
+    <div class="shell">
+      <div class="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-16">
+        <div class="lg:col-span-7">
+          <p class="eyebrow reveal">The address book</p>
+          <h2 id="book-title" class="display chapter-title mt-5 text-mahogany reveal">Where to Find Us.</h2>
+        </div>
+        <div class="lg:col-span-5">
+          <p class="lede reveal" style="--reveal-delay: 120ms">
+            {entryCount} entries, all of them real. Every line opens in a new tab, so this page will still be here when you come back.
+          </p>
+        </div>
+      </div>
+
+      <div class="ledger reveal">
+        <p class="ledger-head" aria-hidden="true">
+          <span>No.</span>
+          <span>Station</span>
+          <span>Call sign</span>
+          <span>What you will find</span>
+        </p>
+        <ol class="ledger-list" role="list">
+          {entries.map((e) => (
+            <li>
+              <a href={e.url} target="_blank" rel="noopener" class="entry">
+                <span class="fell entry-no" aria-hidden="true">{e.numeral}.</span>
+                <span class="entry-station">
+                  <span class="display entry-name">{e.label}</span>
+                  {e.filed && <span class:list={['entry-filed', { 'is-personal': e.personal }]}><span class="sr-only">, </span>{e.filed}</span>}
+                </span>
+                <span class="fell entry-handle"><span class="sr-only">, </span>{e.handle}</span>
+                <span class="entry-blurb"><span class="sr-only">. </span>{e.blurb}</span>
+                <span class="entry-go">
+                  <span class="entry-go-text">Open</span>
+                  <span class="entry-arrow" aria-hidden="true">↗</span>
+                  <span class="sr-only"> in a new tab</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <div class="former reveal">
+        <div class="former-stamp"><p class="stamp text-mahogany">Formerly {site.formerName}</p></div>
+        <p class="former-text">
+          A note on the names: the handles still carry our former name, {site.formerName}, for now. You are in the right place. It is the same crew behind every one of them.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- What we do not have -->
+  <section class="closing surface-jungle grain section" aria-labelledby="closing-title">
+    <div class="shell closing-grid">
+      <h2 id="closing-title" class="display closing-title text-parchment-light reveal">
+        No email address.<br />No contact form.<br /><span class="closing-soft">No pigeons.</span>
+      </h2>
+      <div class="closing-copy reveal" style="--reveal-delay: 120ms">
+        <p class="text-parchment/85">
+          We do not have a public email address or a contact form, and we would rather say so than invent one. A message on one of the channels above is the quickest way to reach us.
+        </p>
+        <ul class="closing-links" role="list">
+          <li><a href={href('about')} class="link">Meet the crew first <span class="arrow" aria-hidden="true">→</span></a></li>
+          <li><a href={href('privacy')} class="link">Privacy and disclaimer <span class="arrow" aria-hidden="true">→</span></a></li>
+        </ul>
+      </div>
     </div>
   </section>
 </Layout>
+
+<style>
+  /* ---------- Title page ---------- */
+  .wire-head {
+    padding-top: calc(var(--header-h) + clamp(2.5rem, 7vw, 5.5rem));
+    padding-bottom: clamp(4rem, 9vw, 7.5rem);
+    overflow: hidden;
+  }
+  .wire-grid {
+    position: relative;
+    display: grid;
+    gap: 3.5rem;
+  }
+  .wire-lede { max-width: 33rem; }
+  .arrow-down { transition: transform 0.45s var(--ease-out); }
+  .btn:hover .arrow-down { transform: translateY(0.25rem); }
+
+  @media (min-width: 1024px) {
+    .wire-grid {
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+      align-items: center;
+      gap: 4.5rem;
+    }
+  }
+
+  /* The telegram form: a paper slip lying on the desk */
+  .wire-form { max-width: 31rem; }
+  @media (min-width: 1024px) {
+    .wire-form { justify-self: end; width: 100%; }
+  }
+  .telegram {
+    padding: 1.5rem 1.4rem 1.6rem;
+    transform: rotate(-1.2deg);
+    box-shadow: 0 0 0 1px rgb(72 42 27 / 0.25);
+  }
+  /* Inner keyline of the printed form */
+  .telegram::before {
+    content: '';
+    position: absolute;
+    inset: 0.55rem;
+    border: 1px solid rgb(72 42 27 / 0.35);
+    pointer-events: none;
+  }
+  @media (min-width: 480px) {
+    .telegram { padding: 2.1rem 2.2rem 2.2rem; transform: rotate(-1.8deg); }
+  }
+  .telegram-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.8rem;
+  }
+  .telegram-office {
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mahogany);
+  }
+  .telegram-port { font-size: 0.95rem; color: rgb(72 42 27 / 0.85); }
+  .telegram-title {
+    margin-top: 1.1rem;
+    font-size: clamp(2.2rem, 1.6rem + 2.4vw, 3.2rem);
+    color: var(--mahogany);
+  }
+  .telegram-fields { margin-top: 1.1rem; }
+  .telegram-fields > div {
+    display: grid;
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px dotted rgb(72 42 27 / 0.5);
+  }
+  .telegram-fields dt {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mahogany);
+  }
+  .telegram-fields dd { font-size: 1.12rem; line-height: 1.3; color: var(--mahogany-deep); }
+
+  /* The message, pasted on in strips of ticker tape */
+  .telegram-tape {
+    display: grid;
+    justify-items: start;
+    gap: 0.4rem;
+    margin-top: 1.4rem;
+  }
+  .telegram-tape span {
+    padding: 0.42rem 0.7rem 0.38rem;
+    background: rgb(243 232 204 / 0.92);
+    box-shadow: 0 0 0 1px rgb(72 42 27 / 0.22);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    line-height: 1.5;
+    text-transform: uppercase;
+    color: var(--mahogany-deep);
+  }
+  .telegram-tape span:nth-child(1) { transform: rotate(-0.6deg); }
+  .telegram-tape span:nth-child(2) { transform: translateX(0.5rem) rotate(0.5deg); }
+  .telegram-tape span:nth-child(3) { transform: rotate(-0.3deg); }
+  .telegram-tape b { font-weight: 600; color: rgb(72 42 27 / 0.72); }
+  .telegram-foot { margin-top: 1.4rem; font-size: 0.98rem; line-height: 1.4; color: rgb(72 42 27 / 0.85); }
+
+  /* ---------- Address book ---------- */
+  .ledger { margin-top: clamp(2.75rem, 6vw, 4.5rem); }
+  .ledger-head { display: none; }
+  .ledger-list { border-top: 1px solid rgb(72 42 27 / 0.55); }
+  .ledger-list li { border-bottom: 1px solid rgb(72 42 27 / 0.3); }
+
+  .entry {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr) auto;
+    grid-template-areas:
+      'no station go'
+      '.  handle  handle'
+      '.  blurb   blurb';
+    align-items: baseline;
+    column-gap: 0.5rem;
+    padding: 1.35rem 0 1.45rem;
+    color: var(--mahogany-deep);
+    transition: padding-left 0.5s var(--ease-out), background-color 0.5s var(--ease-out);
+  }
+  .entry-no { grid-area: no; font-size: 1.05rem; color: rgb(72 42 27 / 0.75); }
+  .entry-station { grid-area: station; display: grid; gap: 0.5rem; justify-items: start; }
+  .entry-name {
+    font-size: clamp(2rem, 1.4rem + 2.8vw, 3.4rem);
+    line-height: 1.02;
+    color: var(--mahogany);
+  }
+  .entry-filed {
+    font-size: 0.62rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgb(72 42 27 / 0.82);
+  }
+  .entry-filed.is-personal {
+    padding: 0.28rem 0.55rem 0.24rem;
+    border: 1px solid rgb(72 42 27 / 0.6);
+    color: var(--mahogany);
+  }
+  .entry-handle {
+    grid-area: handle;
+    margin-top: 0.7rem;
+    font-size: 1.12rem;
+    line-height: 1.3;
+    color: var(--mahogany-deep);
+    overflow-wrap: anywhere;
+  }
+  .entry-blurb {
+    grid-area: blurb;
+    margin-top: 0.35rem;
+    font-size: 1rem;
+    line-height: 1.55;
+    color: rgb(44 25 15 / 0.86);
+  }
+  .entry-go {
+    grid-area: go;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    align-self: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mahogany);
+  }
+  .entry-arrow {
+    display: inline-block;
+    font-size: 1.15rem;
+    letter-spacing: 0;
+    transition: transform 0.45s var(--ease-out);
+  }
+  .entry:hover { padding-left: 0.6rem; }
+  .entry:hover .entry-name {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.16em;
+  }
+  .entry:hover .entry-arrow { transform: translate(0.2rem, -0.2rem); }
+
+  /* Narrow phones: the arrow alone marks the link, so long names keep their room.
+     The word "Open" stays available to screen readers. */
+  @media (max-width: 419px) {
+    .entry-name { font-size: 1.9rem; }
+    .entry-go-text {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .ledger-head,
+    .entry {
+      grid-template-columns: 3.4rem minmax(0, 1.15fr) minmax(0, 1.1fr) minmax(0, 1.05fr) 6rem;
+      column-gap: 1.5rem;
+    }
+    .ledger-head {
+      display: grid;
+      padding-bottom: 0.8rem;
+      font-size: 0.64rem;
+      font-weight: 600;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgb(72 42 27 / 0.82);
+    }
+    .entry {
+      grid-template-areas: 'no station handle blurb go';
+      padding: 1.6rem 0 1.7rem;
+    }
+    .entry-handle,
+    .entry-blurb { margin-top: 0; }
+    .entry-go { justify-self: end; align-self: baseline; }
+  }
+
+  .former {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(2.5rem, 5vw, 4rem);
+  }
+  /* Room for the tilted stamp on narrow screens */
+  .former-stamp { padding-inline: 0.5rem; }
+  .former-text { max-width: 36rem; color: rgb(44 25 15 / 0.9); }
+  @media (min-width: 900px) {
+    .former {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 3rem;
+      padding-left: 4.9rem;
+    }
+  }
+
+  /* ---------- Closing ---------- */
+  .closing-grid { display: grid; gap: 2.5rem; }
+  .closing-title { font-size: clamp(2rem, 1.3rem + 3.4vw, 4rem); line-height: 1.08; }
+  .closing-soft { color: rgb(232 211 165 / 0.7); font-style: italic; font-weight: 440; }
+  .closing-copy { max-width: 34rem; }
+  .closing-links { display: flex; flex-wrap: wrap; gap: 1rem 2.5rem; margin-top: 2rem; }
+  /* Taller target; the underline stays directly under the words */
+  .closing-links .link { padding-top: 1.05rem; }
+  @media (min-width: 1024px) {
+    .closing-grid {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      align-items: end;
+      gap: 4rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .entry:hover { padding-left: 0; }
+  }
+</style>

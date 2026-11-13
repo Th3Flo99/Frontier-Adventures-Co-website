@@ -3,6 +3,9 @@
     "name": "Florian Ronsse",
     "role": "Group Lead",
     "bio": "The planner. Florian handles every Disney detail from park days and cruise itineraries to Lightning Lane strategy and late-night snack runs. He keeps the group moving and the magic intact.",
+    "favoriteDestination": "",
+    "favoriteAttraction": "",
+    "travelStyle": "",
     "image": "photos/florian/bus.jpg",
     "photos": [
       "photos/florian/bus.jpg",
@@ -18,6 +21,9 @@
     "name": "Megan",
     "role": "Food Expert",
     "bio": "If it is edible and Disney-related, Megan has already researched it. She owns the restaurant reservations, the must-try snacks, and the honest food takes that the rest of us trust.",
+    "favoriteDestination": "",
+    "favoriteAttraction": "",
+    "travelStyle": "",
     "image": "photos/megan/food.jpg",
     "photos": [
       "photos/megan/food.jpg"
@@ -27,6 +33,9 @@
     "name": "Elias",
     "role": "Group Member",
     "bio": "Florian’s brother and the reliable third vote. Elias brings steady energy, strong opinions on thrills, and is always ready for one more ride or one more dessert.",
+    "favoriteDestination": "",
+    "favoriteAttraction": "",
+    "travelStyle": "",
     "image": "photos/elias/pooh.jpg",
     "photos": [
       "photos/elias/pooh.jpg"
@@ -36,6 +45,9 @@
     "name": "Lotte",
     "role": "Social Media Expert",
     "bio": "Energetic and a little clumsy in the best way. Lotte is obsessed with Frozen, loves pixie dust, and is usually the first one to suggest one more snack or one more ride.",
+    "favoriteDestination": "",
+    "favoriteAttraction": "",
+    "travelStyle": "",
     "image": "photos/lotte/lake.jpg",
     "photos": [
       "photos/lotte/lake.jpg"
@@ -45,6 +57,9 @@
     "name": "Tibeau",
     "role": "Drink Expert",
     "bio": "The calm one in the group. Tibeau is always relaxed and just sees how it goes. He loves cocktails and is the drinks expert of the group.",
+    "favoriteDestination": "",
+    "favoriteAttraction": "",
+    "travelStyle": "",
     "image": "photos/thibeau/balcony.jpg",
     "photos": [
       "photos/thibeau/balcony.jpg"

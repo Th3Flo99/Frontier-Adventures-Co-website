@@ -1,20 +1,203 @@
 ---
+// Off the map: the 404 page. The chart ends at a neatline and the compass sits beyond it,
+// its needle hunting for a north that is not there.
 import Layout from '../layouts/Layout.astro';
-const rawBase = import.meta.env.BASE_URL || '/';
-const base = rawBase.endsWith('/') ? rawBase : rawBase + '/';
+import Compass from '../components/Compass.astro';
+import { base, href } from '../lib/paths';
+
+// Degree ticks of the outer compass rose (every 5 degrees, longer every 15 and 45)
+const ticks = Array.from({ length: 72 }, (_, i) => i * 5);
+const cardinals = [
+  { letter: 'N', x: 200, y: 62 },
+  { letter: 'E', x: 344, y: 208 },
+  { letter: 'S', x: 200, y: 354 },
+  { letter: 'W', x: 56, y: 208 },
+];
 ---
 
-<Layout title="Page not found · Frontier Adventures Co." description="This page does not exist." noindex>
-  <section class="min-h-screen flex flex-col items-center justify-center px-6 py-32 text-center">
-    <p class="text-gold uppercase tracking-widest text-xs mb-4">Error 404</p>
-    <h1 class="display text-5xl md:text-7xl leading-none">Lost in the park</h1>
-    <p class="mt-6 text-lg text-white/80 max-w-md">
-      This page does not exist, or it has moved. Let’s get you back to the group.
-    </p>
-    <div class="mt-10 flex flex-wrap justify-center gap-4">
-      <a href={base} class="px-6 py-3 bg-gold text-ink font-medium hover:bg-white transition-colors">Back to home</a>
-      <a href={`${base}food`} class="px-6 py-3 border border-white/40 text-white hover:border-gold hover:text-gold transition-colors">Food & snacks</a>
-      <a href={`${base}reviews`} class="px-6 py-3 border border-white/40 text-white hover:border-gold hover:text-gold transition-colors">Travel reviews</a>
+<Layout title="Off the Map · Frontier Adventurers" description="This page does not exist." noindex>
+  <section class="lost surface-deep grain" aria-labelledby="lost-title">
+    <!-- The charted area: graticule inside a neatline -->
+    <div class="chart" aria-hidden="true">
+      <span class="chart-label chart-label-top fell">Charted waters</span>
+      <span class="chart-label chart-label-edge fell">Edge of the map</span>
+    </div>
+
+    <div class="rose" aria-hidden="true">
+      <svg class="rose-ring" viewBox="0 0 400 400" focusable="false">
+        <circle cx="200" cy="200" r="198" fill="none" stroke="currentColor" stroke-width="1" opacity="0.55" />
+        <circle cx="200" cy="200" r="192" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.4" />
+        {ticks.map((angle) => (
+          <line
+            x1="200" y1="8" x2="200" y2={angle % 45 === 0 ? 30 : angle % 15 === 0 ? 22 : 16}
+            stroke="currentColor"
+            stroke-width={angle % 45 === 0 ? 1.2 : 0.6}
+            opacity={angle % 45 === 0 ? 0.9 : 0.5}
+            transform={`rotate(${angle} 200 200)`}
+          />
+        ))}
+        <!-- Eight-point star behind the dial -->
+        <path d="M200 40 L212 188 L360 200 L212 212 L200 360 L188 212 L40 200 L188 188 Z" fill="none" stroke="currentColor" stroke-width="0.6" opacity="0.35" />
+        <path d="M200 40 L212 188 L360 200 L212 212 L200 360 L188 212 L40 200 L188 188 Z" fill="none" stroke="currentColor" stroke-width="0.5" opacity="0.22" transform="rotate(45 200 200) translate(56 56) scale(0.72)" />
+        {cardinals.map((c) => (
+          <text x={c.x} y={c.y} text-anchor="middle" class="rose-letter">{c.letter}</text>
+        ))}
+      </svg>
+      <div class="rose-dial"><Compass /></div>
+    </div>
+
+    <div class="shell lost-shell">
+      <div class="lost-copy">
+        <p class="eyebrow lost-in" style="--d: 0.1s">Error 404 · Position unknown</p>
+        <h1 id="lost-title" class="display page-title text-parchment-light mt-5 lost-in" style="--d: 0.2s">Off the Map.</h1>
+        <p class="lede lost-lede mt-7 lost-in" style="--d: 0.35s">
+          This page does not exist, or it has moved without leaving a forwarding address. Our compass is confident about the way back. It is also the reason we are here.
+        </p>
+        <div class="lost-actions mt-9 lost-in" style="--d: 0.5s">
+          <a href={base} class="btn btn-brass">Back to base camp <span class="arrow" aria-hidden="true">→</span></a>
+          <a href={href('adventures')} class="btn btn-ghost">Adventures</a>
+          <a href={href('food')} class="btn btn-ghost">Food &amp; Snacks</a>
+        </div>
+        <p class="fell lost-note lost-in" style="--d: 0.65s">Last known position: somewhere between the page you left and the page you wanted.</p>
+      </div>
     </div>
   </section>
 </Layout>
+
+<style>
+  .lost {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    min-height: 100vh;
+    min-height: 100svh;
+    padding-top: calc(var(--header-h) + 1.5rem);
+    padding-bottom: clamp(3rem, 7vw, 5rem);
+    overflow: hidden;
+  }
+
+  /* Charted area: a faint graticule, closed by a double neatline. Beyond it: nothing. */
+  .chart {
+    position: absolute;
+    inset: calc(var(--header-h) + 0.5rem) 1rem 1rem 1rem;
+    border: 1px solid rgb(196 154 80 / 0.4);
+    outline: 1px solid rgb(196 154 80 / 0.18);
+    outline-offset: -6px;
+    background:
+      repeating-linear-gradient(0deg, rgb(232 211 165 / 0.045) 0 1px, transparent 1px 5.5rem),
+      repeating-linear-gradient(90deg, rgb(232 211 165 / 0.045) 0 1px, transparent 1px 5.5rem);
+    pointer-events: none;
+  }
+  .chart-label {
+    position: absolute;
+    font-size: 0.92rem;
+    color: rgb(232 211 165 / 0.62);
+    white-space: nowrap;
+  }
+  .chart-label-top { left: 1.1rem; top: 0.7rem; }
+  .chart-label-edge { display: none; }
+
+  /* The compass rose: an engraved ring with the brass compass at its centre */
+  .rose {
+    position: absolute;
+    top: calc(var(--header-h) + 1.75rem);
+    right: -3.75rem;
+    width: min(58vw, 14rem);
+    aspect-ratio: 1;
+    color: var(--gold);
+    animation: lost-fade 1.4s var(--ease-out) 0.15s both;
+  }
+  /* A disc of the wall colour, so the neatline stops at the rim instead of crossing the dial */
+  .rose::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: var(--jungle-deep);
+  }
+  .rose-ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .rose-ring :global(circle),
+  .rose-ring :global(line),
+  .rose-ring :global(path) { vector-effect: non-scaling-stroke; }
+  .rose-letter {
+    font-family: 'Besley Variable', Besley, Georgia, serif;
+    font-size: 22px;
+    font-weight: 560;
+    fill: currentColor;
+    opacity: 0.85;
+  }
+  .rose-dial {
+    position: absolute;
+    inset: 21%;
+  }
+  /* The small compass is drawn for 44px; keep its lines fine at this size */
+  .rose-dial :global(circle),
+  .rose-dial :global(line) { vector-effect: non-scaling-stroke; stroke-width: 1px; }
+  /* A needle that cannot make up its mind */
+  .rose-dial :global(.compass-needle) {
+    transition: none;
+    animation: lost-needle 16s cubic-bezier(0.45, 0, 0.3, 1) 0.8s infinite;
+  }
+  @keyframes lost-needle {
+    0% { transform: rotate(0deg); }
+    9% { transform: rotate(64deg); }
+    15% { transform: rotate(38deg); }
+    22% { transform: rotate(52deg); }
+    38% { transform: rotate(-118deg); }
+    44% { transform: rotate(-96deg); }
+    50% { transform: rotate(-108deg); }
+    66% { transform: rotate(171deg); }
+    72% { transform: rotate(196deg); }
+    78% { transform: rotate(184deg); }
+    92% { transform: rotate(12deg); }
+    96% { transform: rotate(-6deg); }
+    100% { transform: rotate(0deg); }
+  }
+
+  .lost-shell { position: relative; width: 100%; padding-top: calc(min(58vw, 14rem) + 0.75rem); }
+  .lost-copy { max-width: 37rem; }
+  .lost-lede { max-width: 33rem; }
+  .lost-actions { display: flex; flex-wrap: wrap; gap: 0.9rem 1rem; }
+  .lost-note { margin-top: 2.25rem; max-width: 26rem; font-size: 1.05rem; color: rgb(232 211 165 / 0.75); }
+
+  .lost-in { animation: lost-fade 1.1s var(--ease-out) both; animation-delay: var(--d, 0s); }
+  @keyframes lost-fade {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (min-width: 640px) {
+    .chart { inset: calc(var(--header-h) + 0.5rem) 1.5rem 1.5rem 1.5rem; }
+    .rose { right: -3rem; width: min(54vw, 25rem); }
+    .lost-shell { padding-top: min(38vw, 17rem); }
+  }
+
+  /* Wide: the chart ends two thirds across. The compass straddles its edge, half off the map. */
+  @media (min-width: 1024px) {
+    .lost { align-items: center; padding-top: calc(var(--header-h) + 3.75rem); padding-bottom: 4rem; }
+    .chart { right: 31%; }
+    .chart-label-edge {
+      display: block;
+      right: 0.9rem;
+      bottom: 1rem;
+      writing-mode: vertical-rl;
+    }
+    .rose {
+      top: 50%;
+      right: 31%;
+      width: clamp(22rem, 36vw, 34rem);
+      transform: translate(50%, -46%);
+      animation-name: lost-rose;
+    }
+    .lost-shell { padding-top: 0; }
+    .lost-copy { max-width: min(37rem, 38vw); }
+  }
+  @keyframes lost-rose {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rose-dial :global(.compass-needle) { animation: none; transform: rotate(38deg); }
+  }
+</style>

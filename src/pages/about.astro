@@ -1,74 +1,553 @@
 ---
-import PhotoCarousel from '../components/PhotoCarousel.astro';
-import LocalPhoto from '../components/LocalPhoto.astro';
 import Layout from '../layouts/Layout.astro';
+import LocalPhoto from '../components/LocalPhoto.astro';
+import PhotoCarousel from '../components/PhotoCarousel.astro';
 import group from '../data/group.json';
+import { href } from '../lib/paths';
+
+// Alt text describes what each photograph actually shows.
+const alts: Record<string, string> = {
+  'photos/florian/bus.jpg': 'Florian smiling on a bus, wearing a patterned shirt',
+  'photos/florian/throne.jpg': 'Florian sitting on a throne-like chair in front of red curtains',
+  'photos/florian/sitting.jpg': 'Florian sitting on a stone bollard in a square',
+  'photos/florian/churro.jpg': 'Florian in sunglasses eating a churro, a rollercoaster behind him',
+  'photos/megan/food.jpg': 'Megan laughing at a restaurant table with plates of food',
+  'photos/elias/pooh.jpg': 'Elias sitting on a bench in a garden',
+  'photos/lotte/lake.jpg': 'Lotte in sunglasses standing by a lake',
+  'photos/thibeau/balcony.jpg': 'Tibeau holding a drink on a balcony with the sea behind him',
+};
+
+// Plate captions: they only describe the photograph, with a straight face.
+const captions: Record<string, string> = {
+  florian: 'The planner, in {count} exposures.',
+  megan: 'Megan, conducting fieldwork.',
+  elias: 'Elias, a bench and a very tidy garden.',
+  lotte: 'Lotte, lakeside, sunglasses deployed.',
+  tibeau: 'The drink expert, pictured with evidence.',
+};
+
+// Profile fields the crew fills in later (src/data/group.json). Empty stays visibly empty.
+const noteFields = [
+  { key: 'favoriteDestination', label: 'Favourite destination' },
+  { key: 'favoriteAttraction', label: 'Favourite attraction' },
+  { key: 'travelStyle', label: 'Travel style' },
+] as const;
+
+const socialLabels: Record<string, string> = { x: 'X', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube' };
+
+// Five compositions, one per file, so the feature never settles into identical rows.
+const variants = ['lead', 'pullout', 'triptych', 'offset', 'wide'];
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
+
+const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const inWords = (n: number) => numberWords[n] ?? String(n);
+
+const crew = group.map((person, i) => {
+  const first = person.name.split(' ')[0];
+  const slug = first.toLowerCase();
+  const sources = person.photos?.length ? person.photos : [person.image];
+  return {
+    ...person,
+    first,
+    slug,
+    no: String(i + 1).padStart(2, '0'),
+    plate: roman[i] ?? String(i + 1),
+    variant: variants[i % variants.length],
+    caption: (captions[slug] ?? `${first}.`).replace('{count}', inWords(sources.length)),
+    pictures: sources.map((src) => ({ src, alt: alts[src] ?? `Photograph of ${first}` })),
+    notes: noteFields.map((field) => ({
+      label: field.label,
+      value: ((person as Record<string, unknown>)[field.key] as string | undefined)?.trim() ?? '',
+    })),
+    links: Object.entries((person as { socials?: Record<string, string> }).socials ?? {}).map(([id, url]) => ({
+      url,
+      label: socialLabels[id] ?? id,
+    })),
+  };
+});
+
+const paperworkOutstanding = crew.some((member) => member.notes.some((note) => !note.value));
+const nextNo = String(crew.length + 1).padStart(2, '0');
+const crewCount = inWords(crew.length);
 ---
 
-<Layout title="The Group · Frontier Adventures Co.">
-  <section class="relative h-[60vh] md:h-[70vh] overflow-hidden">
-    <LocalPhoto
-      priority
-      src="group-photo.jpg"
-      alt="The group in front of the castle"
-      sizes="(min-width: 768px) and (max-aspect-ratio: 14/15) 94vh, (max-aspect-ratio: 4/5) 80vh, 100vw"
-      class="w-full h-full object-cover object-center"
-    />
-    <div class="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-transparent"></div>
-  </section>
-
-  <section class="pt-16 pb-24 px-6 md:px-12">
-    <div class="max-w-6xl mx-auto">
-      <div class="max-w-4xl">
-        <p class="text-gold uppercase tracking-widest text-xs mb-4 reveal">Who we are</p>
-        <h1 class="display text-5xl md:text-7xl leading-none reveal">The group</h1>
-        <p class="mt-6 text-lg text-white/80 max-w-2xl reveal">
-          A Belgian friend group that keeps coming back to Disney parks and Disney Cruise Line. Florian plans everything, Megan owns the food, and the rest of us make sure the trips stay fun.
-        </p>
+<Layout
+  title="Our Crew · Frontier Adventurers"
+  description="Meet the Frontier Adventurers crew: a Belgian group of five friends and family who share a passion for theme parks, Disney cruises, travel and adventure."
+>
+  <!-- Title page: the whole crew, then the roll -->
+  <section class="crew-head surface-deep grain lantern" aria-labelledby="crew-title">
+    <div class="shell crew-head-grid">
+      <div class="crew-title-block">
+        <p class="eyebrow reveal">The society roll · {crewCount} members</p>
+        <h1 id="crew-title" class="display page-title text-parchment-light mt-5 reveal" style="--reveal-delay: 80ms">Meet the Crew</h1>
       </div>
+
+      <p class="lede crew-lede reveal" style="--reveal-delay: 160ms">
+        We are a Belgian group of five friends and family who share a passion for theme parks, Disney cruises, travel and adventure. Each of us has a file below.{paperworkOutstanding && ' Some of the paperwork is still outstanding.'}
+      </p>
+
+      <figure class="frontis">
+        <div class="frame">
+          <LocalPhoto
+            priority
+            src="group-photo.jpg"
+            alt="The five of us standing arm in arm in front of a castle"
+            sizes="(min-width: 1280px) 640px, (min-width: 1024px) 52vw, 100vw"
+            class="photo-grade frontis-img"
+          />
+        </div>
+        <figcaption class="fell plate-caption">Frontispiece. The full roll, arm in arm, castle for scale.</figcaption>
+      </figure>
+
+      <nav class="roll reveal" aria-label="Crew roll" style="--reveal-delay: 240ms">
+        <p class="eyebrow no-rule">On the roll</p>
+        <ol class="roll-list">
+          {crew.map((member) => (
+            <li>
+              <a href={`#${member.slug}`} class="roll-link">
+                <span class="fell roll-no" aria-hidden="true">{member.no}</span>
+                <span class="display roll-name">{member.name}</span>
+                <span class="fell roll-role">{member.role}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+      </nav>
     </div>
   </section>
 
-  <section class="pb-32 px-6 md:px-12">
-    <div class="max-w-6xl mx-auto space-y-32">
-      {group.map((person, i) => (
-        <article class="reveal">
-          <div class={`grid md:grid-cols-2 gap-12 items-start ${i % 2 === 1 ? 'md:grid-flow-dense' : ''}`}>
-            <div class={`min-w-0 ${i % 2 === 1 ? 'md:col-start-2' : ''}`}>
-              {person.photos && person.photos.length > 0 ? (
-                <PhotoCarousel
-                  id={`group-photos-${i}`}
-                  label={`Photos of ${person.name}`}
-                  portrait
-                  photos={person.photos.map((src, n) => ({ src, alt: `${person.name}, photo ${n + 1} of ${person.photos.length}` }))}
-                />
+  <!-- The files -->
+  <div class="dossiers surface-jungle grain">
+    {crew.map((member) => (
+      <article
+        id={member.slug}
+        class:list={['dossier', `dossier--${member.variant}`, member.variant === 'triptych' && 'surface-paper grain']}
+        aria-labelledby={`${member.slug}-name`}
+      >
+        <div class="shell">
+          <p class="file-strip reveal">
+            <span class="fell file-no">No. {member.no}</span>
+            <span class="file-rule" aria-hidden="true"></span>
+            <span class="file-tag">Crew dossier</span>
+          </p>
+
+          <div class="d-grid">
+            <header class="d-head reveal">
+              {member.variant === 'pullout' ? (
+                <>
+                  <h2 id={`${member.slug}-name`} class="display d-name">{member.name}</h2>
+                  <p class="display d-role-pullout">{member.role}</p>
+                </>
               ) : (
-                <LocalPhoto
-                  src={person.image}
-                  sizes="(min-width: 768px) 50vw, 100vw"
-                  alt={person.name}
-                  class="w-full aspect-[4/5] object-cover"
-                />
+                <>
+                  <p class="eyebrow">{member.role}</p>
+                  <h2 id={`${member.slug}-name`} class="display d-name">{member.name}</h2>
+                </>
               )}
+            </header>
+
+            <figure class="d-plate">
+              {member.pictures.length > 1 ? (
+                <div class="plate-carousel reveal">
+                  <PhotoCarousel
+                    id={`crew-photos-${member.slug}`}
+                    label={`Photos of ${member.first}`}
+                    portrait
+                    photos={member.pictures}
+                  />
+                </div>
+              ) : (
+                <div class="frame unveil">
+                  <LocalPhoto
+                    src={member.pictures[0].src}
+                    alt={member.pictures[0].alt}
+                    sizes="(min-width: 1280px) 460px, (min-width: 768px) 42vw, 90vw"
+                    class="photo-grade plate-img"
+                  />
+                </div>
+              )}
+              <figcaption class="fell plate-caption">Plate {member.plate}. {member.caption}</figcaption>
+              {member.variant === 'offset' && (
+                <span class="side-label" aria-hidden="true">Frontier Adventurers · File No. {member.no}</span>
+              )}
+            </figure>
+
+            <div class="d-bio reveal">
+              <p>{member.bio}</p>
             </div>
-            <div class={`min-w-0 ${i % 2 === 1 ? 'md:col-start-1 md:row-start-1' : ''}`}>
-              <p class="text-gold text-sm uppercase tracking-widest">{person.role}</p>
-              <h2 class="display text-4xl md:text-5xl mt-2">{person.name}</h2>
-              <p class="mt-6 text-white/80 leading-relaxed">{person.bio}</p>
-              {person.socials?.x && (
-                <a href={person.socials.x} target="_blank" rel="noopener" class="inline-block mt-4 text-gold text-sm hover:underline">X →</a>
+
+            <div class="d-notes reveal">
+              <h3 class="notes-title">Field notes</h3>
+              <dl class="notes">
+                {member.notes.map((note) => (
+                  <div class="note">
+                    <dt>{note.label}</dt>
+                    {note.value
+                      ? <dd class="fell">{note.value}</dd>
+                      : <dd class="fell is-blank">Not yet logged</dd>}
+                  </div>
+                ))}
+              </dl>
+              {member.links.length > 0 && (
+                <ul class="d-links">
+                  {member.links.map((link) => (
+                    <li>
+                      <a href={link.url} target="_blank" rel="noopener" class="link">
+                        {member.first} on {link.label}
+                        <span class="arrow" aria-hidden="true">↗</span>
+                        <span class="sr-only">(opens in a new tab)</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           </div>
-        </article>
-      ))}
-    </div>
-  </section>
+        </div>
+      </article>
+    ))}
+  </div>
 
-  <section class="py-20 px-6 md:px-12 bg-deep border-t border-white/10">
-    <div class="max-w-3xl mx-auto text-center reveal">
-      <p class="display text-2xl md:text-3xl">More members later</p>
-      <p class="mt-4 text-white/60">The list is open if someone new joins the trips.</p>
+  <!-- The next file is still empty -->
+  <section class="roll-open surface-deep grain section" aria-labelledby="roll-open-title">
+    <div class="shell roll-open-grid">
+      <div class="vacant reveal" aria-hidden="true">
+        <span class="fell vacant-no">No. {nextNo}</span>
+        <span class="fell vacant-note">Portrait pending</span>
+      </div>
+      <div class="roll-open-copy">
+        <p class="eyebrow reveal">File No. {nextNo} · Vacant</p>
+        <h2 id="roll-open-title" class="display chapter-title text-parchment-light mt-5 reveal">The Roll Stays Open.</h2>
+        <p class="lede mt-6 reveal">
+          The list is open if someone new joins the trips. Until then, the {crewCount} of us will manage.
+        </p>
+        <div class="mt-9 reveal">
+          <a href={href('adventures')} class="btn btn-brass">See Our Adventures <span class="arrow" aria-hidden="true">→</span></a>
+        </div>
+      </div>
     </div>
   </section>
 </Layout>
+
+<style>
+  /* ---------- Title page ---------- */
+  .crew-head {
+    overflow: hidden;
+    padding-top: calc(var(--header-h) + clamp(2.5rem, 6vw, 5rem));
+    padding-bottom: clamp(3.5rem, 8vw, 6.5rem);
+  }
+  .crew-head-grid { display: grid; gap: 2.25rem; }
+  .crew-head .lede { max-width: 34rem; text-wrap: wrap; }
+
+  .frontis :global(.frontis-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+  .plate-caption {
+    margin-top: 0.85rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: var(--d-muted, rgb(232 211 165 / 0.78));
+  }
+
+  .roll-list { margin-top: 0.9rem; border-top: 1px solid rgb(232 211 165 / 0.22); }
+  .roll-list li { border-bottom: 1px solid rgb(232 211 165 / 0.22); }
+  .roll-link {
+    display: grid;
+    grid-template-columns: 2.1rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 0.5rem;
+    min-height: 3.25rem;
+    padding: 0.8rem 0 0.7rem;
+    color: var(--parchment-light);
+    transition: padding-left 0.5s var(--ease-out), color 0.3s;
+  }
+  .roll-link:hover { padding-left: 0.5rem; color: var(--gold-bright); }
+  .roll-no { font-size: 1rem; color: var(--gold); }
+  .roll-name { font-size: 1.3rem; line-height: 1.15; }
+  .roll-role { font-size: 1rem; color: rgb(232 211 165 / 0.78); text-align: right; transition: color 0.3s; }
+  .roll-link:hover .roll-role { color: var(--parchment); }
+
+  @media (min-width: 1024px) {
+    .crew-head-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      row-gap: 0;
+    }
+    .crew-head-grid { grid-template-rows: auto auto 1fr; }
+    .crew-title-block { grid-column: 1 / -1; margin-bottom: clamp(2.5rem, 4vw, 3.5rem); }
+    .frontis { grid-column: 1 / span 7; grid-row: 2 / span 2; }
+    .crew-lede,
+    .roll { grid-column: 8 / span 5; padding-left: clamp(0.75rem, 2.4vw, 2.25rem); }
+    .crew-lede { grid-row: 2; margin-bottom: 2rem; font-size: 1.2rem; }
+    /* the roll lines up with the foot of the photograph, not with its caption */
+    .roll { grid-row: 3; align-self: end; padding-bottom: 2.25rem; }
+    .roll-link { min-height: 3rem; padding: 0.7rem 0 0.6rem; }
+  }
+
+  /* ---------- Dossiers ---------- */
+  .dossier {
+    --d-accent: var(--gold);
+    --d-head: var(--parchment-light);
+    --d-text: rgb(232 211 165 / 0.88);
+    --d-muted: rgb(232 211 165 / 0.74);
+    --d-line: rgb(232 211 165 / 0.2);
+    padding-block: clamp(3.5rem, 8vw, 7rem);
+  }
+  .dossier.surface-paper {
+    --d-accent: var(--mahogany);
+    --d-head: var(--mahogany);
+    --d-text: var(--mahogany-deep);
+    --d-muted: rgb(72 42 27 / 0.82);
+    --d-line: rgb(72 42 27 / 0.3);
+  }
+
+  /* Ruled header of every file */
+  .file-strip {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: clamp(2rem, 5vw, 3.5rem);
+    color: var(--d-accent);
+  }
+  .file-no { font-size: 1.5rem; line-height: 1; }
+  .file-rule { flex: 1; height: 1px; background: currentColor; opacity: 0.4; transition: opacity 0.6s var(--ease-out); }
+  .file-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--d-muted);
+  }
+  .dossier:target .file-rule { opacity: 1; }
+
+  .d-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.75rem; }
+
+  .d-name {
+    margin-top: 1rem;
+    font-size: clamp(2.6rem, 1.5rem + 4.4vw, 4.75rem);
+    color: var(--d-head);
+  }
+  /* Megan's file sets the post as large as the name */
+  .dossier--pullout .d-name { margin-top: 0; font-size: clamp(3rem, 1.4rem + 6.4vw, 6rem); }
+  .d-role-pullout {
+    font-style: italic;
+    font-weight: 420;
+    font-size: clamp(3rem, 1.4rem + 6.4vw, 6rem);
+    line-height: 1.04;
+    color: var(--d-accent);
+  }
+
+  .d-plate { position: relative; margin: 0; }
+  /* a quiet tone behind each print while it loads */
+  .d-plate .frame,
+  .frontis .frame { background: rgb(12 27 23 / 0.6); }
+  .surface-paper .d-plate .frame { background: rgb(72 42 27 / 0.16); }
+  .d-plate :global(.plate-img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 4;
+    object-fit: cover;
+  }
+  /* The carousel gets the same keyline as the mounted prints. It follows the 3:4 slide, so
+     it stays clear of the controls underneath. */
+  .plate-carousel { position: relative; }
+  .plate-carousel::after {
+    content: '';
+    position: absolute;
+    top: 0.6rem;
+    left: 0.6rem;
+    right: 0.6rem;
+    height: 0;
+    padding-bottom: calc(133.333% - 1.2rem);
+    box-sizing: border-box;
+    border: 1px solid rgb(232 211 165 / 0.55);
+    pointer-events: none;
+  }
+
+  .d-bio p {
+    max-width: 34rem;
+    font-size: clamp(1.0625rem, 1rem + 0.4vw, 1.2rem);
+    line-height: 1.65;
+    color: var(--d-text);
+    text-wrap: pretty;
+  }
+
+  .notes-title {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--d-accent);
+  }
+  .notes { margin-top: 0.85rem; border-top: 1px solid var(--d-line); }
+  .note {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 1rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--d-line);
+  }
+  .note dt {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--d-text);
+  }
+  .note dd { font-size: 1.15rem; line-height: 1.3; text-align: right; color: var(--d-head); }
+  .note dd.is-blank { color: var(--d-muted); }
+
+  .d-links { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; }
+  /* 44px hit area without moving the underline */
+  .d-links .link { position: relative; }
+  .d-links .link::after { content: ''; position: absolute; inset: -0.7rem -0.25rem; }
+
+  .side-label {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 0.8rem);
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+    font-size: 0.64rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--d-muted);
+  }
+
+  /* Small screens: the prints alternate between full width and set to one side */
+  @media (max-width: 767px) {
+    .dossier--pullout .d-plate { width: 84%; margin-left: auto; }
+    .dossier--pullout .plate-caption { text-align: right; }
+    .dossier--offset .d-plate { width: 84%; }
+  }
+
+  /* Tablet: print beside the text, sides alternating */
+  @media (min-width: 768px) {
+    .d-grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      grid-template-rows: auto auto 1fr;
+      column-gap: clamp(2rem, 5vw, 3.5rem);
+      row-gap: 1.75rem;
+    }
+    .d-plate { grid-column: 1; grid-row: 1 / span 3; }
+    .d-head, .d-bio, .d-notes { grid-column: 2; }
+    /* the carousel needs room for its controls */
+    .dossier--lead .d-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+    .dossier--pullout .d-grid,
+    .dossier--wide .d-grid { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+    .dossier--pullout .d-plate,
+    .dossier--wide .d-plate { grid-column: 2; }
+    .dossier--pullout :is(.d-head, .d-bio, .d-notes),
+    .dossier--wide :is(.d-head, .d-bio, .d-notes) { grid-column: 1; }
+    .side-label { display: none; }
+  }
+
+  /* Desktop: one composition per file */
+  @media (min-width: 1024px) {
+    .d-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      row-gap: 2rem;
+    }
+
+    /* No. 01, the lead file: large plate left, text right */
+    .dossier--lead .d-plate { grid-column: 1 / span 5; }
+    .dossier--lead :is(.d-head, .d-bio) { grid-column: 7 / span 6; }
+    .dossier--lead .d-notes { grid-column: 7 / span 5; }
+    .dossier--lead .d-head { padding-top: 0.5rem; }
+
+    /* No. 02, the post pulled out as large as the name, text stepped in, plate right */
+    .dossier--pullout .d-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+    .dossier--pullout .d-head { grid-column: 1 / span 7; }
+    .dossier--pullout :is(.d-bio, .d-notes) { grid-column: 2 / span 5; }
+    .dossier--pullout .d-plate { grid-column: 8 / span 5; }
+    .dossier--pullout .d-notes { align-self: end; }
+
+    /* No. 03, a loose leaf: plate in the middle, name and notes left, text right */
+    .dossier--triptych .d-grid { grid-template-rows: auto 1fr; }
+    .dossier--triptych .d-head { grid-column: 1 / span 4; grid-row: 1; }
+    .dossier--triptych .d-notes { grid-column: 1 / span 4; grid-row: 2; align-self: end; padding-bottom: 2.25rem; }
+    .dossier--triptych .d-plate { grid-column: 5 / span 4; grid-row: 1 / span 2; }
+    .dossier--triptych .d-bio { grid-column: 9 / span 4; grid-row: 1 / span 2; }
+    .dossier--triptych .d-bio p { font-size: clamp(1.2rem, 0.9rem + 0.75vw, 1.45rem); line-height: 1.5; }
+
+    /* No. 04, plate stepped in from the margin with the file label up its side */
+    .dossier--offset .d-plate { grid-column: 2 / span 5; }
+    .dossier--offset :is(.d-head, .d-bio, .d-notes) { grid-column: 8 / span 5; }
+    /* the whole text block sits at the foot of the plate */
+    .dossier--offset .d-grid { grid-template-rows: 1fr auto auto; }
+    .dossier--offset .d-head { align-self: end; }
+    .dossier--offset .d-notes { padding-bottom: 2.25rem; }
+    .side-label {
+      display: block;
+      left: auto;
+      right: calc(100% + 1.4rem);
+      transform: rotate(180deg);
+    }
+
+    /* No. 05, plate right, notes run across the foot of the file */
+    .dossier--wide .d-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: auto 1fr auto; }
+    .dossier--wide .d-head { grid-column: 1 / span 6; grid-row: 1; }
+    .dossier--wide .d-bio { grid-column: 1 / span 6; grid-row: 2; align-self: end; padding-bottom: 2.25rem; }
+    .dossier--wide .d-plate { grid-column: 8 / span 5; grid-row: 1 / span 2; }
+    .dossier--wide .d-notes { grid-column: 1 / -1; grid-row: 3; margin-top: 1rem; }
+    .dossier--wide .notes {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      column-gap: 2rem;
+      border-top: 0;
+    }
+    .dossier--wide .note {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 0.35rem;
+      padding: 0.9rem 0 0;
+      border-bottom: 0;
+      border-top: 1px solid var(--d-line);
+    }
+    .dossier--wide .note dd { text-align: left; }
+  }
+
+  /* ---------- The open roll ---------- */
+  .roll-open-grid { display: grid; gap: 2.5rem; }
+  .roll-open .lede { max-width: 32rem; }
+  .vacant {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: min(11rem, 46%);
+    aspect-ratio: 3 / 4;
+    padding: 1.1rem 1.2rem;
+    border: 1px solid rgb(196 154 80 / 0.5);
+  }
+  /* inner keyline, like the mounted prints above, around nothing yet */
+  .vacant::after {
+    content: '';
+    position: absolute;
+    inset: 0.45rem;
+    border: 1px dashed rgb(232 211 165 / 0.3);
+    pointer-events: none;
+  }
+  .vacant-no { font-size: 1.5rem; line-height: 1; color: var(--gold); }
+  .vacant-note { font-size: 1rem; line-height: 1.3; color: rgb(232 211 165 / 0.78); }
+  @media (prefers-reduced-motion: reduce) {
+    .roll-link:hover { padding-left: 0; }
+  }
+  @media (min-width: 768px) {
+    .roll-open-grid {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      align-items: end;
+    }
+    .vacant { grid-column: 1 / span 3; width: min(14rem, 100%); }
+    .roll-open-copy { grid-column: 5 / span 8; }
+  }
+</style>

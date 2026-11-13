@@ -1,4 +1,374 @@
 ---
-// STUB: replaced by the real component
+// Home page, Chapter III: a look inside the journal.
+// The most recent review lies open as a parchment page; beside it, the top of the food
+// ledger; underneath, the four chapters of the archive as an index. Everything is read from
+// src/lib/adventures.ts, so a new review or food note changes this section by itself.
+import { categories, entriesByCategory, reviews, food, type Entry } from '../lib/adventures';
+import { href } from '../lib/paths';
+
+const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
+const words = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const count = (n: number, one: string, many = `${one}s`) => `${words[n] ?? n} ${n === 1 ? one : many}`;
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+// Review dates are "YYYY-MM" or "YYYY-MM-DD". Formatted in UTC so no timezone can shift the day.
+const formatDate = (value?: string) => {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?$/.exec(value ?? '');
+  if (!m) return null;
+  const date = new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, m[3] ? Number(m[3]) : 1));
+  const text = new Intl.DateTimeFormat('en-GB', {
+    day: m[3] ? 'numeric' : undefined,
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(date);
+  return { text, iso: value as string };
+};
+
+// The page that lies open: the most recent review
+const featured: Entry | undefined = [...reviews].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))[0];
+const featuredDate = formatDate(featured?.date);
+
+// Top of the food ledger: the three highest crew averages (data order breaks ties)
+const topFood = [...food].sort((a, b) => b.score - a.score).slice(0, 3);
+
+const chapters = categories.map((c, i) => {
+  const list = entriesByCategory(c.id);
+  const r = list.filter((e) => e.kind === 'review').length;
+  const f = list.filter((e) => e.kind === 'food').length;
+  const parts = [r ? count(r, 'review') : '', f ? count(f, 'food note') : ''].filter(Boolean);
+  return {
+    ...c,
+    numeral: roman[i],
+    url: href(`adventures#${c.id}`),
+    tally: parts.length ? capital(parts.join(', ')) : 'Still being written',
+  };
+});
 ---
-<section class="section"><div class="shell"><p class="eyebrow">JournalTeaser</p></div></section>
+
+<section id="journal" class="journal surface-deep grain section" aria-labelledby="journal-title">
+  <div class="shell">
+    <div class="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-16">
+      <div class="lg:col-span-7">
+        <p class="eyebrow reveal">Chapter III · From the Journal</p>
+        <h2 id="journal-title" class="display chapter-title mt-5 text-parchment-light reveal">
+          Written Down Before We Forget.
+        </h2>
+      </div>
+      <div class="lg:col-span-5">
+        <p class="lede reveal" style="--reveal-delay: 120ms">
+          Reviews, food scores and, before long, proper trip reports. The journal is open at the latest review, next to the plates at the top of our food ledger.
+        </p>
+      </div>
+    </div>
+
+    <div class="desk">
+      {featured && (
+        <div class="page-wrap reveal">
+          <article class="page surface-paper grain" aria-labelledby="journal-featured-title">
+            <p class="page-top">
+              <span>{featured.label}</span>
+              {featuredDate && <time class="fell page-date" datetime={featuredDate.iso}>{featuredDate.text}</time>}
+            </p>
+            <div class="rule-double" aria-hidden="true"></div>
+
+            <h3 id="journal-featured-title" class="display page-title-entry">{featured.title}</h3>
+
+            <blockquote class="fell page-pull">
+              <p>{featured.summary}</p>
+            </blockquote>
+
+            <div class="page-foot">
+              <div class="rating">
+                <p class="rating-label">Our rating</p>
+                <p class="rating-score">
+                  <span class="sr-only">{featured.scoreLabel}</span>
+                  <span aria-hidden="true"><span class="display rating-num">{featured.score}</span><span class="fell rating-of">of 5</span></span>
+                </p>
+                <p class="pips" aria-hidden="true">
+                  {[1, 2, 3, 4, 5].map((n) => <span class:list={['pip', { 'pip-on': n <= Math.round(featured.score) }]}></span>)}
+                </p>
+              </div>
+              <div class="page-go">
+                {featured.place && <p class="fell page-place">Filed under {featured.place}.</p>}
+                <a href={featured.url} class="btn btn-ink">Read the full review <span class="arrow" aria-hidden="true">→</span></a>
+              </div>
+            </div>
+          </article>
+        </div>
+      )}
+
+      {topFood.length > 0 && (
+        <div class="finds reveal" style="--reveal-delay: 140ms">
+          <h3 class="finds-title">Top of the food ledger</h3>
+          <ol class="finds-list" role="list">
+            {topFood.map((e, i) => (
+              <li>
+                <a href={e.url} class="find">
+                  <span class="fell find-no" aria-hidden="true">{i + 1}.</span>
+                  <span class="find-main">
+                    <span class="display find-name">{e.title}</span>
+                    <span class="fell find-place">{e.label}, {e.place}</span>
+                  </span>
+                  <span class="find-score">
+                    <span class="sr-only">{e.scoreLabel}</span>
+                    <span aria-hidden="true" class="find-score-vis">
+                      <span class="display find-num">{e.score.toFixed(1)}</span>
+                      <span class="meter" style={`--score:${(e.score / 5).toFixed(3)}`}></span>
+                    </span>
+                  </span>
+                </a>
+              </li>
+            ))}
+          </ol>
+          <p class="finds-note fell">Crew averages out of five. Arguments about the order are ongoing.</p>
+          <p class="finds-more">
+            <a href={href('food')} class="link">All {count(food.length, 'food note')} <span class="arrow" aria-hidden="true">→</span></a>
+          </p>
+        </div>
+      )}
+    </div>
+
+    <nav class="chapters reveal" aria-label="Chapters of the adventure archive">
+      <p class="chapters-label">In the archive</p>
+      <ol class="chapters-list" role="list">
+        {chapters.map((c) => (
+          <li>
+            <a href={c.url} class="chapter">
+              <span class="fell chapter-num" aria-hidden="true">{c.numeral}.</span>
+              <span class="display chapter-name">{c.title}</span>
+              <span class="fell chapter-tally">{c.tally}</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <div class="journal-cta reveal">
+      <a href={href('adventures')} class="btn btn-brass">Open the Archive <span class="arrow" aria-hidden="true">→</span></a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .page-top,
+  .rating-label,
+  .finds-title,
+  .chapters-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    line-height: 1.5;
+    text-transform: uppercase;
+  }
+
+  .desk {
+    display: grid;
+    gap: 3.5rem;
+    margin-top: clamp(2.75rem, 6vw, 5rem);
+  }
+
+  /* ---------- The open page ---------- */
+  .page-wrap { position: relative; }
+  /* The sheet underneath, slightly out of square */
+  .page-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: #b9a273;
+    transform: rotate(1.1deg) translate(0.35rem, 0.45rem);
+  }
+  .page {
+    position: relative;
+    padding: clamp(1.5rem, 4.5vw, 3.25rem);
+    padding-left: clamp(2.1rem, 6vw, 4.5rem);
+  }
+  /* Margin line of a ruled journal */
+  .page::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 clamp(1rem, 3vw, 2.25rem);
+    width: 3px;
+    border-inline: 1px solid rgb(140 60 40 / 0.32);
+    pointer-events: none;
+  }
+  .page-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1.5rem;
+    padding-bottom: 0.9rem;
+    color: var(--mahogany);
+  }
+  .page-date {
+    font-size: 1.15rem;
+    font-weight: 400;
+    letter-spacing: 0.005em;
+    text-transform: none;
+    color: var(--mahogany);
+  }
+  .page .rule-double { color: var(--mahogany); opacity: 0.55; }
+  .page-title-entry {
+    margin-top: clamp(1.5rem, 3.5vw, 2.25rem);
+    font-size: clamp(1.6rem, 1.2rem + 1.9vw, 2.6rem);
+    line-height: 1.1;
+    color: var(--mahogany-deep);
+  }
+  .page-pull {
+    margin-top: clamp(1.25rem, 3vw, 1.9rem);
+    max-width: 36ch;
+    font-size: clamp(1.25rem, 1.1rem + 0.9vw, 1.7rem);
+    line-height: 1.34;
+    color: var(--mahogany);
+    text-wrap: pretty;
+  }
+  .page-foot {
+    display: grid;
+    gap: 1.75rem;
+    margin-top: clamp(1.75rem, 4vw, 2.75rem);
+    padding-top: 1.5rem;
+    border-top: 1px solid rgb(72 42 27 / 0.3);
+  }
+  .rating-label { color: rgb(72 42 27 / 0.86); }
+  .rating-score { margin-top: 0.3rem; }
+  .rating-num { font-size: clamp(3rem, 2.4rem + 2.4vw, 4.25rem); line-height: 0.9; color: var(--mahogany); }
+  .rating-of { margin-left: 0.5rem; font-size: 1.3rem; color: rgb(72 42 27 / 0.86); }
+  .pips { display: flex; gap: 0.7rem; margin-top: 0.9rem; padding-left: 0.2rem; }
+  .pip {
+    width: 0.6rem;
+    height: 0.6rem;
+    border: 1px solid var(--mahogany);
+    transform: rotate(45deg);
+  }
+  .pip-on { background: var(--mahogany); }
+  .page-go { display: grid; gap: 1rem; justify-items: start; align-content: end; }
+  .page-place { font-size: 1.1rem; line-height: 1.35; color: rgb(72 42 27 / 0.9); }
+
+  /* ---------- Top of the food ledger ---------- */
+  .finds-title { color: var(--gold); }
+  .finds-list {
+    margin-top: 1rem;
+    border-top: 1px solid rgb(196 154 80 / 0.5);
+  }
+  .finds-list li { border-bottom: 1px solid rgb(232 211 165 / 0.16); }
+  .find {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 0.75rem;
+    padding: 1.2rem 0 1.3rem;
+    color: var(--parchment-light);
+    transition: padding-left 0.5s var(--ease-out), color 0.3s;
+  }
+  .find:hover,
+  .find:focus-visible { padding-left: 0.6rem; color: var(--gold-bright); }
+  .find-no { font-size: 1.1rem; color: var(--gold); }
+  .find-main { display: grid; gap: 0.2rem; }
+  .find-name { font-size: clamp(1.35rem, 1.2rem + 0.8vw, 1.75rem); line-height: 1.15; }
+  .find-place { font-size: 1.02rem; line-height: 1.4; color: rgb(232 211 165 / 0.8); }
+  .find-score-vis { display: grid; justify-items: end; gap: 0.45rem; }
+  .find-num { font-size: 1.6rem; line-height: 1; color: var(--gold); }
+  .meter {
+    position: relative;
+    display: block;
+    width: 3.25rem;
+    height: 3px;
+    background: linear-gradient(rgb(232 211 165 / 0.3), rgb(232 211 165 / 0.3)) 0 50% / 100% 1px no-repeat;
+  }
+  .meter::after {
+    content: '';
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--score, 0) * 100%);
+    background: var(--gold);
+  }
+  .finds-note {
+    margin-top: 1.25rem;
+    font-size: 1.08rem;
+    line-height: 1.4;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .finds-more { margin-top: 1.25rem; }
+  .finds-more .link { min-height: 2.75rem; align-items: center; }
+
+  /* ---------- The archive, as an index ---------- */
+  .chapters { margin-top: clamp(3.5rem, 8vw, 6rem); }
+  .chapters-label { color: var(--gold); }
+  .chapters-list {
+    display: grid;
+    margin-top: 1rem;
+    border-top: 1px solid rgb(196 154 80 / 0.5);
+  }
+  .chapters-list li { border-bottom: 1px solid rgb(232 211 165 / 0.16); }
+  .chapter {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    align-items: baseline;
+    column-gap: 0.5rem;
+    min-height: 3.5rem;
+    padding: 0.95rem 0 1.05rem;
+    color: var(--parchment-light);
+    transition: color 0.3s;
+  }
+  .chapter-num { font-size: 1.05rem; color: var(--gold); }
+  .chapter-name {
+    font-size: clamp(1.4rem, 1.15rem + 1vw, 1.8rem);
+    line-height: 1.15;
+    transition: transform 0.5s var(--ease-out);
+  }
+  .chapter-tally {
+    grid-column: 2;
+    margin-top: 0.2rem;
+    font-size: 1rem;
+    line-height: 1.4;
+    color: rgb(232 211 165 / 0.8);
+  }
+  .chapter:hover,
+  .chapter:focus-visible { color: var(--gold-bright); }
+  .chapter:hover .chapter-name,
+  .chapter:focus-visible .chapter-name { transform: translateX(0.4rem); }
+
+  .journal-cta { margin-top: clamp(2.25rem, 5vw, 3.5rem); }
+
+  @media (min-width: 640px) {
+    .page-foot { grid-template-columns: auto 1fr; gap: clamp(2rem, 6vw, 4rem); }
+    .page-go { justify-items: end; text-align: right; }
+    .chapters-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2.5rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .desk {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      column-gap: 2rem;
+      align-items: start;
+    }
+    .page-wrap { grid-column: 1 / span 7; }
+    .finds { grid-column: 9 / -1; padding-top: 1.25rem; }
+
+    /* Four columns divided by hairlines, like the running heads of a ledger */
+    .chapters-list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      column-gap: 0;
+      border-bottom: 1px solid rgb(232 211 165 / 0.16);
+    }
+    .chapters-list li { border-bottom: 0; }
+    .chapters-list li + li { border-left: 1px solid rgb(232 211 165 / 0.16); }
+    .chapter {
+      grid-template-columns: 1fr;
+      align-content: start;
+      row-gap: 0.35rem;
+      height: 100%;
+      padding: 1.5rem 1.5rem 1.75rem;
+    }
+    .chapters-list li:first-child .chapter { padding-left: 0; }
+    .chapter-tally { grid-column: 1; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .find:hover,
+    .find:focus-visible { padding-left: 0; }
+    .chapter:hover .chapter-name,
+    .chapter:focus-visible .chapter-name { transform: none; }
+  }
+</style>
