@@ -30,7 +30,7 @@ const multiple = photos.length > 1;
   </div>
   {multiple && (
     <div class="photo-controls" data-controls hidden>
-      <button type="button" data-prev aria-label="Previous photo" aria-controls={id} disabled><span aria-hidden="true">←</span></button>
+      <button type="button" data-prev aria-label="Previous photo" aria-controls={id} aria-disabled="true"><span aria-hidden="true">←</span></button>
       <div class="photo-position">
         <p data-status aria-live="polite" aria-atomic="true">Photo 1 of {photos.length}</p>
         <div class="photo-dots" role="group" aria-label="Choose a photo">
@@ -48,6 +48,7 @@ const multiple = photos.length > 1;
   /* Colours follow the surface the carousel sits on: brass on the dark walls, mahogany on paper */
   photo-carousel {
     --pc-line: rgb(196 154 80 / 0.42);
+    --pc-line-off: rgb(196 154 80 / 0.16);
     --pc-accent: var(--gold);
     --pc-accent-ink: var(--jungle-deep);
     --pc-text: rgb(232 211 165 / 0.82);
@@ -57,6 +58,7 @@ const multiple = photos.length > 1;
   }
   :global(.surface-paper) photo-carousel {
     --pc-line: rgb(72 42 27 / 0.45);
+    --pc-line-off: rgb(72 42 27 / 0.18);
     --pc-accent: var(--mahogany);
     --pc-accent-ink: var(--parchment-light);
     --pc-text: rgb(72 42 27 / 0.86);
@@ -109,21 +111,26 @@ const multiple = photos.length > 1;
   .photo-controls > button > span { transition: transform 0.45s var(--ease-out); }
   /* Hover only where there is a pointer that can hover, so a tap does not leave a key lit */
   @media (hover: hover) {
-    .photo-controls > button:hover:enabled {
+    .photo-controls > button:hover:not([aria-disabled='true']) {
       background: var(--pc-accent);
       border-color: var(--pc-accent);
       color: var(--pc-accent-ink);
     }
-    .photo-controls > [data-prev]:hover:enabled > span { transform: translateX(-0.2rem); }
-    .photo-controls > [data-next]:hover:enabled > span { transform: translateX(0.2rem); }
+    .photo-controls > [data-prev]:hover:not([aria-disabled='true']) > span { transform: translateX(-0.2rem); }
+    .photo-controls > [data-next]:hover:not([aria-disabled='true']) > span { transform: translateX(0.2rem); }
     .photo-dots button:hover span { border-color: var(--pc-accent); }
   }
-  .photo-controls > button:active:enabled {
+  .photo-controls > button:active:not([aria-disabled='true']) {
     background: var(--pc-accent);
     border-color: var(--pc-accent);
     color: var(--pc-accent-ink);
   }
-  .photo-controls > button:disabled { opacity: 0.35; cursor: not-allowed; }
+  /* At the first and last photo an arrow is switched off with aria-disabled, not the disabled
+     attribute: a disabled button drops keyboard focus. The key itself is dimmed part by part,
+     because opacity on the button would fade its focus ring as well. */
+  .photo-controls > button[aria-disabled='true'] { border-color: var(--pc-line-off); cursor: not-allowed; }
+  .photo-controls > button[aria-disabled='true'] > span { opacity: 0.35; }
+  .photo-controls > button[aria-disabled='true']::before { opacity: 0.1; }
 
   .photo-position { min-width: 0; text-align: center; }
   .photo-position p {
@@ -162,41 +169,73 @@ const multiple = photos.length > 1;
       const dots = Array.from(this.querySelectorAll<HTMLButtonElement>('[data-dot]'));
       const status = this.querySelector<HTMLElement>('[data-status]');
       if (!track || !previous || !next || !status) return;
+      const last = dots.length - 1;
+      const clamp = (n: number) => Math.max(0, Math.min(last, n));
+      // The photo the controls show. An arrow, dot or key sets it at once, so quick presses add
+      // up instead of being counted from wherever the smooth scroll happens to be.
       let index = 0;
+      // True while the track is still travelling to that photo: the scroll position is not
+      // read until it has settled, so the status does not count through the photos in between.
+      let travelling = false;
+      let settle = 0;
       const events = new AbortController();
       const { signal } = events;
-      const update = () => {
-        if (!track.clientWidth) return;
-        index = Math.max(0, Math.min(dots.length - 1, Math.round(track.scrollLeft / track.clientWidth)));
-        previous.disabled = index === 0;
-        next.disabled = index === dots.length - 1;
+      const show = (position: number) => {
+        index = position;
+        // aria-disabled, never the disabled attribute: the arrow keeps keyboard focus at either end
+        previous.setAttribute('aria-disabled', String(index === 0));
+        next.setAttribute('aria-disabled', String(index === last));
         dots.forEach((dot, n) => n === index ? dot.setAttribute('aria-current', 'true') : dot.removeAttribute('aria-current'));
         const text = `Photo ${index + 1} of ${dots.length}`;
         if (status.textContent !== text) status.textContent = text;
       };
-      const go = (target: number) => {
-        const position = Math.max(0, Math.min(dots.length - 1, target));
-        track.scrollTo({ left: position * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      const read = () => {
+        if (track.clientWidth) show(clamp(Math.round(track.scrollLeft / track.clientWidth)));
       };
-      previous.addEventListener('click', () => go(index - 1), { signal });
-      next.addEventListener('click', () => go(index + 1), { signal });
+      const release = () => {
+        window.clearTimeout(settle);
+        travelling = false;
+      };
+      // Once no scroll event has arrived for a moment, the track is where it is going to be.
+      const settleSoon = () => {
+        window.clearTimeout(settle);
+        settle = window.setTimeout(() => { travelling = false; read(); }, 160);
+      };
+      const go = (target: number) => {
+        const position = clamp(target);
+        travelling = true;
+        show(position);
+        track.scrollTo({ left: position * track.clientWidth, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        settleSoon();
+      };
+      const step = (button: HTMLButtonElement, by: number) => button.addEventListener('click', () => {
+        if (button.getAttribute('aria-disabled') !== 'true') go(index + by);
+      }, { signal });
+      step(previous, -1);
+      step(next, 1);
       dots.forEach((dot, n) => dot.addEventListener('click', () => go(n), { signal }));
-      track.addEventListener('scroll', update, { signal, passive: true });
+      track.addEventListener('scroll', () => {
+        if (travelling) settleSoon();
+        else read();
+      }, { signal, passive: true });
+      // A finger, wheel or scrollbar drag takes over from a scroll that is still under way.
+      (['pointerdown', 'touchstart', 'wheel'] as const).forEach((type) => track.addEventListener(type, release, { signal, passive: true }));
       track.addEventListener('keydown', (event) => {
-        const targets: Record<string, number> = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: dots.length - 1 };
+        const targets: Record<string, number> = { ArrowLeft: index - 1, ArrowRight: index + 1, Home: 0, End: last };
         if (event.key in targets) {
           event.preventDefault();
           go(targets[event.key]);
         }
       }, { signal });
       const resize = new ResizeObserver(() => {
+        release();
         track.scrollTo({ left: index * track.clientWidth, behavior: 'auto' });
-        update();
+        show(index);
       });
       resize.observe(track);
       this.querySelector<HTMLElement>('[data-controls]')?.removeAttribute('hidden');
-      update();
-      this.cleanup = () => { events.abort(); resize.disconnect(); };
+      read();
+      this.cleanup = () => { events.abort(); resize.disconnect(); window.clearTimeout(settle); };
     }
     disconnectedCallback() { this.cleanup?.(); }
   }

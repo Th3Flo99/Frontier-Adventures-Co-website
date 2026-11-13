@@ -230,6 +230,27 @@ const crewCount = inWords(crew.length);
   </section>
 </Layout>
 
+<script>
+  // The single prints wipe in from behind a closed mask. A browser may not count a fully masked
+  // photograph as near the viewport, and then its lazy load only starts once the wipe is over.
+  // So each print is asked for while its plate is still well below the fold, whatever the engine
+  // makes of the mask. Without JavaScript there is no mask and plain lazy loading does the job.
+  const prints = document.querySelectorAll<HTMLImageElement>('.d-plate .unveil img[loading="lazy"]');
+  if ('IntersectionObserver' in window) {
+    const ahead = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        entry.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
+        ahead.unobserve(entry.target);
+      });
+    }, { rootMargin: '1500px 0px' });
+    // the figure itself is never masked, so it can be watched reliably
+    prints.forEach((img) => { const plate = img.closest('.d-plate'); if (plate) ahead.observe(plate); });
+  } else {
+    prints.forEach((img) => { img.loading = 'eager'; });
+  }
+</script>
+
 <style>
   /* ---------- Title page ---------- */
   .crew-head {
@@ -346,6 +367,10 @@ const crewCount = inWords(crew.length);
   /* a quiet tone behind each print while it loads */
   .d-plate .frame,
   .frontis .frame { background: rgb(12 27 23 / 0.6); }
+  /* The single prints wait behind a closed mask (.unveil). Without a clipping box of its own,
+     Chromium treats the masked photograph as nowhere near the screen and does not fetch it
+     until the wipe has finished, so the wipe would reveal an empty frame. */
+  .d-plate .frame { overflow: hidden; }
   .surface-paper .d-plate .frame { background: rgb(72 42 27 / 0.16); }
   .d-plate :global(.plate-img) {
     display: block;
@@ -496,7 +521,8 @@ const crewCount = inWords(crew.length);
     /* No. 05, plate right, notes run across the foot of the file */
     .dossier--wide .d-grid { grid-template-columns: repeat(12, minmax(0, 1fr)); grid-template-rows: auto 1fr auto; }
     .dossier--wide .d-head { grid-column: 1 / span 6; grid-row: 1; }
-    .dossier--wide .d-bio { grid-column: 1 / span 6; grid-row: 2; align-self: end; padding-bottom: 2.25rem; }
+    /* the text follows the name; pinned to the foot of the plate it left a hole under the heading */
+    .dossier--wide .d-bio { grid-column: 1 / span 6; grid-row: 2; }
     .dossier--wide .d-plate { grid-column: 8 / span 5; grid-row: 1 / span 2; }
     .dossier--wide .d-notes { grid-column: 1 / -1; grid-row: 3; margin-top: 1rem; }
     .dossier--wide .notes {
