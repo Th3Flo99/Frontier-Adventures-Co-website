@@ -41,10 +41,10 @@ import { href } from '../lib/paths';
         <span class="hero-line"><span style="--d:0.47s">Our Next</span></span>
         <span class="hero-line"><span style="--d:0.59s">Adventure.</span></span>
       </h1>
-      <p class="lede hero-lede hero-in mt-7" style="--d:0.85s">
+      <p class="lede hero-lede hero-in" style="--d:0.85s">
         Five friends. Endless adventures. Join us as we explore extraordinary places, unforgettable experiences and a little magic along the way.
       </p>
-      <div class="hero-in mt-9 flex flex-wrap gap-4" style="--d:1s">
+      <div class="hero-actions hero-in" style="--d:1s">
         <a href={href('adventures')} class="btn btn-brass">Explore Our Adventures <span class="arrow" aria-hidden="true">→</span></a>
         <a href={href('about')} class="btn btn-ghost">Meet the Crew</a>
       </div>
@@ -61,19 +61,18 @@ import { href } from '../lib/paths';
   <!-- A new name, the same adventure -->
   <section id="new-name" class="surface-paper grain section" aria-labelledby="new-name-title">
     <div class="shell">
-      <div class="grid gap-10 lg:grid-cols-12 lg:gap-16 lg:items-end">
-        <div class="lg:col-span-7">
-          <p class="eyebrow reveal">A note from the crew</p>
-          <h2 id="new-name-title" class="display chapter-title mt-5 text-mahogany reveal">
-            A New Name.<br />The Same Adventure.
-          </h2>
-        </div>
-        <div class="lg:col-span-5">
-          <p class="lede" data-scrub-words>
-            Formerly {site.formerName}, we’re entering a new chapter as {site.name}. Same crew, same passion, and many more adventures ahead.
-          </p>
-          <div class="mt-8 reveal"><p class="stamp text-mahogany">Formerly {site.formerName}</p></div>
-        </div>
+      <!-- Set like a notice pinned to the lodge board: the headline runs the full width, the
+           note sits underneath to the right, the old name is stamped in the margin -->
+      <p class="eyebrow reveal">A note from the crew</p>
+      <h2 id="new-name-title" class="display notice-title mt-5 text-mahogany reveal">
+        A New Name. <span class="notice-second">The Same Adventure.</span>
+      </h2>
+      <div class="rule-double mt-10 reveal" aria-hidden="true"></div>
+      <div class="notice-body">
+        <p class="lede notice-copy" data-ink-words>
+          Formerly {site.formerName}, we’re entering a new chapter as {site.name}. Same crew, same passion, and many more adventures ahead.
+        </p>
+        <div class="notice-stamp reveal"><p class="stamp text-mahogany">Formerly {site.formerName}</p></div>
       </div>
     </div>
   </section>
@@ -94,9 +93,9 @@ import { href } from '../lib/paths';
   }
   .hero-photo {
     position: relative;
-    height: 60vh;
-    height: 60svh;
-    min-height: 20rem;
+    height: 46vh;
+    height: 46svh;
+    min-height: 16rem;
     overflow: hidden;
   }
   /* Taller than its box so the parallax drift never shows an edge */
@@ -123,7 +122,8 @@ import { href } from '../lib/paths';
     padding: 0 1.5rem 4.5rem;
   }
   .hero-title { font-size: clamp(2.5rem, 0.9rem + 7.6vw, 5.6rem); }
-  .hero-lede { max-width: 34rem; }
+  .hero-lede { max-width: 34rem; margin-top: 1.25rem; }
+  .hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem 1rem; margin-top: 1.6rem; }
   /* The header already carries the logo on small screens; the large lockup is for the title card */
   .hero-logo { display: none; }
   .hero-line { display: block; overflow: hidden; padding-bottom: 0.08em; }
@@ -150,7 +150,29 @@ import { href } from '../lib/paths';
   .hero-scroll { display: none; }
 
   @media (min-width: 768px) {
+    .hero-photo { height: 56vh; height: 56svh; min-height: 20rem; }
     .hero-copy { padding-inline: 3rem; }
+    .hero-lede { margin-top: 1.75rem; }
+    .hero-actions { margin-top: 2.25rem; }
+  }
+
+  /* A phone held sideways: photograph to the right, a compact title card to the left */
+  @media (orientation: landscape) and (max-height: 500px) and (max-width: 1023.98px) {
+    .hero { display: block; min-height: 100vh; min-height: 100svh; }
+    .hero-photo { position: absolute; inset: 0 0 0 auto; width: 56%; height: auto; min-height: 0; }
+    .hero-shade {
+      background: linear-gradient(90deg, var(--jungle-deep) 0%, rgb(12 27 23 / 0.55) 22%, transparent 55%);
+    }
+    .hero-copy {
+      max-width: 54%;
+      margin-top: 0;
+      padding: calc(var(--header-h) + 0.5rem) 0 1.75rem 1.5rem;
+    }
+    .hero-copy :global(.eyebrow) { display: none; }
+    .hero-title { margin-top: 0; font-size: clamp(1.9rem, 10.5vh, 2.8rem); }
+    .hero-lede { margin-top: 0.75rem; font-size: 0.98rem; line-height: 1.5; }
+    .hero-actions { margin-top: 1rem; gap: 0.6rem; }
+    .hero-actions :global(.btn) { min-height: 2.75rem; padding: 0.6rem 1.1rem; }
   }
 
   /* Wide landscape: photograph to the right, title card to the left */
@@ -180,7 +202,8 @@ import { href } from '../lib/paths';
       padding: calc(var(--header-h) + 2.5rem) 0 6.5rem 3rem;
     }
     .hero-title { font-size: clamp(3.2rem, 5.6vw, 6.4rem); }
-    .hero-lede { max-width: 29rem; }
+    .hero-lede { max-width: 29rem; margin-top: 1.75rem; }
+    .hero-actions { margin-top: 2.25rem; }
     .hero-logo { display: block; margin-bottom: 2rem; }
 
     .hero-keyline {
@@ -231,8 +254,43 @@ import { href } from '../lib/paths';
       position: absolute;
       inset: 0;
       background: var(--gold);
-      animation: scroll-cue 2.6s var(--ease-out) infinite;
+      /* A cue, not a fixture: it runs three times and then rests */
+      animation: scroll-cue 2.6s var(--ease-out) 3 both;
     }
+  }
+
+  /* Short laptop screens: the title card has to fit in one screen, buttons and cue included.
+     The header already shows the wordmark, so the large lockup steps aside. */
+  @media (min-width: 1024px) and (min-aspect-ratio: 5/4) and (max-height: 860px) {
+    .hero-logo { display: none; }
+    .hero-copy { max-width: 50%; padding-bottom: 5.5rem; }
+    .hero-title { font-size: clamp(2.6rem, min(5.4vw, 10vh), 6.4rem); }
+    .hero-lede { max-width: 25rem; margin-top: 1.25rem; }
+    .hero-actions { margin-top: 1.6rem; }
+    .hero-actions :global(.btn) { padding-inline: 1.25rem; }
+    .hero-shade {
+      background:
+        linear-gradient(90deg, var(--jungle-deep) 0%, rgb(12 27 23 / 0.82) 22%, rgb(12 27 23 / 0.2) 52%, transparent 66%),
+        linear-gradient(0deg, var(--jungle-deep) 0%, rgb(12 27 23 / 0.25) 22%, transparent 40%);
+    }
+  }
+
+  /* Narrower wide screens: keep the lede clear of the first crew member */
+  @media (min-width: 1024px) and (max-width: 1199.98px) and (min-aspect-ratio: 5/4) {
+    .hero-photo { width: 66%; }
+    .hero-lede { max-width: 21.5rem; }
+  }
+
+  /* ---------- The rename notice ---------- */
+  .notice-title { font-size: clamp(2.3rem, 1.2rem + 5vw, 5.6rem); max-width: 18ch; }
+  .notice-second { display: block; }
+  .notice-body { display: grid; gap: 2rem; margin-top: 2.5rem; }
+  .notice-copy { max-width: 34rem; }
+  @media (min-width: 1024px) {
+    .notice-title { max-width: none; }
+    .notice-body { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; gap: 4rem; }
+    .notice-copy { grid-column: 2; grid-row: 1; }
+    .notice-stamp { grid-column: 1; grid-row: 1; padding-top: 0.5rem; }
   }
   @keyframes scroll-cue {
     0% { transform: translateX(-100%); }

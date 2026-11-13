@@ -21,8 +21,10 @@ media.add('(prefers-reduced-motion: no-preference)', () => {
     );
   });
 
-  // Text that inks in word by word as it is read: <p data-scrub-words>…</p>
-  gsap.utils.toArray<HTMLElement>('[data-scrub-words]').forEach((el) => {
+  // Text that inks in word by word, once, when it comes into view: <p data-ink-words>…</p>
+  // It is a timed run rather than tied to the scroll position, so text that is on screen
+  // always ends up fully inked and readable, wherever the visitor stops scrolling.
+  gsap.utils.toArray<HTMLElement>('[data-ink-words]').forEach((el) => {
     const words = (el.textContent ?? '').trim().split(/\s+/);
     el.textContent = '';
     const spans = words.map((word, i) => {
@@ -34,7 +36,7 @@ media.add('(prefers-reduced-motion: no-preference)', () => {
     gsap.fromTo(
       spans,
       { opacity: 0.22 },
-      { opacity: 1, ease: 'none', stagger: 0.08, scrollTrigger: { trigger: el, start: 'top 82%', end: 'bottom 55%', scrub: true } }
+      { opacity: 1, duration: 0.5, ease: 'power1.out', stagger: 0.045, scrollTrigger: { trigger: el, start: 'top 92%', once: true } }
     );
   });
 });

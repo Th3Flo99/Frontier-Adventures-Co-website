@@ -273,6 +273,9 @@ a:hover .photo-grade,
   clip-path: polygon(var(--notch) 0, calc(100% - var(--notch)) 0, 100% var(--notch), 100% calc(100% - var(--notch)), calc(100% - var(--notch)) 100%, var(--notch) 100%, 0 calc(100% - var(--notch)), 0 var(--notch));
   transition: background-color 0.35s var(--ease-out), color 0.35s var(--ease-out);
 }
+/* The notched clip-path would cut off the usual outside focus ring, so it is drawn inside */
+.btn:focus-visible { outline: 2px solid currentColor; outline-offset: -8px; }
+.btn:focus-visible::before { opacity: 1; }
 .btn .arrow { transition: transform 0.45s var(--ease-out); }
 .btn:hover .arrow { transform: translateX(0.3rem); }
 /* Engraved inner keyline */
@@ -352,6 +355,11 @@ a:hover .photo-grade,
 }
 .page-title {
   font-size: clamp(2.8rem, 1.5rem + 6.5vw, 6.5rem);
+}
+/* Phones held sideways: size the big titles from the short side, not the long one */
+@media (orientation: landscape) and (max-height: 500px) {
+  .page-title { font-size: clamp(2.4rem, 13vh, 3.4rem); }
+  .chapter-title { font-size: clamp(2rem, 11vh, 3rem); }
 }
 
 /* ---------- Accessibility ---------- */

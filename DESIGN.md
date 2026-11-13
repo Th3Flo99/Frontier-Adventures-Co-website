@@ -66,7 +66,7 @@ IM Fell English has old-style figures: a `1` reads like a small capital I and a 
 ## Motion
 
 - CSS handles entrances (`.reveal`, `.unveil`, hover states). Timing: 0.4 to 1.2s, `var(--ease-out)`.
-- GSAP + ScrollTrigger (`src/scripts/motion.ts`) handle scroll-linked work: `data-parallax="8"` on an image that is taller than its overflow-hidden box, `data-scrub-words` on a paragraph that inks in while read. Import `gsap` from `../scripts/motion` in a component script if you need a tween.
+- GSAP + ScrollTrigger (`src/scripts/motion.ts`) handle scroll-linked work: `data-parallax="8"` on an image that is taller than its overflow-hidden box, `data-ink-words` on a paragraph that inks in word by word, once, when it comes into view. Import `gsap` from `../scripts/motion` in a component script if you need a tween.
 - Everything must work with JavaScript off and with `prefers-reduced-motion: reduce` (no movement, content visible).
 - Never animate layout properties in a loop. No autoplaying video or audio.
 

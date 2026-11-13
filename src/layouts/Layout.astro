@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import Logo from '../components/Logo.astro';
+import { existsSync } from 'node:fs';
 import Compass from '../components/Compass.astro';
 import site from '../data/site.json';
 import { base, href, stripSlash } from '../lib/paths';
@@ -36,7 +37,7 @@ const indexNav = [
   { href: href('adventures#theme-parks'), label: 'Theme Parks', note: 'Parks, hotels and honest verdicts' },
   { href: href('adventures#cruises'), label: 'Cruises', note: 'Life at sea with Disney Cruise Line' },
   { href: href('food'), label: 'Food & Snacks', note: 'Everything worth eating, scored' },
-  { href: href('reviews'), label: 'Reviews', note: 'Parks, hotels and cruises in full' },
+  { href: href('reviews'), label: 'Reviews', note: 'Published reviews, in full' },
   { href: href('socials'), label: 'Contact', note: 'Find us and say hello' },
 ];
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
@@ -47,6 +48,8 @@ const isCurrent = (link: string) => !link.includes('#') && stripSlash(link) === 
 const mainSocials = site.socials.filter((s) => ['youtube', 'instagram', 'tiktok'].includes(s.id));
 const year = new Date().getFullYear();
 
+const logoFile = ['svg', 'png', 'webp'].map((ext) => `brand/logo.${ext}`).find((file) => existsSync(`public/${file}`));
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
@@ -54,7 +57,9 @@ const jsonLd = {
   alternateName: site.formerName,
   url: siteUrl,
   description: site.description,
-  logo: ogImage,
+  image: ogImage,
+  // The crew photo is not a logo; a logo is only declared once the file exists (see Logo.astro)
+  ...(logoFile ? { logo: new URL(`${base}${logoFile}`, Astro.site ?? Astro.url).href } : {}),
   sameAs: site.socials.map((s) => s.url),
 };
 ---
@@ -87,8 +92,15 @@ const jsonLd = {
     <meta name="twitter:image" content={ogImage} />
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
-    <!-- Mark that JS runs, so reveal animations only hide content when they can also show it again -->
-    <script is:inline>document.documentElement.classList.add('js');</script>
+    <!-- Mark that JS runs, so reveal animations only hide content when they can also show it
+         again. If the script bundle never arrives (blocked, offline, failed), the mark is taken
+         away after a few seconds so the page falls back to its no-JavaScript form. -->
+    <script is:inline>
+      document.documentElement.classList.add('js');
+      setTimeout(function () {
+        if (!window.__faReady) document.documentElement.classList.remove('js');
+      }, 4000);
+    </script>
   </head>
   <body class="antialiased">
     <a href="#main" class="skip-link" data-behind-menu>Skip to content</a>
@@ -118,11 +130,16 @@ const jsonLd = {
           <span class="compass-btn-label" aria-hidden="true" data-menu-label>Index</span>
           <span class="compass-btn-dial"><Compass /></span>
         </button>
+        <!-- Without JavaScript the index cannot open: offer the footer navigation instead -->
+        <a href="#footer-nav" class="index-fallback" data-behind-menu>Index</a>
       </div>
     </header>
 
     <!-- Journal menu: the full index, opened from the compass -->
     <div id="site-menu" class="site-menu surface-paper grain">
+      <!-- The sheet itself stays put; only this part scrolls, starting below the header strip,
+           so nothing passes under the Close control and the paper grain never runs out -->
+      <div class="menu-scroll" data-menu-scroll>
       <div class="menu-inner">
         <nav aria-label="Expedition index" class="menu-nav">
           <p class="eyebrow">Expedition index</p>
@@ -145,14 +162,16 @@ const jsonLd = {
             {mainSocials.map((s) => (
               <li>
                 <a href={s.url} target="_blank" rel="noopener">
-                  <span class="display">{s.label}</span>
+                  <span class="display">{s.label} <span class="menu-out" aria-hidden="true">↗</span></span>
                   <span class="fell">{s.handle}</span>
+                  <span class="sr-only">(opens in a new tab)</span>
                 </a>
               </li>
             ))}
           </ul>
           <p class="menu-foot fell">Home port: {site.homePort}. Formerly {site.formerName}.</p>
         </aside>
+      </div>
       </div>
     </div>
 
@@ -175,10 +194,10 @@ const jsonLd = {
             <p class="mt-5 max-w-xs text-parchment/75">
               A Belgian crew of five friends and family, chasing theme parks, cruise decks and good food.
             </p>
-            <p class="fell mt-4 text-parchment/60">Formerly {site.formerName}.</p>
+            <p class="fell mt-4 text-parchment/70">Formerly {site.formerName}.</p>
           </div>
 
-          <nav aria-label="Footer" class="footer-col">
+          <nav id="footer-nav" aria-label="Footer" class="footer-col">
             <p class="footer-heading">Explore</p>
             <ul>
               {indexNav.filter((item) => !item.href.includes('#')).map((item) => (
@@ -191,7 +210,7 @@ const jsonLd = {
             <p class="footer-heading">Follow</p>
             <ul>
               {site.socials.map((s) => (
-                <li><a href={s.url} target="_blank" rel="noopener">{s.label} <span aria-hidden="true">↗</span></a></li>
+                <li><a href={s.url} target="_blank" rel="noopener">{s.label} <span aria-hidden="true">↗</span><span class="sr-only"> (opens in a new tab)</span></a></li>
               ))}
             </ul>
           </div>
@@ -216,6 +235,10 @@ const jsonLd = {
     <script>
       import '../scripts/motion';
 
+      // The bundle has arrived: keep (or restore) the "js" mark set in the head
+      (window as any).__faReady = true;
+      document.documentElement.classList.add('js');
+
       // ----- Header state -----
       const header = document.getElementById('site-header');
       const setScrolled = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
@@ -225,6 +248,7 @@ const jsonLd = {
       // ----- Journal menu -----
       const btn = document.getElementById('menu-btn');
       const menu = document.getElementById('site-menu');
+      const menuScroll = menu?.querySelector<HTMLElement>('[data-menu-scroll]');
       const label = btn?.querySelector('[data-menu-label]');
       const root = document.documentElement;
 
@@ -235,7 +259,7 @@ const jsonLd = {
           const r = btn.getBoundingClientRect();
           menu.style.setProperty('--cx', `${r.left + r.width / 2}px`);
           menu.style.setProperty('--cy', `${r.top + r.height / 2}px`);
-          menu.scrollTop = 0;
+          if (menuScroll) menuScroll.scrollTop = 0;
         }
         root.classList.toggle('menu-open', open);
         btn.setAttribute('aria-expanded', String(open));
@@ -406,10 +430,11 @@ const jsonLd = {
     align-items: center;
     gap: 0.75rem;
     min-height: 2.75rem;
-    color: var(--gold);
+    /* The brighter brass keeps the small label readable over a photograph */
+    color: var(--gold-bright);
     transition: color 0.4s var(--ease-out);
   }
-  .compass-btn:hover { color: var(--gold-bright); }
+  .compass-btn:hover { color: var(--parchment-light); }
   .compass-btn-label {
     font-size: 0.7rem;
     font-weight: 600;
@@ -426,6 +451,23 @@ const jsonLd = {
   }
   .compass-btn:hover .compass-btn-dial { transform: scale(1.06); }
   :global(.menu-open) .compass-btn { color: var(--mahogany); }
+  :global(.menu-open) .compass-btn:focus-visible { outline-color: var(--mahogany); }
+
+  /* No JavaScript: the index cannot open, so a plain link to the footer navigation stands in */
+  .index-fallback {
+    display: none;
+    min-height: 2.75rem;
+    align-items: center;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold-bright);
+  }
+  :global(html:not(.js)) .compass-btn { display: none; }
+  @media (max-width: 1023.98px) {
+    :global(html:not(.js)) .index-fallback { display: inline-flex; }
+  }
   :global(.menu-open) .compass-btn-dial { background: rgb(72 42 27 / 0.08); }
 
   /* ---------- Journal menu ---------- */
@@ -433,8 +475,7 @@ const jsonLd = {
     position: fixed;
     inset: 0;
     z-index: 50;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    overflow: hidden;
     visibility: hidden;
     clip-path: circle(0 at var(--cx, calc(100% - 3rem)) var(--cy, 2.25rem));
     transition: clip-path 0.65s var(--ease-out), visibility 0s linear 0.65s;
@@ -445,20 +486,30 @@ const jsonLd = {
     transition: clip-path 0.9s var(--ease-out), visibility 0s;
   }
 
+  .menu-scroll {
+    position: absolute;
+    inset: var(--header-h) 0 0 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-top: 1px solid rgb(72 42 27 / 0.22);
+  }
   .menu-inner {
     display: grid;
     gap: 3rem;
-    min-height: 100%;
     max-width: 76rem;
     margin-inline: auto;
-    padding: calc(var(--header-h) + 2rem) 1.5rem 3rem;
+    padding: 2rem 1.5rem 3rem;
   }
-  @media (min-width: 900px) {
+  @media (min-width: 768px) {
+    .menu-inner { padding: 2.5rem 3rem 3.5rem; }
+  }
+  /* Two columns only where the index rows keep their notes on one line */
+  @media (min-width: 1180px) {
     .menu-inner {
       grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
       align-items: start;
       gap: 5rem;
-      padding: calc(var(--header-h) + 3.5rem) 3rem 4rem;
+      padding: 3.5rem 3rem 4rem;
     }
   }
 
@@ -488,7 +539,7 @@ const jsonLd = {
     .menu-link { grid-template-columns: 3.2rem auto 1fr; column-gap: 1.25rem; }
   }
   .menu-link:hover { padding-left: 0.6rem; color: var(--mahogany); }
-  .menu-num { font-size: 1.05rem; color: rgb(72 42 27 / 0.7); }
+  .menu-num { font-size: 1.05rem; color: rgb(72 42 27 / 0.9); }
   .menu-label { font-size: clamp(1.7rem, 1.2rem + 2.6vw, 2.9rem); line-height: 1.1; }
   .menu-note {
     grid-column: 2;
@@ -504,9 +555,17 @@ const jsonLd = {
     text-underline-offset: 0.18em;
   }
 
+  /* Short screens: tighter rows, so the whole index fits without scrolling where it can */
+  @media (min-width: 768px) and (max-height: 940px) {
+    .menu-inner { padding-block: 1.75rem 2rem; }
+    .menu-link { padding-block: 0.5rem; }
+    .menu-label { font-size: clamp(1.45rem, 4.6vh, 2.9rem); }
+  }
+
   .menu-socials { margin-top: 1.5rem; display: grid; gap: 1rem; }
   .menu-socials a { display: grid; gap: 0.1rem; color: var(--mahogany-deep); }
   .menu-socials a .display { font-size: 1.5rem; }
+  .menu-out { font-size: 0.8em; opacity: 0.75; }
   .menu-socials a .fell { color: rgb(72 42 27 / 0.82); overflow-wrap: anywhere; }
   .menu-socials a:hover .display { text-decoration: underline; text-underline-offset: 0.2em; text-decoration-thickness: 1px; }
   .menu-foot { margin-top: 2.5rem; color: rgb(72 42 27 / 0.82); }
