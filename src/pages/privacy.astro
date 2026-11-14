@@ -142,6 +142,9 @@ const tally = [
   }
   .fine-head-inner { position: relative; }
   .fine-title { font-size: clamp(2.5rem, 1.2rem + 6vw, 5.8rem); }
+  @media (orientation: landscape) and (max-height: 500px) {
+    .fine-title { font-size: clamp(2.4rem, 13vh, 3.4rem); }
+  }
   .fine-lede { max-width: 36rem; }
 
   .fine-nav { margin-top: clamp(2.5rem, 5vw, 3.5rem); border-top: 1px solid rgb(232 211 165 / 0.2); }

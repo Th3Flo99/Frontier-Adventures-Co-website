@@ -2,6 +2,8 @@
 import '../styles/global.css';
 import Logo from '../components/Logo.astro';
 import { existsSync } from 'node:fs';
+import besleyUrl from '@fontsource-variable/besley/files/besley-latin-wght-normal.woff2?url';
+import instrumentUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 import Compass from '../components/Compass.astro';
 import site from '../data/site.json';
 import { base, href, stripSlash } from '../lib/paths';
@@ -68,6 +70,9 @@ const jsonLd = {
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- The two text faces used above the fold, fetched early so headings do not re-wrap late -->
+    <link rel="preload" href={besleyUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={instrumentUrl} as="font" type="font/woff2" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#142A24" />
@@ -93,13 +98,17 @@ const jsonLd = {
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
 
     <!-- Mark that JS runs, so reveal animations only hide content when they can also show it
-         again. If the script bundle never arrives (blocked, offline, failed), the mark is taken
-         away after a few seconds so the page falls back to its no-JavaScript form. -->
+         again. The bundle is a deferred module, which the browser always runs (or gives up on)
+         before DOMContentLoaded. If it has not checked in by then, it was blocked or failed, and
+         the mark is taken away so the page falls back to its no-JavaScript form. A slow network
+         only delays DOMContentLoaded, so it never triggers the fallback. -->
     <script is:inline>
       document.documentElement.classList.add('js');
-      setTimeout(function () {
-        if (!window.__faReady) document.documentElement.classList.remove('js');
-      }, 4000);
+      document.addEventListener('DOMContentLoaded', function () {
+        setTimeout(function () {
+          if (!window.__faReady) document.documentElement.classList.remove('js');
+        }, 0);
+      });
     </script>
   </head>
   <body class="antialiased">
@@ -233,7 +242,7 @@ const jsonLd = {
     </footer>
 
     <script>
-      import '../scripts/motion';
+      // GSAP is loaded only by the pages that use it (home and adventures), not here.
 
       // The bundle has arrived: keep (or restore) the "js" mark set in the head
       (window as any).__faReady = true;
@@ -627,7 +636,8 @@ const jsonLd = {
     font-size: 0.85rem;
     color: rgb(232 211 165 / 0.7);
   }
-  @media (min-width: 900px) {
+  .footer-base p { text-wrap: pretty; }
+  @media (min-width: 1100px) {
     .footer-base { grid-template-columns: 1fr auto; }
   }
 

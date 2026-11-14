@@ -45,10 +45,13 @@
 }
 
 html {
-  scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-h) + 1rem);
   -webkit-text-size-adjust: 100%;
 }
+/* Glide only for jumps the visitor starts on this page (the clicked link keeps focus).
+   Arriving from another page with a #section in the URL then lands on it directly,
+   instead of a smooth scroll that late-loading content can interrupt. */
+html:focus-within { scroll-behavior: smooth; }
 
 body {
   background-color: var(--jungle);
@@ -368,7 +371,7 @@ a:hover .photo-grade,
   outline: 2px solid var(--gold-bright);
   outline-offset: 3px;
 }
-.surface-paper :focus-visible { outline-color: var(--mahogany); }
+.surface-paper :focus-visible:not(.btn) { outline-color: var(--mahogany); }
 
 main:focus { outline: none; }
 
@@ -387,7 +390,7 @@ main:focus { outline: none; }
 .skip-link:focus { transform: translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html, html:focus-within { scroll-behavior: auto !important; }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

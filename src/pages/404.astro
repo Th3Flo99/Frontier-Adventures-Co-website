@@ -192,6 +192,12 @@ const cardinals = [
     .lost-actions { margin-top: 1.25rem; }
     .lost-note { margin-top: 1.5rem; }
   }
+  /* The shortest phones held sideways: tighten the stack so both buttons stay on screen */
+  @media (orientation: landscape) and (max-height: 400px) and (max-width: 1023.98px) {
+    .lost { padding-top: calc(var(--header-h) + 1rem); }
+    .lost-lede { margin-top: 0.6rem; font-size: 1rem; line-height: 1.5; }
+    .lost-actions { margin-top: 0.75rem; }
+  }
 
   /* Wide: the chart ends two thirds across. The compass straddles its edge, half off the map. */
   @media (min-width: 1024px) {

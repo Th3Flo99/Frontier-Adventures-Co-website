@@ -412,6 +412,11 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   </section>
 </Layout>
 
+<script>
+  // Parallax, ink-words and ScrollTrigger refresh for this page
+  import '../scripts/motion';
+</script>
+
 <style>
   /* ---------- Shared small type ---------- */
   .toc-label,
@@ -783,6 +788,10 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   @media (min-width: 600px) and (max-width: 1023.98px) {
     .cruise-photo { aspect-ratio: 1 / 1; }
     .cruise-drift :global(.cruise-img) { object-position: 50% 42%; }
+  }
+  /* A phone held sideways: the whole plate fits on one screen */
+  @media (orientation: landscape) and (max-height: 500px) and (max-width: 1023.98px) {
+    .cruise-plate { width: min(100%, calc(100svh - var(--header-h) - 3rem)); margin-inline: auto; }
   }
   @media (min-width: 1024px) {
     .cruise-grid {
