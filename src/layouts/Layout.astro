@@ -335,7 +335,12 @@ const jsonLd = {
             }
           });
         }, { threshold: 0, rootMargin: '0px 0px 24px 0px' });
-        reveals.forEach((el) => observer.observe(el));
+        reveals.forEach((el) => {
+          // An element laid out as "display: contents" has no box, so the observer would never
+          // report it: nothing of it is hidden either, so it simply counts as revealed
+          if (getComputedStyle(el).display === 'contents') el.classList.add('visible');
+          else observer.observe(el);
+        });
       }
     </script>
   </body>
@@ -366,6 +371,9 @@ const jsonLd = {
     .site-header.is-scrolled { background: rgb(12 27 23 / 0.93); backdrop-filter: blur(10px); }
   }
   .site-header.is-scrolled::before { opacity: 0; }
+  /* Without JavaScript the header cannot tell when the page has scrolled: keep it solid */
+  :global(html:not(.js)) .site-header { background: rgb(12 27 23 / 0.94); box-shadow: 0 1px 0 rgb(196 154 80 / 0.28); }
+  :global(html:not(.js)) .site-header::before { opacity: 0; }
   :global(.menu-open) .site-header { background: transparent; box-shadow: none; backdrop-filter: none; }
   :global(.menu-open) .site-header::before { opacity: 0; }
 

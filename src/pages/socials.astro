@@ -107,8 +107,10 @@ const channelList =
                   <span class="display entry-name">{e.label}</span>
                   {e.filed && <span class:list={['entry-filed', { 'is-personal': e.personal }]}><span class="sr-only">, </span>{e.filed}</span>}
                 </span>
-                <span class="fell entry-handle"><span class="sr-only">, </span>{e.handle}</span>
-                <span class="entry-blurb"><span class="sr-only">. </span>{e.blurb}</span>
+                <span class="entry-detail">
+                  <span class="fell entry-handle"><span class="sr-only">, </span>{e.handle}</span>
+                  <span class="entry-blurb"><span class="sr-only">. </span>{e.blurb}</span>
+                </span>
                 <span class="entry-go">
                   <span class="entry-go-text">Open</span>
                   <span class="entry-arrow" aria-hidden="true">↗</span>
@@ -202,9 +204,9 @@ const channelList =
     margin-bottom: 0.8rem;
   }
   .telegram-office {
-    font-size: 0.64rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--mahogany);
   }
@@ -224,9 +226,9 @@ const channelList =
     border-bottom: 1px dotted rgb(72 42 27 / 0.5);
   }
   .telegram-fields dt {
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.22em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--mahogany);
   }
@@ -267,15 +269,14 @@ const channelList =
     grid-template-columns: 2.4rem minmax(0, 1fr) auto;
     grid-template-areas:
       'no station go'
-      '.  handle  handle'
-      '.  blurb   blurb';
+      '.  detail  detail';
     align-items: baseline;
     column-gap: 0.5rem;
     padding: 1.35rem 0 1.45rem;
     color: var(--mahogany-deep);
     transition: padding-left 0.5s var(--ease-out), background-color 0.5s var(--ease-out);
   }
-  .entry-no { grid-area: no; font-size: 1.05rem; color: rgb(72 42 27 / 0.75); }
+  .entry-no { grid-area: no; font-size: 1.05rem; color: rgb(72 42 27 / 0.9); }
   .entry-station { grid-area: station; display: grid; gap: 0.5rem; justify-items: start; }
   .entry-name {
     font-size: clamp(2rem, 1.4rem + 2.8vw, 3.4rem);
@@ -283,9 +284,9 @@ const channelList =
     color: var(--mahogany);
   }
   .entry-filed {
-    font-size: 0.62rem;
+    font-size: 0.7rem;
     font-weight: 600;
-    letter-spacing: 0.2em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: rgb(72 42 27 / 0.82);
   }
@@ -294,17 +295,15 @@ const channelList =
     border: 1px solid rgb(72 42 27 / 0.6);
     color: var(--mahogany);
   }
+  /* Call sign and description travel together until there is room for a column each */
+  .entry-detail { grid-area: detail; display: grid; gap: 0.35rem; margin-top: 0.7rem; }
   .entry-handle {
-    grid-area: handle;
-    margin-top: 0.7rem;
     font-size: 1.12rem;
     line-height: 1.3;
     color: var(--mahogany-deep);
     overflow-wrap: anywhere;
   }
   .entry-blurb {
-    grid-area: blurb;
-    margin-top: 0.35rem;
     font-size: 1rem;
     line-height: 1.55;
     color: rgb(44 25 15 / 0.86);
@@ -349,28 +348,39 @@ const channelList =
     }
   }
 
+  /* Middle widths: number, station, then call sign over description. The station column is
+     wide enough for the longest name at its full size. */
   @media (min-width: 900px) {
+    .entry {
+      grid-template-columns: 3.4rem minmax(0, 1fr) minmax(0, 1fr) 6rem;
+      grid-template-areas: 'no station detail go';
+      column-gap: 1.5rem;
+      padding: 1.6rem 0 1.7rem;
+    }
+    .entry-detail { margin-top: 0; }
+    .entry-go { justify-self: end; align-self: baseline; }
+  }
+
+  /* Wide: the full five-column ledger with its printed column heads */
+  @media (min-width: 1180px) {
     .ledger-head,
     .entry {
-      grid-template-columns: 3.4rem minmax(0, 1.15fr) minmax(0, 1.1fr) minmax(0, 1.05fr) 6rem;
+      grid-template-columns: 3.4rem minmax(0, 1.25fr) minmax(0, 1.05fr) minmax(0, 1.05fr) 6rem;
       column-gap: 1.5rem;
     }
     .ledger-head {
       display: grid;
       padding-bottom: 0.8rem;
-      font-size: 0.64rem;
+      font-size: 0.7rem;
       font-weight: 600;
-      letter-spacing: 0.22em;
+      letter-spacing: 0.2em;
       text-transform: uppercase;
       color: rgb(72 42 27 / 0.82);
     }
-    .entry {
-      grid-template-areas: 'no station handle blurb go';
-      padding: 1.6rem 0 1.7rem;
-    }
-    .entry-handle,
-    .entry-blurb { margin-top: 0; }
-    .entry-go { justify-self: end; align-self: baseline; }
+    .entry { grid-template-areas: 'no station handle blurb go'; }
+    .entry-detail { display: contents; }
+    .entry-handle { grid-area: handle; }
+    .entry-blurb { grid-area: blurb; }
   }
 
   .former {

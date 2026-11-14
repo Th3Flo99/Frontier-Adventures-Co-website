@@ -25,12 +25,12 @@
       "lat": 28.3852,
       "lon": -81.5639,
       "approximate": false,
-      "blurb": "Across the Atlantic to Florida. The crew photo on our front page was taken here, in front of the castle.",
+      "blurb": "Across the Atlantic to Florida. Our dining note from Be Our Guest Restaurant comes from here.",
       "photo": {
         "src": "group-photo.jpg",
         "alt": "The five of us standing arm in arm in front of the castle"
       },
-      "_source": "group-photo.jpg (castle at Magic Kingdom) and the Be Our Guest entry in food.json. Please confirm."
+      "_source": "The Be Our Guest entry in food.json (Fantasyland, Walt Disney World) is the evidence for this destination. The photo is the crew photo: its castle looks like the one at Magic Kingdom, which is why it sits with this entry, but where it was taken has not been confirmed, so the blurb does not say. Please confirm, or remove \"photo\" here."
     },
     {
       "id": "disney-cruise-line-europe",

@@ -1,6 +1,6 @@
 ---
 // Off the map: the 404 page. The chart ends at a neatline and the compass sits beyond it,
-// its needle hunting for a north that is not there.
+// its needle hunting for a north that is not there. It hunts for a few seconds, then settles.
 import Layout from '../layouts/Layout.astro';
 import Compass from '../components/Compass.astro';
 import { base, href } from '../lib/paths';
@@ -66,6 +66,8 @@ const cardinals = [
 
 <style>
   .lost {
+    /* Diameter of the compass rose; the copy below reserves room from the same number */
+    --rose: min(58vw, 14rem);
     position: relative;
     display: flex;
     align-items: flex-end;
@@ -102,7 +104,7 @@ const cardinals = [
     position: absolute;
     top: calc(var(--header-h) + 1.75rem);
     right: -3.75rem;
-    width: min(58vw, 14rem);
+    width: var(--rose);
     aspect-ratio: 1;
     color: var(--gold);
     animation: lost-fade 1.4s var(--ease-out) 0.15s both;
@@ -133,28 +135,25 @@ const cardinals = [
   /* The small compass is drawn for 44px; keep its lines fine at this size */
   .rose-dial :global(circle),
   .rose-dial :global(line) { vector-effect: non-scaling-stroke; stroke-width: 1px; }
-  /* A needle that cannot make up its mind */
+  /* A needle that cannot make up its mind. It wanders once, then settles on a heading that is
+     not north and stays there: all movement on the page is over within five seconds. */
   .rose-dial :global(.compass-needle) {
     transition: none;
-    animation: lost-needle 16s cubic-bezier(0.45, 0, 0.3, 1) 0.8s infinite;
+    animation: lost-needle 4.2s cubic-bezier(0.45, 0, 0.3, 1) 0.6s 1 both;
   }
   @keyframes lost-needle {
     0% { transform: rotate(0deg); }
-    9% { transform: rotate(64deg); }
-    15% { transform: rotate(38deg); }
-    22% { transform: rotate(52deg); }
-    38% { transform: rotate(-118deg); }
-    44% { transform: rotate(-96deg); }
-    50% { transform: rotate(-108deg); }
-    66% { transform: rotate(171deg); }
-    72% { transform: rotate(196deg); }
-    78% { transform: rotate(184deg); }
-    92% { transform: rotate(12deg); }
-    96% { transform: rotate(-6deg); }
-    100% { transform: rotate(0deg); }
+    17% { transform: rotate(72deg); }
+    28% { transform: rotate(50deg); }
+    50% { transform: rotate(-104deg); }
+    61% { transform: rotate(-84deg); }
+    81% { transform: rotate(50deg); }
+    90% { transform: rotate(32deg); }
+    96% { transform: rotate(40deg); }
+    100% { transform: rotate(38deg); }
   }
 
-  .lost-shell { position: relative; width: 100%; padding-top: calc(min(58vw, 14rem) + 0.75rem); }
+  .lost-shell { position: relative; width: 100%; padding-top: calc(var(--rose) + 0.75rem); }
   .lost-copy { max-width: 37rem; }
   .lost-lede { max-width: 33rem; }
   .lost-actions { display: flex; flex-wrap: wrap; gap: 0.9rem 1rem; }
@@ -166,10 +165,32 @@ const cardinals = [
     to { opacity: 1; transform: none; }
   }
 
+  /* Tablet: the rose runs off the right edge by a third, so the cut falls between the dial and
+     the "E" instead of through the letter. The needle stays in view at every heading. */
   @media (min-width: 640px) {
+    .lost { --rose: min(54vw, 25rem); }
     .chart { inset: calc(var(--header-h) + 0.5rem) 1.5rem 1.5rem 1.5rem; }
-    .rose { right: -3rem; width: min(54vw, 25rem); }
+    .rose { right: calc(var(--rose) * -0.31); }
     .lost-shell { padding-top: min(38vw, 17rem); }
+  }
+
+  /* Short and wide (a phone held sideways): the message starts at the top of the first screen
+     and the compass moves beside it, sized from the height of the screen. */
+  @media (orientation: landscape) and (max-height: 600px) and (max-width: 1023.98px) {
+    .lost {
+      --rose: min(70vh, 40vw);
+      align-items: flex-start;
+      padding-top: calc(var(--header-h) + 1.75rem);
+      padding-bottom: 3rem;
+    }
+    .chart-label-top { left: auto; top: auto; right: 1.1rem; bottom: 0.7rem; }
+    .rose { top: calc(var(--header-h) + 1.5rem); right: calc(var(--rose) * -0.31); }
+    .lost-shell { padding-top: 0; }
+    .lost-copy { max-width: min(37rem, 100% - var(--rose) * 0.69 - 0.5rem); }
+    .lost-copy .page-title { margin-top: 0.7rem; font-size: clamp(2.4rem, 13vh, 3.4rem); }
+    .lost-lede { margin-top: 1rem; }
+    .lost-actions { margin-top: 1.25rem; }
+    .lost-note { margin-top: 1.5rem; }
   }
 
   /* Wide: the chart ends two thirds across. The compass straddles its edge, half off the map. */

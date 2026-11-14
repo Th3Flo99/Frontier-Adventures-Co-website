@@ -3,6 +3,7 @@
 // The most recent review lies open as a parchment page; beside it, the top of the food
 // ledger; underneath, the four chapters of the archive as an index. Everything is read from
 // src/lib/adventures.ts, so a new review or food note changes this section by itself.
+import foodData from '../data/food.json';
 import { categories, entriesByCategory, reviews, food, type Entry } from '../lib/adventures';
 import { href } from '../lib/paths';
 
@@ -31,6 +32,10 @@ const featuredDate = formatDate(featured?.date);
 
 // Top of the food ledger: the three highest crew averages (data order breaks ties)
 const topFood = [...food].sort((a, b) => b.score - a.score).slice(0, 3);
+// Who has actually scored, read from the data in order of first appearance, so "crew average"
+// is never read as a score from all five of us.
+const scorers = [...new Set(foodData.flatMap((f) => Object.keys(f.scores)))];
+const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 
 const chapters = categories.map((c, i) => {
   const list = entriesByCategory(c.id);
@@ -121,7 +126,7 @@ const chapters = categories.map((c, i) => {
               </li>
             ))}
           </ol>
-          <p class="finds-note fell">Crew averages out of five. Arguments about the order are ongoing.</p>
+          <p class="finds-note fell">Crew averages out of five{scorers.length > 0 && `, from the scores of ${scorerNames}`}. Arguments about the order are ongoing.</p>
           <p class="finds-more">
             <a href={href('food')} class="link">All {count(food.length, 'food note')} <span class="arrow" aria-hidden="true">→</span></a>
           </p>
