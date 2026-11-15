@@ -97,7 +97,9 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
 
 <Layout
   title="Adventures · Frontier Adventurers"
-  description="The Frontier Adventurers archive: the expedition map, theme park reviews, cruise notes and every food find, scored out of five."
+  description={food.length > 0
+    ? 'The Frontier Adventurers archive: the expedition map, theme park reviews, the cruises we have sailed and every food find, scored out of five.'
+    : 'The Frontier Adventurers archive: the expedition map, our theme park reviews, the cruises we have sailed and a food ledger still to be filled.'}
 >
   <!-- Title page and contents -->
   <section class="archive-head surface-deep grain lantern" aria-labelledby="archive-title">
