@@ -268,3 +268,16 @@ export const unionBox = (boxes: Box[]): Box => {
   const y2 = Math.max(...boxes.map((b) => b.y + b.h));
   return { x: r1(x), y: r1(y), w: r1(x2 - x), h: r1(y2 - y) };
 };
+
+/** A sailed track (longitude, latitude pairs) as a path, with the box around it. */
+export function trackLine(coords: [number, number][]): Route {
+  const pts = coords.map(([lon, lat]) => project(lon, lat));
+  const xs = pts.map((p) => p[0]);
+  const ys = pts.map((p) => p[1]);
+  const x = Math.min(...xs);
+  const y = Math.min(...ys);
+  return {
+    d: `M${pts.map((p) => `${num(p[0])} ${num(p[1])}`).join('L')}`,
+    box: { x: r1(x), y: r1(y), w: r1(Math.max(...xs) - x), h: r1(Math.max(...ys) - y) },
+  };
+}

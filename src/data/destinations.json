@@ -15,12 +15,12 @@
       "lon": 2.7758,
       "approximate": false,
       "blurb": "The closest Disney resort to our home port, and where our Davy Crockett Ranch stay took place.",
-      "_source": "reviews.json (the Davy Crockett Ranch review on TripAdvisor).",
       "tag": {
         "dx": 30,
         "dy": 8,
         "label": "right"
-      }
+      },
+      "_source": "reviews.json (the Davy Crockett Ranch review on TripAdvisor)."
     },
     {
       "id": "walt-disney-world",
@@ -50,45 +50,542 @@
       "lat": 28.4101,
       "lon": -80.6188,
       "approximate": false,
-      "blurb": "Seven nights in the Western Caribbean aboard the Disney Treasure, on the same trip as our Walt Disney World visit. The pin marks Port Canaveral, the port we sailed from.",
+      "blurb": "Seven nights in the Western Caribbean aboard the Disney Treasure, on the same trip as our Walt Disney World visit: Cozumel, Falmouth and Disney Castaway Cay, from Port Canaveral and back.",
       "tag": {
-        "dx": 24,
-        "dy": 20,
-        "label": "right"
+        "dx": -24,
+        "dy": 22,
+        "label": "left"
       },
-      "_source": "Confirmed by the crew: a 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip, departing from Port Canaveral. Ports of call and dates have not been given, so none are named."
+      "voyage": {
+        "ship": "Disney Treasure",
+        "line": "Disney Cruise Line",
+        "start": "2026-02-21",
+        "end": "2026-02-28",
+        "nights": 7,
+        "nauticalMiles": 2218,
+        "ports": [
+          "Port Canaveral",
+          "Cozumel",
+          "Falmouth",
+          "Disney Castaway Cay",
+          "Port Canaveral"
+        ],
+        "calls": [
+          {
+            "name": "Cozumel",
+            "country": "Mexico",
+            "lon": -86.957,
+            "lat": 20.512
+          },
+          {
+            "name": "Falmouth",
+            "country": "Jamaica",
+            "lon": -77.647,
+            "lat": 18.495
+          },
+          {
+            "name": "Disney Castaway Cay",
+            "country": "Bahamas",
+            "lon": -77.538,
+            "lat": 26.078
+          }
+        ],
+        "track": [
+          [
+            -80.628,
+            28.413
+          ],
+          [
+            -80.494,
+            28.343
+          ],
+          [
+            -80.159,
+            27.914
+          ],
+          [
+            -79.747,
+            26.771
+          ],
+          [
+            -79.878,
+            25.531
+          ],
+          [
+            -80.016,
+            25.053
+          ],
+          [
+            -80.912,
+            23.744
+          ],
+          [
+            -81.353,
+            23.45
+          ],
+          [
+            -83.597,
+            23.022
+          ],
+          [
+            -84.417,
+            22.653
+          ],
+          [
+            -84.717,
+            22.485
+          ],
+          [
+            -86.345,
+            20.977
+          ],
+          [
+            -86.765,
+            20.795
+          ],
+          [
+            -86.96,
+            20.51
+          ],
+          [
+            -86.693,
+            20.837
+          ],
+          [
+            -86.205,
+            20.72
+          ],
+          [
+            -81.46,
+            19.001
+          ],
+          [
+            -81.167,
+            18.964
+          ],
+          [
+            -80.997,
+            18.777
+          ],
+          [
+            -80.295,
+            18.84
+          ],
+          [
+            -80.085,
+            18.67
+          ],
+          [
+            -79.71,
+            18.833
+          ],
+          [
+            -79.637,
+            18.721
+          ],
+          [
+            -78.103,
+            18.62
+          ],
+          [
+            -77.647,
+            18.495
+          ],
+          [
+            -74.057,
+            19.9
+          ],
+          [
+            -73.958,
+            20.073
+          ],
+          [
+            -73.958,
+            20.418
+          ],
+          [
+            -74.503,
+            22.52
+          ],
+          [
+            -74.681,
+            23.742
+          ],
+          [
+            -75.287,
+            24.762
+          ],
+          [
+            -75.916,
+            25.289
+          ],
+          [
+            -76.538,
+            25.684
+          ],
+          [
+            -77.278,
+            25.713
+          ],
+          [
+            -77.604,
+            25.941
+          ],
+          [
+            -77.538,
+            26.078
+          ],
+          [
+            -78.977,
+            26.457
+          ],
+          [
+            -80.141,
+            28.062
+          ],
+          [
+            -80.628,
+            28.413
+          ]
+        ]
+      },
+      "_source": "Confirmed by the crew: the 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip, from Port Canaveral. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart)."
     },
     {
       "id": "mediterranean-cruise",
-      "name": "Mediterranean Cruise",
+      "name": "Disney Fantasy",
       "kind": "cruise",
-      "region": "From Barcelona, Spain",
+      "region": "7-night Mediterranean cruise from Barcelona, Spain",
       "lat": 41.3712,
       "lon": 2.1776,
       "approximate": false,
-      "blurb": "A cruise across the Mediterranean Sea, setting sail from Barcelona. The pin marks the port we left from.",
+      "blurb": "Seven nights in the western Mediterranean aboard the Disney Fantasy: from Barcelona to Civitavecchia, Livorno and Genoa in Italy, Toulon in France, and back to Barcelona.",
       "tag": {
         "dx": 15,
         "dy": 25,
         "label": "below"
       },
-      "_source": "Confirmed by the crew: a Mediterranean cruise departing from Barcelona. Ports of call, ship and dates have not been given, so none are named. The marker is the port of Barcelona."
+      "voyage": {
+        "ship": "Disney Fantasy",
+        "line": "Disney Cruise Line",
+        "start": "2025-05-17",
+        "end": "2025-05-24",
+        "nights": 7,
+        "nauticalMiles": 1187,
+        "ports": [
+          "Barcelona",
+          "Civitavecchia",
+          "Livorno",
+          "Genoa",
+          "Toulon",
+          "Barcelona"
+        ],
+        "calls": [
+          {
+            "name": "Civitavecchia",
+            "country": "Italy",
+            "lon": 11.774,
+            "lat": 42.1
+          },
+          {
+            "name": "Livorno",
+            "country": "Italy",
+            "lon": 10.294,
+            "lat": 43.553
+          },
+          {
+            "name": "Genoa",
+            "country": "Italy",
+            "lon": 8.918,
+            "lat": 44.411
+          },
+          {
+            "name": "Toulon",
+            "country": "France",
+            "lon": 5.9,
+            "lat": 43.105
+          }
+        ],
+        "track": [
+          [
+            2.178,
+            41.358
+          ],
+          [
+            2.186,
+            41.271
+          ],
+          [
+            2.635,
+            41.26
+          ],
+          [
+            9.242,
+            41.283
+          ],
+          [
+            10.298,
+            41.688
+          ],
+          [
+            11.778,
+            42.1
+          ],
+          [
+            11.507,
+            42.04
+          ],
+          [
+            11.055,
+            42.126
+          ],
+          [
+            10.02,
+            42.729
+          ],
+          [
+            10.294,
+            43.553
+          ],
+          [
+            10.072,
+            43.504
+          ],
+          [
+            9.695,
+            43.613
+          ],
+          [
+            9.176,
+            44.045
+          ],
+          [
+            8.918,
+            44.411
+          ],
+          [
+            8.949,
+            44.311
+          ],
+          [
+            7.874,
+            43.609
+          ],
+          [
+            6.338,
+            42.879
+          ],
+          [
+            6.008,
+            42.99
+          ],
+          [
+            5.909,
+            43.106
+          ],
+          [
+            5.976,
+            42.998
+          ],
+          [
+            5.705,
+            42.919
+          ],
+          [
+            4.566,
+            42.961
+          ],
+          [
+            4.108,
+            43.12
+          ],
+          [
+            3.827,
+            43.047
+          ],
+          [
+            3.667,
+            42.129
+          ],
+          [
+            3.522,
+            41.719
+          ],
+          [
+            3.192,
+            41.532
+          ],
+          [
+            3.188,
+            40.862
+          ],
+          [
+            3.087,
+            40.802
+          ],
+          [
+            2.435,
+            40.819
+          ],
+          [
+            2.368,
+            40.925
+          ],
+          [
+            2.439,
+            41.209
+          ],
+          [
+            2.21,
+            41.254
+          ],
+          [
+            2.178,
+            41.358
+          ]
+        ]
+      },
+      "_source": "Confirmed by the crew: a Mediterranean cruise from Barcelona on the Disney Fantasy. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart)."
     },
     {
       "id": "southampton-cruise",
-      "name": "Three-Night Cruise",
+      "name": "Disney Dream",
       "kind": "cruise",
-      "region": "From Southampton, England",
+      "region": "3-night cruise from Southampton, England",
       "lat": 50.897,
       "lon": -1.404,
       "approximate": false,
-      "blurb": "Three nights at sea, setting sail from Southampton. The pin marks the port we left from.",
+      "blurb": "Three nights aboard the Disney Dream from Southampton, with a call at Zeebrugge, back in Belgium, before sailing home to Southampton.",
       "tag": {
         "dx": -40,
         "dy": -4,
         "label": "left"
       },
-      "_source": "Confirmed by the crew: a three-night cruise departing from Southampton. Ship, route and dates have not been given, so none are named. The marker is the port of Southampton."
+      "voyage": {
+        "ship": "Disney Dream",
+        "line": "Disney Cruise Line",
+        "start": "2026-08-28",
+        "end": "2026-08-31",
+        "nights": 3,
+        "nauticalMiles": 571,
+        "ports": [
+          "Southampton",
+          "Zeebrugge",
+          "Southampton"
+        ],
+        "calls": [
+          {
+            "name": "Zeebrugge",
+            "country": "Belgium",
+            "lon": 3.209,
+            "lat": 51.339,
+            "label": "above"
+          }
+        ],
+        "track": [
+          [
+            -1.418,
+            50.898
+          ],
+          [
+            -1.299,
+            50.777
+          ],
+          [
+            -0.913,
+            50.661
+          ],
+          [
+            -0.782,
+            50.298
+          ],
+          [
+            -0.665,
+            50.258
+          ],
+          [
+            0.972,
+            50.503
+          ],
+          [
+            1.354,
+            50.693
+          ],
+          [
+            1.505,
+            50.92
+          ],
+          [
+            1.794,
+            51.124
+          ],
+          [
+            2.479,
+            51.359
+          ],
+          [
+            3.036,
+            51.408
+          ],
+          [
+            3.209,
+            51.339
+          ],
+          [
+            3.066,
+            51.409
+          ],
+          [
+            2.291,
+            51.341
+          ],
+          [
+            1.963,
+            51.432
+          ],
+          [
+            1.711,
+            51.193
+          ],
+          [
+            0.595,
+            50.646
+          ],
+          [
+            -1.987,
+            50.185
+          ],
+          [
+            -1.99,
+            50.076
+          ],
+          [
+            -1.86,
+            49.983
+          ],
+          [
+            -1.67,
+            50.08
+          ],
+          [
+            -0.765,
+            50.232
+          ],
+          [
+            -0.964,
+            50.697
+          ],
+          [
+            -1.299,
+            50.777
+          ],
+          [
+            -1.421,
+            50.902
+          ]
+        ]
+      },
+      "_source": "Confirmed by the crew: a 3-night cruise from Southampton on the Disney Dream. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart)."
     }
   ]
 }

@@ -54,7 +54,35 @@ export interface Destination {
   photo?: { src: string; alt: string };
   /** Where the brass tag hangs on the chart, for destinations close to others (screen pixels) */
   tag?: { dx?: number; dy?: number; label?: 'below' | 'left' | 'right' };
+  /** For a cruise: the ship, dates, ports in order and the track it actually sailed */
+  voyage?: Voyage;
 }
+
+export interface Voyage {
+  ship: string;
+  line: string;
+  /** YYYY-MM-DD */
+  start: string;
+  end: string;
+  nights: number;
+  nauticalMiles?: number;
+  /** Every port in order, the home port of the cruise first and last */
+  ports: string[];
+  /** Ports of call, in order */
+  calls: { name: string; country: string; lon: number; lat: number; label?: 'left' | 'right' | 'above' }[];
+  /** The sailed track as [longitude, latitude] pairs */
+  track: [number, number][];
+}
+
+/** "17–24 May 2025", "28 Feb – 3 Mar 2026", across years in full. In UTC so no timezone shifts a day. */
+export const voyageDates = (start: string, end: string) => {
+  const a = new Date(`${start}T00:00:00Z`);
+  const b = new Date(`${end}T00:00:00Z`);
+  const f = (d: Date, o: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-GB', { timeZone: 'UTC', ...o }).format(d);
+  if (a.getUTCFullYear() !== b.getUTCFullYear()) return `${f(a, { day: 'numeric', month: 'long', year: 'numeric' })} – ${f(b, { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  if (a.getUTCMonth() !== b.getUTCMonth()) return `${f(a, { day: 'numeric', month: 'long' })} – ${f(b, { day: 'numeric', month: 'long', year: 'numeric' })}`;
+  return `${a.getUTCDate()}–${f(b, { day: 'numeric', month: 'long', year: 'numeric' })}`;
+};
 
 export const home = destinationData.home;
 export const destinations = destinationData.destinations as Destination[];

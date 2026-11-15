@@ -86,6 +86,7 @@ Only add places you have actually been and can confirm.
 - `blurb`: one or two factual sentences
 - `photo` (optional): `{ "src", "alt" }`
 - `tag` (optional): `{ "dx", "dy", "label" }` moves the brass tag on the chart by dx/dy screen pixels from the pin and puts the name `below` (the default), `left` or `right` of it. Use it for destinations that sit close to others.
+- `voyage` (optional, for a cruise): `ship`, `line`, `start` and `end` (`YYYY-MM-DD`), `nights`, `nauticalMiles`, `ports` (every port in order, first and last the port the cruise sailed from), `calls` (ports of call with `name`, `country`, `lon`, `lat` and an optional `label` of `left`, `right` or `above`) and `track` (the sailed route as `[lon, lat]` pairs, simplified). The chart draws the track as a solid line with the ports of call; the journal entry lists the ports.
 
 ### Videos (`videos.json`)
 
