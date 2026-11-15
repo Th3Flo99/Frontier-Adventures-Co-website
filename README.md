@@ -79,12 +79,13 @@ Put the official logo in `public/brand/` as `logo.svg`, `logo.png` or `logo.webp
 
 ### Map destinations (`destinations.json`)
 
-Only add places you have actually published content about.
+Only add places you have actually been and can confirm.
 
 - `id`, `name`, `kind` (`park` or `cruise`), `region`, `lat`, `lon`
 - `approximate`: `true` when the marker is symbolic, for example a ship at sea
 - `blurb`: one or two factual sentences
 - `photo` (optional): `{ "src", "alt" }`
+- `tag` (optional): `{ "dx", "dy", "label" }` moves the brass tag on the chart by dx/dy screen pixels from the pin and puts the name `below` (the default), `left` or `right` of it. Use it for destinations that sit close to others.
 
 ### Videos (`videos.json`)
 

@@ -28,8 +28,10 @@ export const round = (n: number, digits = 2) => {
  * the drawn chart (`bounds`). The result always has the viewport's aspect ratio.
  */
 export function fitFrame(box: Box, cw: number, ch: number, bounds: Box, pads: Pads, minW = 0): Box {
-  const innerW = Math.max(cw - pads.left - pads.right, cw * 0.3);
-  const innerH = Math.max(ch - pads.top - pads.bottom, ch * 0.3);
+  // The pads are kept even on short windows (a phone held sideways), where they take most of
+  // the height: the names they keep clear of the chart tab and the cue matter more than zoom.
+  const innerW = Math.max(cw - pads.left - pads.right, cw * 0.12);
+  const innerH = Math.max(ch - pads.top - pads.bottom, ch * 0.12);
   // Pixels per chart unit
   let s = Math.min(innerW / Math.max(box.w, 0.001), innerH / Math.max(box.h, 0.001));
   if (minW > 0) s = Math.min(s, cw / minW);
