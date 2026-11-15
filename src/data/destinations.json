@@ -15,7 +15,12 @@
       "lon": 2.7758,
       "approximate": false,
       "blurb": "The closest Disney resort to our home port, and where our Davy Crockett Ranch stay took place.",
-      "_source": "reviews.json (Davy Crockett Ranch) and food.json entries located at Disneyland Paris"
+      "_source": "reviews.json (Davy Crockett Ranch) and food.json entries located at Disneyland Paris",
+      "tag": {
+        "dx": 30,
+        "dy": 8,
+        "label": "right"
+      }
     },
     {
       "id": "walt-disney-world",
@@ -25,23 +30,44 @@
       "lat": 28.3852,
       "lon": -81.5639,
       "approximate": false,
-      "blurb": "Across the Atlantic to Florida. Our dining note from Be Our Guest Restaurant comes from here.",
+      "blurb": "Across the Atlantic to Florida. Our crew photo was taken here, in front of Cinderella Castle at Magic Kingdom, and our dining note from Be Our Guest Restaurant comes from here too.",
       "photo": {
         "src": "group-photo.jpg",
-        "alt": "The five of us standing arm in arm in front of the castle"
+        "alt": "The five of us standing arm in arm in front of Cinderella Castle at Magic Kingdom"
       },
-      "_source": "The Be Our Guest entry in food.json (Fantasyland, Walt Disney World) is the evidence for this destination. The photo is the crew photo: its castle looks like the one at Magic Kingdom, which is why it sits with this entry, but where it was taken has not been confirmed, so the blurb does not say. Please confirm, or remove \"photo\" here."
+      "_source": "Confirmed by the crew: the group photo was taken at Walt Disney World. The Be Our Guest entry in food.json (Fantasyland) is from here as well."
     },
     {
-      "id": "disney-cruise-line-europe",
-      "name": "Disney Cruise Line",
+      "id": "mediterranean-cruise",
+      "name": "Mediterranean Cruise",
       "kind": "cruise",
-      "region": "European sailing",
-      "lat": 44.6,
-      "lon": -9.5,
-      "approximate": true,
-      "blurb": "Life at sea. Our dining notes from Cabanas and Palo come from a European sailing.",
-      "_source": "food.json entries with trip 'Fantasy Europe 2025'. The marker position is symbolic (at sea), not a port."
+      "region": "From Barcelona, Spain",
+      "lat": 41.3712,
+      "lon": 2.1776,
+      "approximate": false,
+      "blurb": "A cruise across the Mediterranean Sea, setting sail from Barcelona. The pin marks the port we left from.",
+      "tag": {
+        "dx": 15,
+        "dy": 25,
+        "label": "below"
+      },
+      "_source": "Confirmed by the crew: a Mediterranean cruise departing from Barcelona. Ports of call, ship and dates have not been given, so none are named. The marker is the port of Barcelona."
+    },
+    {
+      "id": "southampton-cruise",
+      "name": "Three-Night Cruise",
+      "kind": "cruise",
+      "region": "From Southampton, England",
+      "lat": 50.897,
+      "lon": -1.404,
+      "approximate": false,
+      "blurb": "Three nights at sea, setting sail from Southampton. The pin marks the port we left from.",
+      "tag": {
+        "dx": -40,
+        "dy": -4,
+        "label": "left"
+      },
+      "_source": "Confirmed by the crew: a three-night cruise departing from Southampton. Ship, route and dates have not been given, so none are named. The marker is the port of Southampton."
     }
   ]
 }

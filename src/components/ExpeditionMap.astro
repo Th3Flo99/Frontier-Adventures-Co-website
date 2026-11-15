@@ -46,11 +46,28 @@ const cap = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 // Where the brass tag hangs relative to the pin (in screen pixels), where its name goes, and
 // how much room (top, right, bottom, left, in pixels) the frame keeps free for both: on wide
 // screens, and on phones, where every name sits under its tag.
+// Destinations close together (the ports and parks around the home port) set their own
+// "tag" in destinations.json so their tags and names do not collide on the whole chart.
 // A position at sea is symbolic, so its tag sits on the spot inside a dashed ring instead.
-const tagLayout = (d: Destination) =>
-  d.approximate
-    ? { dx: 0, dy: 0, label: 'left' as const, pads: [52, 66, 86, 158], padsCompact: [52, 60, 94, 86] }
-    : { dx: 15, dy: 25, label: 'below' as const, pads: [52, 88, 86, 48], padsCompact: [52, 88, 86, 48] };
+const tagLayout = (d: Destination) => {
+  if (d.approximate) {
+    return { dx: 0, dy: 0, label: 'left' as const, pads: [52, 66, 86, 158], padsCompact: [52, 60, 94, 86] };
+  }
+  const { dx = 15, dy = 25, label = 'below' } = d.tag ?? {};
+  // Pixels the tag reaches from its pin, with the medal (radius 15) and lettering around it
+  const up = Math.max(52, 30 - dy);
+  const down = Math.max(86, dy + 61);
+  const right = Math.max(88, dx + 60);
+  const left = Math.max(48, 30 - dx);
+  // A name beside the tag needs room on that side on wide screens; on a phone it goes underneath
+  const pads = [up, label === 'right' ? Math.max(right, dx + 190) : right, down, label === 'left' ? Math.max(left, 190 - dx) : left];
+  // On a phone the chart tab covers the top edge and the "Read the entry" cue the bottom one,
+  // so the frame keeps clear of both: the home port's name above, the destination's name below.
+  const padsCompact = [Math.max(up, 76), label === 'below' ? right : Math.max(right, dx + 90), Math.max(down, dy + 84, 106), label === 'below' ? left : Math.max(left, 90 - dx)];
+  return { dx, dy, label, pads, padsCompact };
+};
+const anyApproximate = destinations.some((d) => d.approximate);
+const anyPort = destinations.some((d) => d.kind === 'cruise' && !d.approximate);
 
 const stops = destinations.map((d, i) => {
   const all = entriesByDestination(d.id);
@@ -63,7 +80,7 @@ const stops = destinations.map((d, i) => {
   return {
     ...d,
     numeral: roman[i] ?? String(i + 1),
-    kindLabel: d.kind === 'cruise' ? 'At sea' : 'Theme park resort',
+    kindLabel: d.kind === 'cruise' ? (d.approximate ? 'At sea' : 'Cruise') : 'Theme park resort',
     archive:
       d.kind === 'cruise'
         ? { url: href('adventures#cruises'), label: 'All cruise entries' }
@@ -399,6 +416,12 @@ const jokes = [
                                   <text class="tag-label tag-name tag-name-compact" x={dx} y={dy + 34} text-anchor="middle">{s.name}{s.approximate && <tspan class="tag-pa"> (PA)</tspan>}</text>
                                   <text class="tag-label tag-num" x={dx - 22} y={dy + 5} text-anchor="end">{s.numeral}</text>
                                 </>
+                              ) : label === 'right' ? (
+                                <>
+                                  <text class="tag-label tag-name tag-name-wide" x={dx + 22} y={dy + 4.5}>{s.name}</text>
+                                  <text class="tag-label tag-name tag-name-compact" x={dx} y={dy + 34} text-anchor="middle">{s.name}</text>
+                                  <text class="tag-label tag-num" x={dx + 22} y={dy + 5}>{s.numeral}</text>
+                                </>
                               ) : (
                                 <>
                                   <text class="tag-label tag-name" x={dx} y={dy + 28} text-anchor="middle">{s.name}</text>
@@ -493,17 +516,31 @@ const jokes = [
               </dt>
               <dd><strong>Theme park resort.</strong> A flag planted where we have reviews or food notes.</dd>
             </div>
-            <div>
-              <dt>
-                <svg viewBox="-19 -19 38 38" aria-hidden="true" focusable="false">
-                  <circle class="lg-line lg-dashed" r="17" />
-                  <circle class="lg-medal" r="11.5" />
-                  <circle class="lg-ink" cy="-5.5" r="1.5" />
-                  <path class="lg-ink" d="M0-4V6.2M-3.1-1.8h6.2M-5.3 1.5c0 2.8 2.3 4.7 5.3 4.7s5.3-1.9 5.3-4.7" />
-                </svg>
-              </dt>
-              <dd><strong>At sea (PA).</strong> Position approximate: the anchor marks open water, not a port of call.</dd>
-            </div>
+            {anyPort && (
+              <div>
+                <dt>
+                  <svg viewBox="-19 -19 38 38" aria-hidden="true" focusable="false">
+                    <circle class="lg-medal" r="11.5" />
+                    <circle class="lg-ink" cy="-5.5" r="1.5" />
+                    <path class="lg-ink" d="M0-4V6.2M-3.1-1.8h6.2M-5.3 1.5c0 2.8 2.3 4.7 5.3 4.7s5.3-1.9 5.3-4.7" />
+                  </svg>
+                </dt>
+                <dd><strong>Cruise.</strong> An anchor at the port where the sailing began.</dd>
+              </div>
+            )}
+            {anyApproximate && (
+              <div>
+                <dt>
+                  <svg viewBox="-19 -19 38 38" aria-hidden="true" focusable="false">
+                    <circle class="lg-line lg-dashed" r="17" />
+                    <circle class="lg-medal" r="11.5" />
+                    <circle class="lg-ink" cy="-5.5" r="1.5" />
+                    <path class="lg-ink" d="M0-4V6.2M-3.1-1.8h6.2M-5.3 1.5c0 2.8 2.3 4.7 5.3 4.7s5.3-1.9 5.3-4.7" />
+                  </svg>
+                </dt>
+                <dd><strong>At sea (PA).</strong> Position approximate: the anchor marks open water, not a port of call.</dd>
+              </div>
+            )}
             <div>
               <dt>
                 <svg viewBox="-16 -16 32 32" aria-hidden="true" focusable="false">

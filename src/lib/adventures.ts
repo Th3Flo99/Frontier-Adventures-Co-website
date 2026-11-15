@@ -52,6 +52,8 @@ export interface Destination {
   approximate: boolean;
   blurb: string;
   photo?: { src: string; alt: string };
+  /** Where the brass tag hangs on the chart, for destinations close to others (screen pixels) */
+  tag?: { dx?: number; dy?: number; label?: 'below' | 'left' | 'right' };
 }
 
 export const home = destinationData.home;
@@ -108,7 +110,8 @@ const foodEntries: Entry[] = foodData.map((f) => {
   const destination = destinationById(f.destination);
   const score = average(f.scores);
   const cats: CategoryId[] = ['food'];
-  if (destination?.kind === 'cruise') cats.push('cruises');
+  // A cruise entry not yet tied to one sailing still belongs in the cruise chapter
+  if (destination?.kind === 'cruise' || (!destination && /cruise/i.test(f.location))) cats.push('cruises');
   if (destination?.kind === 'park') cats.push('theme-parks');
   return {
     id: f.id,

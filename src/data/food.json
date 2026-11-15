@@ -57,7 +57,7 @@
       "Elias": 4
     },
     "image": "https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&q=80",
-    "destination": "disney-cruise-line-europe"
+    "destination": null
   },
   {
     "id": "churro",
@@ -87,6 +87,6 @@
       "Elias": 4
     },
     "image": "https://images.unsplash.com/photo-1551183053-bf91a1d81141?w=800&q=80",
-    "destination": "disney-cruise-line-europe"
+    "destination": null
   }
 ]

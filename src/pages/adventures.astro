@@ -67,6 +67,8 @@ const featuredSections = (
 const cruises = chapter('cruises');
 const cruiseLog = [...cruises.list.filter((e) => e.kind === 'review'), ...cruises.list.filter((e) => e.kind === 'food')];
 const cruiseOnlyFood = cruiseLog.length > 0 && cruiseLog.every((e) => e.kind === 'food');
+// The sailings themselves, from the cruise destinations on the chart
+const sailings = destinations.filter((d) => d.kind === 'cruise');
 
 // ----- Chapter III: food -----
 const foodChapter = chapter('food');
@@ -254,6 +256,19 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
         <p class="eyebrow reveal">Chapter {cruises.numeral} · {cruises.kicker}</p>
         <h2 id="cruises-title" class="display chapter-title mt-5 text-parchment-light reveal">{cruises.title}</h2>
         <p class="lede mt-7 reveal" style="--reveal-delay: 120ms">{cruises.description}</p>
+        {sailings.length > 0 && (
+          <div class="sailings reveal" style="--reveal-delay: 200ms">
+            <h3 class="sailings-title">Sailings on record</h3>
+            <ul class="sailings-list" role="list">
+              {sailings.map((d) => (
+                <li>
+                  <span class="display sailing-name">{d.name}</span>
+                  <span class="fell sailing-port">{d.region}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
 
       <figure class="cruise-plate">
@@ -757,6 +772,26 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
     text-transform: uppercase;
     color: rgb(232 211 165 / 0.78);
   }
+  .sailings { margin-top: 2.25rem; max-width: 30rem; }
+  .sailings-title {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .sailings-list { margin-top: 0.75rem; border-top: 1px solid rgb(196 154 80 / 0.45); }
+  .sailings-list li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.15rem 1.5rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid rgb(232 211 165 / 0.16);
+  }
+  .sailing-name { font-size: 1.3rem; line-height: 1.2; color: var(--parchment-light); }
+  .sailing-port { font-size: 1.05rem; color: rgb(232 211 165 / 0.8); }
   .cruise-aside {
     margin-top: 1.75rem;
     font-size: 1.15rem;
