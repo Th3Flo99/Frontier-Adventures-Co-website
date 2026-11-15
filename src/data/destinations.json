@@ -46,12 +46,17 @@
       "id": "disney-treasure",
       "name": "Disney Treasure",
       "kind": "cruise",
-      "region": "7-night Western Caribbean cruise",
-      "lat": 17.2,
-      "lon": -82.4,
-      "approximate": true,
-      "blurb": "Seven nights in the Western Caribbean aboard the Disney Treasure, on the same trip as our Walt Disney World visit. The anchor marks the Western Caribbean, not a port of call.",
-      "_source": "Confirmed by the crew: a 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip. Departure port, ports of call and dates have not been given, so the marker is symbolic (at sea in the Western Caribbean)."
+      "region": "7-night Western Caribbean cruise from Port Canaveral, Florida",
+      "lat": 28.4101,
+      "lon": -80.6188,
+      "approximate": false,
+      "blurb": "Seven nights in the Western Caribbean aboard the Disney Treasure, on the same trip as our Walt Disney World visit. The pin marks Port Canaveral, the port we sailed from.",
+      "tag": {
+        "dx": 24,
+        "dy": 20,
+        "label": "right"
+      },
+      "_source": "Confirmed by the crew: a 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip, departing from Port Canaveral. Ports of call and dates have not been given, so none are named."
     },
     {
       "id": "mediterranean-cruise",
