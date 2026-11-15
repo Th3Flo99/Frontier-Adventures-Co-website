@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import LocalPhoto from '../components/LocalPhoto.astro';
-import food from '../data/food.json';
+import { foodItems as food, foodScorers } from '../lib/adventures';
 import { href } from '../lib/paths';
 
 const typeLabel: Record<string, string> = { snack: 'Snack', restaurant: 'Restaurant' };
@@ -23,7 +23,8 @@ const count = (type: string) => items.filter((item) => item.type === type).lengt
 
 // Who has actually put a score in the ledger, read from the data in order of first appearance.
 // The intro names them, so the page never claims a score from someone who has not given one.
-const scorers = [...new Set(items.flatMap((item) => item.scores.map(([person]) => person)))];
+const scorers = foodScorers;
+const empty = items.length === 0;
 const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 const scoredBy = scorers.length ? `scored from 1 to 5 by ${scorerNames}` : 'scored from 1 to 5';
 const filters = [
@@ -39,7 +40,9 @@ const strike = 'M2.4 18.6 36.6 5.6';
 
 <Layout
   title="Food & Snacks · Frontier Adventurers"
-  description={`Everything the Frontier Adventurers crew has eaten at Disney parks and on Disney Cruise Line, ${scoredBy}.`}
+  description={empty
+    ? 'The Frontier Adventurers food ledger: every snack and restaurant we try on our trips, scored from 1 to 5 by whoever tasted it. No entries yet.'
+    : `Everything the Frontier Adventurers crew has eaten on our trips, ${scoredBy}.`}
 >
   <section class="fare-head surface-deep grain lantern" aria-labelledby="food-title">
     <div class="shell fare-head-grid">
@@ -49,7 +52,9 @@ const strike = 'M2.4 18.6 36.6 5.6';
           Food &amp; Snacks
         </h1>
         <p class="lede fare-lede reveal" style="--reveal-delay: 160ms">
-          Everything our crew has eaten at Disney parks and on Disney Cruise Line, entered in the ledger and {scoredBy}.
+          {empty
+            ? 'The ledger for everything our crew eats on our trips, from park snacks to dinners at sea, each scored from 1 to 5 by whoever tasted it. It is still blank: we would rather leave it empty than fill it with plates we never ate.'
+            : `Everything our crew has eaten on our trips, entered in the ledger and ${scoredBy}.`}
         </p>
       </div>
 
@@ -76,7 +81,21 @@ const strike = 'M2.4 18.6 36.6 5.6';
   <section class="ledger surface-jungle grain" aria-label="The tasting ledger">
     <div class="shell">
       <!-- Filter and sort. Hidden without JavaScript, where the full ledger is simply shown. -->
-      <div class="ledger-bar">
+      {empty && (
+        <div class="ledger-empty reveal">
+          <div class="empty-sheet surface-paper grain">
+            <p class="empty-top"><span>Tasting ledger</span><span>Page 1</span></p>
+            <ol class="empty-rules" aria-hidden="true">
+              {[1, 2, 3, 4, 5].map((n) => <li><span class="fell">{String(n).padStart(2, '0')}</span></li>)}
+            </ol>
+            <h2 class="fell empty-line">Not a single plate entered yet.</h2>
+            <p class="empty-sub">An entry goes in only once we have actually eaten it, with the place, the trip and a score from each of us who tasted it.</p>
+            <p class="stamp empty-stamp">Ledger open</p>
+          </div>
+        </div>
+      )}
+
+      <div class="ledger-bar" hidden={empty}>
         <div class="controls" id="filters">
           <div class="filter-set" role="group" aria-label="Filter by type">
             <span class="controls-label" aria-hidden="true">Show</span>
@@ -145,7 +164,7 @@ const strike = 'M2.4 18.6 36.6 5.6';
 
       <div class="ledger-close">
         <div class="ornament" aria-hidden="true"><span></span></div>
-        <p class="fell ledger-close-note reveal">That is the whole ledger, for now. Research continues, one snack at a time.</p>
+        <p class="fell ledger-close-note reveal">{empty ? 'Meanwhile, the rest of the journal is open.' : 'That is the whole ledger, for now. Research continues, one snack at a time.'}</p>
         <p class="ledger-close-links reveal">
           <a href={href('reviews')} class="link">Read the reviews <span class="arrow" aria-hidden="true">→</span></a>
           <a href={href('adventures')} class="link">See the adventures <span class="arrow" aria-hidden="true">→</span></a>
@@ -557,6 +576,40 @@ const strike = 'M2.4 18.6 36.6 5.6';
 
   /* ---------- Close ---------- */
   .ledger-close { margin-top: clamp(3rem, 7vw, 5rem); text-align: center; }
+
+  /* ---------- Empty ledger: a blank page of the tasting book ---------- */
+  .ledger-empty { max-width: 40rem; margin-inline: auto; }
+  .empty-sheet {
+    position: relative;
+    padding: clamp(1.5rem, 4vw, 2.5rem);
+    box-shadow: 0.5rem 0.6rem 0 #b9a273;
+  }
+  .empty-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 3px double rgb(72 42 27 / 0.45);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .empty-rules li {
+    padding: 0.75rem 0 0.7rem;
+    border-bottom: 1px solid rgb(72 42 27 / 0.2);
+    font-size: 1.05rem;
+    line-height: 1.5;
+    color: rgb(72 42 27 / 0.55);
+  }
+  .empty-line {
+    margin-top: 1.75rem;
+    font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem);
+    line-height: 1.15;
+    font-weight: 400;
+  }
+  .empty-sub { margin-top: 0.85rem; max-width: 30rem; font-size: 1.02rem; line-height: 1.55; color: rgb(44 25 15 / 0.86); }
+  .empty-stamp { margin-top: 1.5rem; color: var(--mahogany); }
   .ledger-close-note {
     margin-top: 2rem;
     font-size: 1.3rem;

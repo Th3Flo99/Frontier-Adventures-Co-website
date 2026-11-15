@@ -11,8 +11,7 @@ import Layout from '../layouts/Layout.astro';
 import LocalPhoto from '../components/LocalPhoto.astro';
 import ExpeditionMap from '../components/ExpeditionMap.astro';
 import reviewData from '../data/reviews.json';
-import foodData from '../data/food.json';
-import { categories, entriesByCategory, destinations, reviews, food, type CategoryId, type Entry } from '../lib/adventures';
+import { categories, entriesByCategory, destinations, reviews, food, foodScorers, type CategoryId, type Entry } from '../lib/adventures';
 import { href } from '../lib/paths';
 
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
@@ -75,12 +74,20 @@ const foodChapter = chapter('food');
 const ledger = [...foodChapter.list].sort(byScore);
 // Who has actually scored, read from the data in order of first appearance, so the ledger
 // never implies a score from someone who has not given one.
-const scorers = [...new Set(foodData.flatMap((f) => Object.keys(f.scores)))];
+const scorers = foodScorers;
 const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 
 // ----- Chapter IV: journals -----
 const journals = chapter('journals');
 
+// Chapters with no entries yet are counted, not hidden
+const blankChapters = chapters.filter((c) => c.list.length === 0).length;
+const blankLine =
+  blankChapters === 0
+    ? 'Four chapters, all with something in them.'
+    : blankChapters === 1
+      ? 'Four chapters. One of them is still blank, and we would rather say so.'
+      : `Four chapters. ${capital(words[blankChapters])} of them have no entries yet, and we would rather say so than fill them.`;
 const onFile = [count(reviews.length, 'review'), count(food.length, 'food note'), `${count(destinations.length, 'destination')} on the chart`].join(', ');
 const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String(e.score));
 ---
@@ -102,7 +109,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
       <div class="head-grid">
         <div class="head-intro reveal" style="--reveal-delay: 160ms">
           <p class="lede">
-            Everything we have written down so far, filed the way we remember it: by park, by ship and by plate. Four chapters. One of them is still blank, and we would rather say so.
+            Everything we have written down so far, filed the way we remember it: by park, by ship and by plate. {blankLine}
           </p>
           <p class="fell head-tally">On file: {onFile}.</p>
         </div>
@@ -308,7 +315,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
             ))}
           </ol>
         ) : (
-          <p class="fell cruise-aside">Nothing filed from the ship yet.</p>
+          <p class="fell cruise-aside">No reviews or dining notes filed from {sailings.length > 1 ? 'these sailings' : 'the ship'} yet.</p>
         )}
         {cruiseOnlyFood && (
           <p class="fell cruise-aside reveal">So far this chapter is all dining. Make of that what you will.</p>
@@ -350,7 +357,13 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
           <span>Where</span>
           <span class="ledger-head-score">Crew average</span>
         </div>
-        <ol class="ledger-list" role="list">
+        {ledger.length === 0 && (
+          <div class="ledger-blank reveal">
+            <div class="ledger-blank-rows" aria-hidden="true"><span>01</span><span>02</span><span>03</span></div>
+            <p class="fell ledger-blank-note">No entries in the ledger yet. Every plate that goes in will be one we actually ate, scored by whoever tasted it.</p>
+          </div>
+        )}
+        <ol class="ledger-list" role="list" hidden={ledger.length === 0}>
           {ledger.map((e, i) => (
             <li class="ledger-row reveal">
               <span class="fell ledger-no" aria-hidden="true">{pad(i + 1)}</span>
@@ -373,7 +386,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
           ))}
         </ol>
         <div class="ledger-foot reveal">
-          <p class="fell ledger-foot-note">The complete food log, plate by plate, has a page of its own.</p>
+          <p class="fell ledger-foot-note">{ledger.length > 0 ? 'The complete food log, plate by plate, has a page of its own.' : 'How the ledger is kept and scored has a page of its own.'}</p>
           <a href={href('food')} class="btn btn-brass">Open the Food Log <span class="arrow" aria-hidden="true">→</span></a>
         </div>
       </div>
@@ -936,6 +949,18 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   .ledger-score-num { font-size: clamp(1.5rem, 1.3rem + 1vw, 2.1rem); line-height: 1; color: var(--gold); }
   .ledger-score .meter { width: 3rem; }
 
+  /* Empty ledger: numbered ruled lines with nothing written on them */
+  .ledger-blank-rows { border-top: 1px solid rgb(196 154 80 / 0.55); }
+  .ledger-blank-rows span {
+    display: block;
+    padding: 1.4rem 0 1.5rem;
+    border-bottom: 1px dashed rgb(232 211 165 / 0.2);
+    font-family: 'IM Fell English', Georgia, serif;
+    font-size: 1.1rem;
+    line-height: 1.5;
+    color: rgb(196 154 80 / 0.55);
+  }
+  .ledger-blank-note { margin-top: 1.5rem; max-width: 34rem; font-size: 1.15rem; line-height: 1.45; color: rgb(232 211 165 / 0.82); }
   .ledger-foot {
     display: grid;
     gap: 1.25rem;

@@ -375,6 +375,9 @@ a:hover .photo-grade,
 
 main:focus { outline: none; }
 
+/* The hidden attribute always wins over a component's own display rule */
+[hidden] { display: none !important; }
+
 .skip-link {
   position: fixed;
   top: 1rem;

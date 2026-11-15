@@ -15,7 +15,7 @@
       "lon": 2.7758,
       "approximate": false,
       "blurb": "The closest Disney resort to our home port, and where our Davy Crockett Ranch stay took place.",
-      "_source": "reviews.json (Davy Crockett Ranch) and food.json entries located at Disneyland Paris",
+      "_source": "reviews.json (the Davy Crockett Ranch review on TripAdvisor).",
       "tag": {
         "dx": 30,
         "dy": 8,
@@ -30,12 +30,28 @@
       "lat": 28.3852,
       "lon": -81.5639,
       "approximate": false,
-      "blurb": "Across the Atlantic to Florida. Our crew photo was taken here, in front of Cinderella Castle at Magic Kingdom, and our dining note from Be Our Guest Restaurant comes from here too.",
+      "blurb": "Across the Atlantic to Florida. Our crew photo was taken here, in front of Cinderella Castle at Magic Kingdom. The same trip took us to sea aboard the Disney Treasure.",
       "photo": {
         "src": "group-photo.jpg",
         "alt": "The five of us standing arm in arm in front of Cinderella Castle at Magic Kingdom"
       },
-      "_source": "Confirmed by the crew: the group photo was taken at Walt Disney World. The Be Our Guest entry in food.json (Fantasyland) is from here as well."
+      "tag": {
+        "dx": -24,
+        "dy": -20,
+        "label": "left"
+      },
+      "_source": "Confirmed by the crew: the group photo was taken at Walt Disney World, and the 7-night Disney Treasure cruise was part of the same trip."
+    },
+    {
+      "id": "disney-treasure",
+      "name": "Disney Treasure",
+      "kind": "cruise",
+      "region": "7-night Western Caribbean cruise",
+      "lat": 17.2,
+      "lon": -82.4,
+      "approximate": true,
+      "blurb": "Seven nights in the Western Caribbean aboard the Disney Treasure, on the same trip as our Walt Disney World visit. The anchor marks the Western Caribbean, not a port of call.",
+      "_source": "Confirmed by the crew: a 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip. Departure port, ports of call and dates have not been given, so the marker is symbolic (at sea in the Western Caribbean)."
     },
     {
       "id": "mediterranean-cruise",

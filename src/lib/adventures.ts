@@ -26,7 +26,7 @@ export const categories: Category[] = [
     id: 'cruises',
     title: 'Cruise Adventures',
     kicker: 'Ships, dining and days at sea',
-    description: 'What life on board is really like, from the buffet to the adults-only restaurant.',
+    description: 'What life on board is really like: the ships, the dining and the days at sea.',
   },
   {
     id: 'food',
@@ -106,7 +106,26 @@ const reviewEntries: Entry[] = reviewData.map((r) => {
   };
 });
 
-const foodEntries: Entry[] = foodData.map((f) => {
+/** One entry in src/data/food.json (see the README for the fields) */
+export interface FoodItem {
+  id: string;
+  name: string;
+  location: string;
+  type: 'snack' | 'restaurant' | string;
+  trip?: string;
+  review: string;
+  /** Score from 1 to 5 per crew member who tasted it, e.g. { "Megan": 5 } */
+  scores: Record<string, number>;
+  /** A photo of our own in public/ (remote images are never shown) */
+  image?: string;
+  destination?: string | null;
+}
+/** The food ledger as typed data. It can be empty: every page has an honest empty state. */
+export const foodItems = foodData as FoodItem[];
+/** Who has put a score in the ledger, in order of first appearance */
+export const foodScorers = [...new Set(foodItems.flatMap((f) => Object.keys(f.scores)))];
+
+const foodEntries: Entry[] = foodItems.map((f) => {
   const destination = destinationById(f.destination);
   const score = average(f.scores);
   const cats: CategoryId[] = ['food'];

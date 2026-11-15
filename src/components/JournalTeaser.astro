@@ -3,8 +3,7 @@
 // The most recent review lies open as a parchment page; beside it, the top of the food
 // ledger; underneath, the four chapters of the archive as an index. Everything is read from
 // src/lib/adventures.ts, so a new review or food note changes this section by itself.
-import foodData from '../data/food.json';
-import { categories, entriesByCategory, reviews, food, type Entry } from '../lib/adventures';
+import { categories, entriesByCategory, reviews, food, foodScorers, type Entry } from '../lib/adventures';
 import { href } from '../lib/paths';
 
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
@@ -34,7 +33,7 @@ const featuredDate = formatDate(featured?.date);
 const topFood = [...food].sort((a, b) => b.score - a.score).slice(0, 3);
 // Who has actually scored, read from the data in order of first appearance, so "crew average"
 // is never read as a score from all five of us.
-const scorers = [...new Set(foodData.flatMap((f) => Object.keys(f.scores)))];
+const scorers = foodScorers;
 const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 
 const chapters = categories.map((c, i) => {
@@ -62,7 +61,9 @@ const chapters = categories.map((c, i) => {
       </div>
       <div class="lg:col-span-5">
         <p class="lede reveal" style="--reveal-delay: 120ms">
-          Reviews and food scores, so far. The journal is open at the latest review, next to the plates at the top of our food ledger.
+          {food.length > 0
+            ? 'Reviews and food scores, so far. The journal is open at the latest review, next to the plates at the top of our food ledger.'
+            : `${capital(count(reviews.length, 'published review'))} so far, and a food ledger still waiting for its first entry. The journal is open at the latest review.`}
         </p>
       </div>
     </div>
@@ -100,6 +101,17 @@ const chapters = categories.map((c, i) => {
               </div>
             </div>
           </article>
+        </div>
+      )}
+
+      {topFood.length === 0 && (
+        <div class="finds finds-empty reveal" style="--reveal-delay: 140ms">
+          <h3 class="finds-title">The food ledger</h3>
+          <div class="finds-blank" aria-hidden="true"><span></span><span></span><span></span></div>
+          <p class="finds-note fell">No plates scored yet. Every entry will be one we actually ate, scored out of five by whoever tasted it.</p>
+          <p class="finds-more">
+            <a href={href('food')} class="link">How the ledger works <span class="arrow" aria-hidden="true">→</span></a>
+          </p>
         </div>
       )}
 
@@ -295,6 +307,9 @@ const chapters = categories.map((c, i) => {
     color: rgb(232 211 165 / 0.8);
   }
   .finds-more { margin-top: 1.25rem; }
+  /* Empty ledger: three blank ruled lines where the entries will go */
+  .finds-blank { margin-top: 1rem; border-top: 1px solid rgb(196 154 80 / 0.5); }
+  .finds-blank span { display: block; height: 3.4rem; border-bottom: 1px dashed rgb(232 211 165 / 0.2); }
   .finds-more .link { min-height: 2.75rem; align-items: center; }
 
   /* ---------- The archive, as an index ---------- */
