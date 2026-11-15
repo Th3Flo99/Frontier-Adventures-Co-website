@@ -69,7 +69,7 @@ export interface Voyage {
   /** Every port in order, the home port of the cruise first and last */
   ports: string[];
   /** Ports of call, in order */
-  calls: { name: string; country: string; lon: number; lat: number; label?: 'left' | 'right' | 'above' }[];
+  calls: { name: string; country: string; lon: number; lat: number; label?: 'left' | 'right' | 'above' | 'below' | 'above-left' }[];
   /** The sailed track as [longitude, latitude] pairs */
   track: [number, number][];
 }

@@ -75,7 +75,8 @@
             "name": "Cozumel",
             "country": "Mexico",
             "lon": -86.957,
-            "lat": 20.512
+            "lat": 20.512,
+            "label": "below"
           },
           {
             "name": "Falmouth",
@@ -479,7 +480,7 @@
             "country": "Belgium",
             "lon": 3.209,
             "lat": 51.339,
-            "label": "above"
+            "label": "above-left"
           }
         ],
         "track": [

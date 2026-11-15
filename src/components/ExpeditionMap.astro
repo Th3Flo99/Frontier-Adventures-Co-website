@@ -102,7 +102,7 @@ const stops = destinations.map((d, i) => {
     voyage: d.voyage
       ? {
           ...d.voyage,
-          line: trackLine(d.voyage.track),
+          path: trackLine(d.voyage.track),
           dates: voyageDates(d.voyage.start, d.voyage.end),
           callPoints: d.voyage.calls.map((c) => {
             const [x, y] = project(c.lon, c.lat);
@@ -115,8 +115,17 @@ const stops = destinations.map((d, i) => {
       : null,
   };
 });
+// Where a port-of-call name sits around its dot (in screen pixels)
+const callLabel = (side: string) =>
+  ({
+    left: { x: -6, y: 4, 'text-anchor': 'end' },
+    right: { x: 6, y: 4, 'text-anchor': 'start' },
+    above: { x: 0, y: -7, 'text-anchor': 'middle' },
+    below: { x: 0, y: 15, 'text-anchor': 'middle' },
+    'above-left': { x: -3, y: -9, 'text-anchor': 'end' },
+  })[side] ?? { x: 6, y: 4, 'text-anchor': 'start' };
 // The box a destination's frame must show: the course from the home port, and the whole voyage
-const frameBox = (s: (typeof stops)[number]) => (s.voyage ? unionBox([s.route.box, s.voyage.line.box]) : s.route.box);
+const frameBox = (s: (typeof stops)[number]) => (s.voyage ? unionBox([s.route.box, s.voyage.path.box]) : s.route.box);
 const totalEntries = stops.reduce((sum, s) => sum + s.total, 0);
 const destinationWord = words[stops.length] ?? String(stops.length);
 const scoreText = (e: { kind: string; score: number }) => (e.kind === 'food' ? e.score.toFixed(1) : String(e.score));
@@ -390,21 +399,6 @@ const jokes = [
                     <path class="course" data-course={s.id} d={s.route.d} mask={`url(#fa-chart-course-${i})`} />
                   ))}
 
-                  <!-- Voyages: the track each ship actually sailed, and its ports of call -->
-                  {stops.filter((s) => s.voyage).map((s) => (
-                    <g class="voyage" data-voyage={s.id}>
-                      <path class="voyage-line" d={s.voyage!.line.d} />
-                      {s.voyage!.callPoints.map((c) => (
-                        <g transform={`translate(${c.x} ${c.y})`}>
-                          <g class="k">
-                            <circle class="call-dot" r="2.6" />
-                            <text class="call-name" x={c.side === 'left' ? -6 : c.side === 'above' ? 0 : 6} y={c.side === 'above' ? -7 : 4} text-anchor={c.side === 'left' ? 'end' : c.side === 'above' ? 'middle' : 'start'}>{c.name}</text>
-                          </g>
-                        </g>
-                      ))}
-                    </g>
-                  ))}
-
                   <!-- Home port -->
                   <g transform={`translate(${chart.home.x} ${chart.home.y})`}>
                     <g class="k">
@@ -416,6 +410,21 @@ const jokes = [
                       </g>
                     </g>
                   </g>
+
+                  <!-- Voyages: the track each ship actually sailed, and its ports of call -->
+                  {stops.filter((s) => s.voyage).map((s) => (
+                    <g class="voyage" data-voyage={s.id}>
+                      <path class="voyage-line" d={s.voyage!.path.d} />
+                      {s.voyage!.callPoints.map((c) => (
+                        <g transform={`translate(${c.x} ${c.y})`}>
+                          <g class="k">
+                            <circle class="call-dot" r="2.6" />
+                            <text class="call-name" {...callLabel(c.side)}>{c.name}</text>
+                          </g>
+                        </g>
+                      ))}
+                    </g>
+                  ))}
 
                   <!-- Destinations: a pin on the spot, a brass tag beside it -->
                   {stops.map((s, i) => {
@@ -1196,6 +1205,8 @@ const jokes = [
      entry under the chart lists every port in order */
   @media (max-width: 767px), (max-width: 1023px) and (max-height: 520px) {
     .voyage.is-active .call-name { display: none; }
+    /* Smaller dots, so ports a few pixels apart do not run together */
+    .call-dot { r: 1.6px; stroke-width: 0.8px; }
   }
   .has-selection .course.is-active {
     stroke-opacity: 1;
