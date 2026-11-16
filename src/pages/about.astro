@@ -16,7 +16,7 @@ const alts: Record<string, string> = {
   'photos/lotte/lake.jpg': 'Lotte in sunglasses standing by a lake',
   'photos/lotte/sea.jpg': 'Lotte in clear turquoise sea, arms raised, sunglasses on',
   'photos/lotte/beach.jpg': 'Lotte on a white sand beach, a Disney cruise ship moored behind her',
-  'photos/lotte/brunch.jpg': 'Lotte raising a glass of orange juice at a window table overlooking the sea',
+  'photos/lotte/brunch.jpg': 'Lotte raising a champagne flute of something orange at a window table overlooking the sea',
   'photos/lotte/treat.jpg': 'Lotte holding a chocolate-dipped, Mickey-shaped crispy rice treat in front of a mural',
   'photos/lotte/chip.jpg': 'Lotte hugging Chip in a restaurant with a painted jungle mural',
   'photos/lotte/mickey.jpg': 'Lotte beside Mickey Mouse in dungarees and a plaid shirt',
@@ -42,6 +42,10 @@ const noteFields = [
   { key: 'favoriteAttraction', label: 'Favourite attraction' },
   { key: 'travelStyle', label: 'Travel style' },
 ] as const;
+
+// Widest a crew plate is drawn (measured): 480px on desktop, about 42% of the window on a
+// tablet, under 90% on a phone and under 30% on a phone held sideways.
+const plateSizes = '(min-width: 1280px) 480px, (min-width: 768px) 42vw, (orientation: landscape) and (max-height: 500px) 30vw, 90vw';
 
 const socialLabels: Record<string, string> = { x: 'X', instagram: 'Instagram', tiktok: 'TikTok', youtube: 'YouTube' };
 
@@ -164,6 +168,7 @@ const crewCount = inWords(crew.length);
                     id={`crew-photos-${member.slug}`}
                     label={`Photos of ${member.first}`}
                     portrait
+                    sizes={plateSizes}
                     photos={member.pictures}
                   />
                 </div>
@@ -172,7 +177,7 @@ const crewCount = inWords(crew.length);
                   <LocalPhoto
                     src={member.pictures[0].src}
                     alt={member.pictures[0].alt}
-                    sizes="(min-width: 1280px) 460px, (min-width: 768px) 42vw, (orientation: landscape) and (max-height: 500px) 42vw, 90vw"
+                    sizes={plateSizes}
                     class="photo-grade plate-img"
                   />
                 </div>

@@ -5,8 +5,10 @@ interface Props {
   label: string;
   photos: { src: string; alt: string }[];
   portrait?: boolean;
+  /** How wide a slide is drawn, so phones pick a file that fits instead of the largest. */
+  sizes?: string;
 }
-const { id, label, photos, portrait = false } = Astro.props;
+const { id, label, photos, portrait = false, sizes = '(min-width: 1280px) 552px, (min-width: 768px) 50vw, 100vw' } = Astro.props;
 const multiple = photos.length > 1;
 // Dots are a quick way to jump in a short set. In a long one they no longer fit beside the
 // arrows on a phone, so the arrows, swipe, keys and the "Photo n of N" line do the work.
@@ -26,7 +28,7 @@ const withDots = photos.length <= 6;
         {photo.src.startsWith('http') ? (
           <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" width="1200" height="675" />
         ) : (
-          <LocalPhoto src={photo.src} alt={photo.alt} sizes="(min-width: 1280px) 552px, (min-width: 768px) 50vw, 100vw" />
+          <LocalPhoto src={photo.src} alt={photo.alt} sizes={sizes} />
         )}
       </div>
     ))}
