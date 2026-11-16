@@ -8,6 +8,9 @@ interface Props {
 }
 const { id, label, photos, portrait = false } = Astro.props;
 const multiple = photos.length > 1;
+// Dots are a quick way to jump in a short set. In a long one they no longer fit beside the
+// arrows on a phone, so the arrows, swipe, keys and the "Photo n of N" line do the work.
+const withDots = photos.length <= 6;
 ---
 <photo-carousel role="region" aria-label={label} aria-roledescription={multiple ? 'carousel' : undefined}>
   <div
@@ -33,11 +36,13 @@ const multiple = photos.length > 1;
       <button type="button" data-prev aria-label="Previous photo" aria-controls={id} aria-disabled="true"><span aria-hidden="true">←</span></button>
       <div class="photo-position">
         <p data-status aria-live="polite" aria-atomic="true">Photo 1 of {photos.length}</p>
-        <div class="photo-dots" role="group" aria-label="Choose a photo">
-          {photos.map((_, index) => (
-            <button type="button" data-dot={index} aria-label={`Go to photo ${index + 1}`} aria-controls={id} aria-current={index === 0 ? 'true' : undefined}><span></span></button>
-          ))}
-        </div>
+        {withDots && (
+          <div class="photo-dots" role="group" aria-label="Choose a photo">
+            {photos.map((_, index) => (
+              <button type="button" data-dot={index} aria-label={`Go to photo ${index + 1}`} aria-controls={id} aria-current={index === 0 ? 'true' : undefined}><span></span></button>
+            ))}
+          </div>
+        )}
       </div>
       <button type="button" data-next aria-label="Next photo" aria-controls={id}><span aria-hidden="true">→</span></button>
     </div>
@@ -169,7 +174,9 @@ const multiple = photos.length > 1;
       const dots = Array.from(this.querySelectorAll<HTMLButtonElement>('[data-dot]'));
       const status = this.querySelector<HTMLElement>('[data-status]');
       if (!track || !previous || !next || !status) return;
-      const last = dots.length - 1;
+      // Count the slides, not the dots: a long set has no dots.
+      const count = track.querySelectorAll('.photo-slide').length;
+      const last = count - 1;
       const clamp = (n: number) => Math.max(0, Math.min(last, n));
       // The photo the controls show. An arrow, dot or key sets it at once, so quick presses add
       // up instead of being counted from wherever the smooth scroll happens to be.
@@ -186,7 +193,7 @@ const multiple = photos.length > 1;
         previous.setAttribute('aria-disabled', String(index === 0));
         next.setAttribute('aria-disabled', String(index === last));
         dots.forEach((dot, n) => n === index ? dot.setAttribute('aria-current', 'true') : dot.removeAttribute('aria-current'));
-        const text = `Photo ${index + 1} of ${dots.length}`;
+        const text = `Photo ${index + 1} of ${count}`;
         if (status.textContent !== text) status.textContent = text;
       };
       const read = () => {

@@ -14,6 +14,16 @@ const alts: Record<string, string> = {
   'photos/megan/food.jpg': 'Megan laughing at a restaurant table with plates of food',
   'photos/elias/pooh.jpg': 'Elias sitting on a bench in a garden',
   'photos/lotte/lake.jpg': 'Lotte in sunglasses standing by a lake',
+  'photos/lotte/sea.jpg': 'Lotte in clear turquoise sea, arms raised, sunglasses on',
+  'photos/lotte/beach.jpg': 'Lotte on a white sand beach, a Disney cruise ship moored behind her',
+  'photos/lotte/brunch.jpg': 'Lotte raising a glass of orange juice at a window table overlooking the sea',
+  'photos/lotte/treat.jpg': 'Lotte holding a chocolate-dipped, Mickey-shaped crispy rice treat in front of a mural',
+  'photos/lotte/chip.jpg': 'Lotte hugging Chip in a restaurant with a painted jungle mural',
+  'photos/lotte/mickey.jpg': 'Lotte beside Mickey Mouse in dungarees and a plaid shirt',
+  'photos/lotte/epcot.jpg': 'Lotte leaning on a railing by a lake, Spaceship Earth at Epcot in the distance',
+  'photos/lotte/pluto.jpg': 'Lotte with Pluto, wearing a bag printed with balloons',
+  'photos/lotte/goofy.jpg': 'Lotte running towards Goofy in a cowboy outfit in front of a red barn',
+  'photos/lotte/sunset.jpg': 'Lotte laughing on a ship’s balcony with a glass, the sun setting over the sea',
   'photos/thibeau/balcony.jpg': 'Tibeau holding a drink on a balcony with the sea behind him',
 };
 
@@ -22,7 +32,7 @@ const captions: Record<string, string> = {
   florian: 'The planner, in {count} exposures.',
   megan: 'Megan, conducting fieldwork.',
   elias: 'Elias, a bench and a very tidy garden.',
-  lotte: 'Lotte, lakeside, sunglasses deployed.',
+  lotte: 'Lotte in {count} exposures: parks, characters and the open sea.',
   tibeau: 'The drink expert, pictured with evidence.',
 };
 
@@ -39,7 +49,7 @@ const socialLabels: Record<string, string> = { x: 'X', instagram: 'Instagram', t
 const variants = ['lead', 'pullout', 'triptych', 'offset', 'wide'];
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
-const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const numberWords = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
 const inWords = (n: number) => numberWords[n] ?? String(n);
 
 const crew = group.map((person, i) => {

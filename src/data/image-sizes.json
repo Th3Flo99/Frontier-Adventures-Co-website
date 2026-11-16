@@ -131,6 +131,116 @@
       }
     ]
   },
+  "photos/lotte/beach.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/beach-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/beach-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/beach-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/beach-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/brunch.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/brunch-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/brunch-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/brunch-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/brunch-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/chip.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/chip-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/chip-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/chip-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/chip-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/epcot.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/epcot-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/epcot-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/epcot-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/epcot-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/goofy.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/goofy-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/goofy-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/goofy-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/goofy-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
   "photos/lotte/lake.jpg": {
     "width": 1500,
     "height": 2000,
@@ -149,6 +259,116 @@
       },
       {
         "src": "optimized/photos/lotte/lake-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/mickey.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/mickey-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/mickey-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/mickey-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/mickey-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/pluto.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/pluto-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/pluto-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/pluto-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/pluto-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/sea.jpg": {
+    "width": 1500,
+    "height": 1981,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/sea-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/sea-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/sea-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/sea-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/sunset.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/sunset-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/sunset-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/sunset-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/sunset-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/lotte/treat.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/lotte/treat-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/lotte/treat-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/lotte/treat-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/lotte/treat-1500.webp",
         "width": 1500
       }
     ]
