@@ -21,6 +21,72 @@
       }
     ]
   },
+  "photos/elias/anchor.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/anchor-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/anchor-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/elias/anchor-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/elias/anchor-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/elias/castle-night.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/castle-night-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/castle-night-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/elias/castle-night-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/elias/castle-night-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/elias/deck.jpg": {
+    "width": 1242,
+    "height": 1639,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/deck-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/deck-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/elias/deck-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/elias/deck-1242.webp",
+        "width": 1242
+      }
+    ]
+  },
   "photos/elias/pooh.jpg": {
     "width": 1500,
     "height": 2000,
@@ -39,6 +105,94 @@
       },
       {
         "src": "optimized/photos/elias/pooh-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/elias/rain.jpg": {
+    "width": 1500,
+    "height": 1979,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/rain-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/rain-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/elias/rain-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/elias/rain-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/elias/ride.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/ride-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/ride-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/elias/ride-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/elias/ride-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/elias/rocks.jpg": {
+    "width": 1200,
+    "height": 1584,
+    "variants": [
+      {
+        "src": "optimized/photos/elias/rocks-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/elias/rocks-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/elias/rocks-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/elias/rocks-1200.webp",
+        "width": 1200
+      }
+    ]
+  },
+  "photos/florian/birthday.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/birthday-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/birthday-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/birthday-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/birthday-1500.webp",
         "width": 1500
       }
     ]
@@ -65,6 +219,50 @@
       }
     ]
   },
+  "photos/florian/captain.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/captain-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/captain-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/captain-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/captain-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/castle.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/castle-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/castle-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/castle-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/castle-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
   "photos/florian/churro.jpg": {
     "width": 1500,
     "height": 2000,
@@ -83,6 +281,28 @@
       },
       {
         "src": "optimized/photos/florian/churro-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/harbour.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/harbour-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/harbour-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/harbour-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/harbour-1500.webp",
         "width": 1500
       }
     ]
@@ -109,6 +329,50 @@
       }
     ]
   },
+  "photos/florian/stitch.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/stitch-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/stitch-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/stitch-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/stitch-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/terrace.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/terrace-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/terrace-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/terrace-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/terrace-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
   "photos/florian/throne.jpg": {
     "width": 1500,
     "height": 2000,
@@ -127,6 +391,50 @@
       },
       {
         "src": "optimized/photos/florian/throne-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/wheel.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/wheel-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/wheel-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/wheel-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/wheel-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/florian/window.jpg": {
+    "width": 1500,
+    "height": 1980,
+    "variants": [
+      {
+        "src": "optimized/photos/florian/window-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/florian/window-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/florian/window-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/florian/window-1500.webp",
         "width": 1500
       }
     ]
@@ -373,6 +681,50 @@
       }
     ]
   },
+  "photos/megan/belle.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/belle-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/belle-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/megan/belle-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/megan/belle-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/megan/deck.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/deck-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/deck-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/megan/deck-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/megan/deck-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
   "photos/megan/food.jpg": {
     "width": 1500,
     "height": 2000,
@@ -395,6 +747,94 @@
       }
     ]
   },
+  "photos/megan/green-drink.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/green-drink-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/green-drink-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/megan/green-drink-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/megan/green-drink-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/megan/pretzel.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/pretzel-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/pretzel-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/megan/pretzel-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/megan/pretzel-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/megan/stitch.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/stitch-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/stitch-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/megan/stitch-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/megan/stitch-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/megan/towel.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/megan/towel-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/megan/towel-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/megan/towel-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/megan/towel-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
   "photos/thibeau/balcony.jpg": {
     "width": 1500,
     "height": 2000,
@@ -413,6 +853,138 @@
       },
       {
         "src": "optimized/photos/thibeau/balcony-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/thibeau/cinderella.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/cinderella-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/cinderella-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/thibeau/cinderella-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/thibeau/cinderella-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/thibeau/cocktail.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/cocktail-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/cocktail-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/thibeau/cocktail-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/thibeau/cocktail-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/thibeau/epcot.jpg": {
+    "width": 1125,
+    "height": 1500,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/epcot-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/epcot-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/thibeau/epcot-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/thibeau/epcot-1125.webp",
+        "width": 1125
+      }
+    ]
+  },
+  "photos/thibeau/plaza.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/plaza-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/plaza-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/thibeau/plaza-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/thibeau/plaza-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/thibeau/railing.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/railing-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/railing-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/thibeau/railing-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/thibeau/railing-1500.webp",
+        "width": 1500
+      }
+    ]
+  },
+  "photos/thibeau/rocket.jpg": {
+    "width": 1500,
+    "height": 2000,
+    "variants": [
+      {
+        "src": "optimized/photos/thibeau/rocket-480.webp",
+        "width": 480
+      },
+      {
+        "src": "optimized/photos/thibeau/rocket-800.webp",
+        "width": 800
+      },
+      {
+        "src": "optimized/photos/thibeau/rocket-1100.webp",
+        "width": 1100
+      },
+      {
+        "src": "optimized/photos/thibeau/rocket-1500.webp",
         "width": 1500
       }
     ]

@@ -11,7 +11,15 @@
       "photos/florian/bus.jpg",
       "photos/florian/throne.jpg",
       "photos/florian/sitting.jpg",
-      "photos/florian/churro.jpg"
+      "photos/florian/churro.jpg",
+      "photos/florian/window.jpg",
+      "photos/florian/harbour.jpg",
+      "photos/florian/captain.jpg",
+      "photos/florian/wheel.jpg",
+      "photos/florian/terrace.jpg",
+      "photos/florian/stitch.jpg",
+      "photos/florian/birthday.jpg",
+      "photos/florian/castle.jpg"
     ],
     "socials": {
       "x": "https://x.com/florianronsse"
@@ -26,7 +34,13 @@
     "travelStyle": "",
     "image": "photos/megan/food.jpg",
     "photos": [
-      "photos/megan/food.jpg"
+      "photos/megan/food.jpg",
+      "photos/megan/pretzel.jpg",
+      "photos/megan/green-drink.jpg",
+      "photos/megan/deck.jpg",
+      "photos/megan/stitch.jpg",
+      "photos/megan/towel.jpg",
+      "photos/megan/belle.jpg"
     ]
   },
   {
@@ -38,7 +52,13 @@
     "travelStyle": "",
     "image": "photos/elias/pooh.jpg",
     "photos": [
-      "photos/elias/pooh.jpg"
+      "photos/elias/pooh.jpg",
+      "photos/elias/ride.jpg",
+      "photos/elias/rocks.jpg",
+      "photos/elias/rain.jpg",
+      "photos/elias/castle-night.jpg",
+      "photos/elias/deck.jpg",
+      "photos/elias/anchor.jpg"
     ]
   },
   {
@@ -72,7 +92,13 @@
     "travelStyle": "",
     "image": "photos/thibeau/balcony.jpg",
     "photos": [
-      "photos/thibeau/balcony.jpg"
+      "photos/thibeau/balcony.jpg",
+      "photos/thibeau/railing.jpg",
+      "photos/thibeau/plaza.jpg",
+      "photos/thibeau/epcot.jpg",
+      "photos/thibeau/rocket.jpg",
+      "photos/thibeau/cocktail.jpg",
+      "photos/thibeau/cinderella.jpg"
     ]
   }
 ]
