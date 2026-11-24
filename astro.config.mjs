@@ -4,6 +4,7 @@ import sitemap from '@astrojs/sitemap';
 
 export default defineConfig({
   integrations: [tailwind(), sitemap()],
-  site: 'https://th3flo99.github.io/Frontier-Adventures-Co-website',
-  base: '/Frontier-Adventures-Co-website',
+  // Served from the custom domain set in the repository's GitHub Pages settings, at the root
+  site: 'https://frontieradventurers.com',
+  base: '/',
 });

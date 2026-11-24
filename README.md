@@ -16,7 +16,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:4321/Frontier-Adventures-Co-website/
+Open http://localhost:4321/
 
 ## Build
 
@@ -34,9 +34,9 @@ The build outputs to `dist/`.
 
 Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`.
 
-Live URL: https://th3flo99.github.io/Frontier-Adventures-Co-website/
+Live URL: https://frontieradventurers.com/
 
-The repository name and the `base` in `astro.config.mjs` set the public URL, so changing either changes the address of the site. For a custom domain, set `base` to `/` and update `site`.
+The site is served at the root of the custom domain set in the repository’s GitHub Pages settings, so `base` in `astro.config.mjs` is `/` and `site` is that domain. Without a custom domain, set `base` to `/<repository name>` and `site` to the github.io address.
 
 ## The logo
 

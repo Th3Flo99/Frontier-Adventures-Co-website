@@ -1,4 +1,4 @@
-// One place for the deploy base path (GitHub Pages serves the site from a sub-folder).
+// One place for the deploy base path (set in astro.config.mjs; "/" on the custom domain).
 const rawBase = import.meta.env.BASE_URL || '/';
 export const base = rawBase.endsWith('/') ? rawBase : `${rawBase}/`;
 
