@@ -1,6 +1,6 @@
 # Frontier Adventurers
 
-The website of Frontier Adventurers (formerly The Frontier Adventures Co): a Belgian crew of five friends and family sharing theme park adventures, Disney cruises, food reviews and travel stories.
+The website of Frontier Adventurers: a Belgian crew of five friends and family sharing theme park adventures, Disney cruises, food reviews and travel stories.
 
 Built with Astro and Tailwind as a fully static site. All content lives in JSON files, so you can add a review, a food entry or a video without touching a component.
 
@@ -36,7 +36,7 @@ Pushing to `main` deploys to GitHub Pages through `.github/workflows/deploy.yml`
 
 Live URL: https://th3flo99.github.io/Frontier-Adventures-Co-website/
 
-The repository name and the `base` in `astro.config.mjs` still carry the former name. That is deliberate: changing them changes the public URL. For a custom domain, set `base` to `/` and update `site`.
+The repository name and the `base` in `astro.config.mjs` set the public URL, so changing either changes the address of the site. For a custom domain, set `base` to `/` and update `site`.
 
 ## The logo
 

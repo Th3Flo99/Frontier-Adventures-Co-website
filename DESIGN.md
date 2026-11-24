@@ -80,7 +80,7 @@ Friendly, curious, a bit dry. We are five friends, not a travel agency. Write "w
 - Unknown profile fields are shown as an obvious blank ("Not yet logged"), and stay easy to fill in the JSON.
 - Use the real photographs in `public/` through `LocalPhoto.astro`. No stock or generated imagery.
 - No Disney logos, characters or artwork. Place names are fine.
-- The old name "The Frontier Adventures Co" appears only where it explains the rename.
+- The crew is only ever called Frontier Adventurers.
 
 ## Accessibility
 

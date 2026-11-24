@@ -6,7 +6,6 @@ import ExpeditionMap from '../components/ExpeditionMap.astro';
 import CrewTeaser from '../components/CrewTeaser.astro';
 import JournalTeaser from '../components/JournalTeaser.astro';
 import VideoShowcase from '../components/VideoShowcase.astro';
-import site from '../data/site.json';
 import { href } from '../lib/paths';
 ---
 
@@ -52,29 +51,10 @@ import { href } from '../lib/paths';
 
     <p class="hero-plate fell hero-in" style="--d:1.2s">Plate I. Magic Kingdom, Walt Disney World: the whole crew, for once all looking at the camera.</p>
 
-    <a href="#new-name" class="hero-scroll hero-in" style="--d:1.35s">
+    <a href="#expedition-map" class="hero-scroll hero-in" style="--d:1.35s">
       <span>Begin the expedition</span>
       <span class="hero-scroll-line" aria-hidden="true"></span>
     </a>
-  </section>
-
-  <!-- A new name, the same adventure -->
-  <section id="new-name" class="surface-paper grain section" aria-labelledby="new-name-title">
-    <div class="shell">
-      <!-- Set like a notice pinned to the lodge board: the headline runs the full width, the
-           note sits underneath to the right, the old name is stamped in the margin -->
-      <p class="eyebrow reveal">A note from the crew</p>
-      <h2 id="new-name-title" class="display notice-title mt-5 text-mahogany reveal">
-        A New Name. <span class="notice-second">The Same Adventure.</span>
-      </h2>
-      <div class="rule-double mt-10 reveal" aria-hidden="true"></div>
-      <div class="notice-body">
-        <p class="lede notice-copy" data-ink-words>
-          Formerly {site.formerName}, we’re entering a new chapter as {site.name}. Same crew, same passion, and many more adventures ahead.
-        </p>
-        <div class="notice-stamp reveal"><p class="stamp text-mahogany">Formerly {site.formerName}</p></div>
-      </div>
-    </div>
   </section>
 
   <ExpeditionMap />
@@ -286,17 +266,6 @@ import { href } from '../lib/paths';
     .hero-lede { max-width: 21.5rem; }
   }
 
-  /* ---------- The rename notice ---------- */
-  .notice-title { font-size: clamp(2.3rem, 1.2rem + 5vw, 5.6rem); max-width: 18ch; }
-  .notice-second { display: block; }
-  .notice-body { display: grid; gap: 2rem; margin-top: 2.5rem; }
-  .notice-copy { max-width: 34rem; }
-  @media (min-width: 1024px) {
-    .notice-title { max-width: none; }
-    .notice-body { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; gap: 4rem; }
-    .notice-copy { grid-column: 2; grid-row: 1; }
-    .notice-stamp { grid-column: 1; grid-row: 1; padding-top: 0.5rem; }
-  }
   @keyframes scroll-cue {
     0% { transform: translateX(-100%); }
     55%, 100% { transform: translateX(100%); }

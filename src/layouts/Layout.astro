@@ -56,7 +56,6 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: site.name,
-  alternateName: site.formerName,
   url: siteUrl,
   description: site.description,
   image: ogImage,
@@ -178,7 +177,7 @@ const jsonLd = {
               </li>
             ))}
           </ul>
-          <p class="menu-foot fell">Home port: {site.homePort}. Formerly {site.formerName}.</p>
+          <p class="menu-foot fell">Home port: {site.homePort}.</p>
         </aside>
       </div>
       </div>
@@ -203,7 +202,6 @@ const jsonLd = {
             <p class="mt-5 max-w-xs text-parchment/75">
               A Belgian crew of five friends and family, chasing theme parks, cruise decks and good food.
             </p>
-            <p class="fell mt-4 text-parchment/70">Formerly {site.formerName}.</p>
           </div>
 
           <nav id="footer-nav" aria-label="Footer" class="footer-col">

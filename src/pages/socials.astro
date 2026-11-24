@@ -121,13 +121,6 @@ const channelList =
           ))}
         </ol>
       </div>
-
-      <div class="former reveal">
-        <div class="former-stamp"><p class="stamp text-mahogany">Formerly {site.formerName}</p></div>
-        <p class="former-text">
-          A note on the names: the handles still carry our former name, {site.formerName}, for now. You are in the right place. It is the same crew behind every one of them.
-        </p>
-      </div>
     </div>
   </section>
 
@@ -381,23 +374,6 @@ const channelList =
     .entry-detail { display: contents; }
     .entry-handle { grid-area: handle; }
     .entry-blurb { grid-area: blurb; }
-  }
-
-  .former {
-    display: grid;
-    gap: 1.75rem;
-    margin-top: clamp(2.5rem, 5vw, 4rem);
-  }
-  /* Room for the tilted stamp on narrow screens */
-  .former-stamp { padding-inline: 0.5rem; }
-  .former-text { max-width: 36rem; color: rgb(44 25 15 / 0.9); }
-  @media (min-width: 900px) {
-    .former {
-      grid-template-columns: auto minmax(0, 1fr);
-      align-items: center;
-      gap: 3rem;
-      padding-left: 4.9rem;
-    }
   }
 
   /* ---------- Closing ---------- */

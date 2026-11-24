@@ -241,7 +241,7 @@ a:hover > .frame::after,
 a:hover .photo-grade,
 .photo-grade:hover { filter: none; }
 
-/* Field stamp, e.g. "Formerly ..." */
+/* Field stamp */
 .stamp {
   display: inline-block;
   padding: 0.45rem 0.9rem;
