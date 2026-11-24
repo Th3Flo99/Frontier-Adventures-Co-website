@@ -7,36 +7,36 @@
     {
       "id": "youtube",
       "label": "YouTube",
-      "handle": "@The_Frontier_Adventures_Co",
-      "url": "https://www.youtube.com/@The_Frontier_Adventures_Co",
+      "handle": "@frontieradventurers",
+      "url": "https://www.youtube.com/@frontieradventurers",
       "blurb": "Walkthroughs, cruise days and full trip films."
     },
     {
       "id": "instagram",
       "label": "Instagram",
-      "handle": "@the_frontier_adventures_co",
-      "url": "https://www.instagram.com/the_frontier_adventures_co",
+      "handle": "@frontieradventurers",
+      "url": "https://www.instagram.com/frontieradventurers/",
       "blurb": "Photos, reels and stories from the road."
     },
     {
       "id": "tiktok",
       "label": "TikTok",
-      "handle": "@thefrontieradventuresco",
-      "url": "https://www.tiktok.com/@thefrontieradventuresco",
+      "handle": "@frontieradventurers",
+      "url": "https://www.tiktok.com/@frontieradventurers",
       "blurb": "Short clips, snack verdicts and park moments."
     },
     {
       "id": "x",
       "label": "X",
-      "handle": "@florianronsse",
-      "url": "https://x.com/florianronsse",
+      "handle": "@FlorianRonsse",
+      "url": "https://x.com/FlorianRonsse",
       "blurb": "Florian’s notes between trips."
     },
     {
       "id": "linktree",
       "label": "Linktree",
-      "handle": "thefrontieradventuresco",
-      "url": "https://linktr.ee/thefrontieradventuresco",
+      "handle": "frontieradventurers",
+      "url": "https://linktr.ee/frontieradventurers",
       "blurb": "Every link in one place."
     }
   ]
