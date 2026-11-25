@@ -38,6 +38,8 @@ Live URL: https://frontieradventurers.com/
 
 The site is served at the root of the custom domain set in the repository’s GitHub Pages settings, so `base` in `astro.config.mjs` is `/` and `site` is that domain. Without a custom domain, set `base` to `/<repository name>` and `site` to the github.io address.
 
+`public/CNAME` holds the domain and `public/robots.txt` points crawlers at the sitemap; both are copied into the build as they are. The deploy workflow publishes with GitHub Actions, and in that mode GitHub reads the custom domain from Settings → Pages, not from the CNAME file. The file is there as a record and for a switch to branch publishing; keep the two in step.
+
 ## The logo
 
 Put the official logo in `public/brand/` as `logo.svg`, `logo.png` or `logo.webp`. It is then used in the header, the hero, the menu and the footer automatically. Optional variants: `logo-light.*` for dark backgrounds and `logo-dark.*` for parchment. Until a file is there, the site shows a plain text wordmark.
