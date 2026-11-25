@@ -3,12 +3,15 @@ import LocalPhoto from './LocalPhoto.astro';
 interface Props {
   id: string;
   label: string;
-  photos: { src: string; alt: string }[];
+  /** caption: an optional short line shown under that photo, inside its slide */
+  photos: { src: string; alt: string; caption?: string }[];
   portrait?: boolean;
   /** How wide a slide is drawn, so phones pick a file that fits instead of the largest. */
   sizes?: string;
+  /** View-transition name for the first photo, so it can morph from the same photo elsewhere */
+  leadTransition?: string;
 }
-const { id, label, photos, portrait = false, sizes = '(min-width: 1280px) 552px, (min-width: 768px) 50vw, 100vw' } = Astro.props;
+const { id, label, photos, portrait = false, sizes = '(min-width: 1280px) 552px, (min-width: 768px) 50vw, 100vw', leadTransition } = Astro.props;
 const multiple = photos.length > 1;
 // Dots are a quick way to jump in a short set. In a long one they no longer fit beside the
 // arrows on a phone, so the arrows, swipe, keys and the "Photo n of N" line do the work.
@@ -25,11 +28,16 @@ const withDots = photos.length <= 6;
   >
     {photos.map((photo, index) => (
       <div class="photo-slide" role="group" aria-roledescription="slide" aria-label={`${index + 1} of ${photos.length}`}>
-        {photo.src.startsWith('http') ? (
-          <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" width="1200" height="675" />
-        ) : (
-          <LocalPhoto src={photo.src} alt={photo.alt} sizes={sizes} />
-        )}
+        <div class="photo-shot">
+          {photo.src.startsWith('http') ? (
+            <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" width="1200" height="675" />
+          ) : index === 0 && leadTransition ? (
+            <LocalPhoto src={photo.src} alt={photo.alt} sizes={sizes} transition:name={leadTransition} />
+          ) : (
+            <LocalPhoto src={photo.src} alt={photo.alt} sizes={sizes} />
+          )}
+        </div>
+        {photo.caption && <p class="photo-caption">{photo.caption}</p>}
       </div>
     ))}
   </div>
@@ -83,12 +91,24 @@ const withDots = photos.length <= 6;
     scrollbar-width: thin;
     scrollbar-color: var(--pc-accent) transparent;
   }
-  .photo-slide { flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; aspect-ratio: 16 / 9; }
-  .photo-slide :global(img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .photo-slide { display: flex; flex-direction: column; flex: 0 0 100%; min-width: 0; scroll-snap-align: start; scroll-snap-stop: always; }
+  .photo-shot { aspect-ratio: 16 / 9; }
+  .photo-shot :global(img) { display: block; width: 100%; height: 100%; object-fit: contain; }
+  /* Short line under the photo, inside the slide, so it travels with its picture (and reads the
+     same without JavaScript). The track is always dark, so the colour is fixed. */
+  .photo-caption {
+    padding: 0.7rem 0.9rem 0.8rem;
+    border-top: 1px solid rgb(196 154 80 / 0.28);
+    font-family: 'IM Fell English', Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.3;
+    color: rgb(232 211 165 / 0.88);
+  }
   /* Portrait sets (the group page) are phone photos in 3:4: match that shape and fill the
      slide, so there are no dark bars. Mixed sets keep "contain" so nothing gets cropped. */
-  .portrait .photo-slide { aspect-ratio: 3 / 4; }
-  .portrait .photo-slide :global(img) { object-fit: cover; }
+  .portrait .photo-shot { aspect-ratio: 3 / 4; }
+  .portrait .photo-shot :global(img) { object-fit: cover; }
 
   .photo-controls { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.75rem; }
   .photo-controls[hidden] { display: none; }

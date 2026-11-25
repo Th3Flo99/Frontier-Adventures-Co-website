@@ -5,8 +5,9 @@
 //   I   Theme Parks        a featured review as a journal page, with a tipped-in photograph
 //   II  Cruise Adventures  a spread: tall photograph against a narrow column of log entries
 //   III Food & Discoveries a ruled ledger with crew averages
-//   IV  Travel Journals    an honestly blank page
-// Content honesty: every line below comes from src/data. A chapter with no entries says so.
+//   IV  Travel Journals    a list of longer stories
+// Content honesty: every line below comes from src/data. A chapter with nothing in it is left
+// out (and the others are numbered on), so the archive never shows an empty page.
 import Layout from '../layouts/Layout.astro';
 import LocalPhoto from '../components/LocalPhoto.astro';
 import ExpeditionMap from '../components/ExpeditionMap.astro';
@@ -38,18 +39,30 @@ const tally = (list: Entry[]) => {
   const r = list.filter((e) => e.kind === 'review').length;
   const f = list.filter((e) => e.kind === 'food').length;
   const parts = [r ? count(r, 'review') : '', f ? count(f, 'food note') : ''].filter(Boolean);
-  return parts.length ? capital(parts.join(', ')) : 'Nothing here yet';
+  return capital(parts.join(', '));
 };
 
-const chapters = categories.map((c, i) => {
+// The sailings themselves, from the cruise destinations on the chart, in the order we sailed
+// them (those without dates last). They give the cruise chapter something real to show even
+// before a review or dining note is filed from the ship.
+const sailings = destinations
+  .filter((d) => d.kind === 'cruise')
+  .sort((a, b) => (a.voyage?.start ?? '9999').localeCompare(b.voyage?.start ?? '9999'));
+
+// Only chapters with something in them are bound in, numbered in the order they appear
+const allChapters = categories.map((c) => {
   const list = entriesByCategory(c.id);
-  return { ...c, numeral: roman[i], list, tally: tally(list) };
+  const extra = c.id === 'cruises' ? sailings.length : 0;
+  const tallyText = list.length ? tally(list) : extra ? capital(count(extra, 'sailing')) : '';
+  return { ...c, list, tally: tallyText, shown: list.length > 0 || extra > 0 };
 });
-const chapter = (id: CategoryId) => chapters.find((c) => c.id === id)!;
+const chapters = allChapters.filter((c) => c.shown).map((c, i) => ({ ...c, numeral: roman[i] }));
+const chapter = (id: CategoryId) => chapters.find((c) => c.id === id);
+const isShown = (id: CategoryId) => chapters.some((c) => c.id === id);
 const byScore = (a: Entry, b: Entry) => b.score - a.score;
 
 // ----- Chapter I: theme parks -----
-const parks = chapter('theme-parks');
+const parks = chapter('theme-parks') ?? { ...allChapters[0], numeral: 'I' };
 const parkReviews = parks.list
   .filter((e) => e.kind === 'review')
   .sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''));
@@ -63,17 +76,11 @@ const featuredSections = (
 ).map((s) => s.title);
 
 // ----- Chapter II: cruises -----
-const cruises = chapter('cruises');
+const cruises = chapter('cruises') ?? { ...allChapters[1], numeral: 'II' };
 const cruiseLog = [...cruises.list.filter((e) => e.kind === 'review'), ...cruises.list.filter((e) => e.kind === 'food')];
 const cruiseOnlyFood = cruiseLog.length > 0 && cruiseLog.every((e) => e.kind === 'food');
-// The sailings themselves, from the cruise destinations on the chart
-// In the order we sailed them (those without dates last)
-const sailings = destinations
-  .filter((d) => d.kind === 'cruise')
-  .sort((a, b) => (a.voyage?.start ?? '9999').localeCompare(b.voyage?.start ?? '9999'));
-
 // ----- Chapter III: food -----
-const foodChapter = chapter('food');
+const foodChapter = chapter('food') ?? { ...allChapters[2], numeral: 'III' };
 const ledger = [...foodChapter.list].sort(byScore);
 // Who has actually scored, read from the data in order of first appearance, so the ledger
 // never implies a score from someone who has not given one.
@@ -81,17 +88,17 @@ const scorers = foodScorers;
 const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 
 // ----- Chapter IV: journals -----
-const journals = chapter('journals');
+const journals = chapter('journals') ?? { ...allChapters[3], numeral: 'IV' };
 
-// Chapters with no entries yet are counted, not hidden
-const blankChapters = chapters.filter((c) => c.list.length === 0).length;
-const blankLine =
-  blankChapters === 0
-    ? 'Four chapters, all with something in them.'
-    : blankChapters === 1
-      ? 'Four chapters. One of them is still blank, and we would rather say so.'
-      : `Four chapters. ${capital(words[blankChapters])} of them have no entries yet, and we would rather say so than fill them.`;
-const onFile = [count(reviews.length, 'review'), count(food.length, 'food note'), `${count(destinations.length, 'destination')} on the chart`].join(', ');
+// "by park, by ship and by plate", built from the chapters that are actually here
+const filedBy = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(
+  chapters.map((c) => ({ 'theme-parks': 'by park', cruises: 'by ship', food: 'by plate', journals: 'by trip' })[c.id]),
+);
+const onFile = [
+  reviews.length ? count(reviews.length, 'review') : '',
+  food.length ? count(food.length, 'food note') : '',
+  `${count(destinations.length, 'destination')} on the chart`,
+].filter(Boolean).join(', ');
 const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String(e.score));
 ---
 
@@ -99,7 +106,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   title="Adventures · Frontier Adventurers"
   description={food.length > 0
     ? 'The Frontier Adventurers archive: the expedition map, theme park reviews, the cruises we have sailed and every food find, scored out of five.'
-    : 'The Frontier Adventurers archive: the expedition map, our theme park reviews, the cruises we have sailed and a food ledger still to be filled.'}
+    : 'The Frontier Adventurers archive: the expedition map, our theme park reviews and the cruises we have sailed.'}
 >
   <!-- Title page and contents -->
   <section class="archive-head surface-deep grain lantern" aria-labelledby="archive-title">
@@ -114,7 +121,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
       <div class="head-grid">
         <div class="head-intro reveal" style="--reveal-delay: 160ms">
           <p class="lede">
-            Everything we have written down so far, filed the way we remember it: by park, by ship and by plate. {blankLine}
+            Everything we have written down so far, filed the way we remember it: {filedBy}.
           </p>
           <p class="fell head-tally">On file: {onFile}.</p>
         </div>
@@ -144,7 +151,8 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   <!-- Plates are numbered in page order: the chart is Plate I, the photographs follow as II to IV -->
   <ExpeditionMap eyebrow="The chart" plate="I" />
 
-  <!-- Chapter I: a featured review, set as a journal page -->
+  <!-- Chapter: a featured review, set as a journal page -->
+  {isShown('theme-parks') && (
   <section id="theme-parks" class="parks surface-paper grain section" aria-labelledby="theme-parks-title">
     <div class="shell">
       <div class="grid gap-8 lg:grid-cols-12 lg:items-end lg:gap-16">
@@ -261,7 +269,10 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
     </div>
   </section>
 
-  <!-- Chapter II: a spread. Tall photograph, narrow column of log entries -->
+  )}
+
+  <!-- Chapter: a spread. Tall photograph, narrow column of log entries -->
+  {isShown('cruises') && (
   <section id="cruises" class="cruise surface-deep grain section" aria-labelledby="cruises-title">
     <div class="shell cruise-grid">
       <div class="cruise-head">
@@ -293,18 +304,18 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
         <div class="frame cruise-photo unveil" data-parallax-root>
           <div class="cruise-drift" data-parallax="5">
             <LocalPhoto
-              src="photos/thibeau/balcony.jpg"
-              alt="Tibeau in a white shirt holding a drink at a balcony railing, with the sea and a cloudy sky behind him"
+              src="photos/thibeau/cocktail.jpg"
+              alt="Tibeau in a light suit sipping from a cocktail glass at a window table on board, a bay and mountains outside"
               sizes="(min-width: 1280px) 620px, (min-width: 1024px) 50vw, 100vw"
               class="photo-grade cruise-img"
             />
           </div>
         </div>
-        <figcaption class="fell cruise-caption reveal">Plate III. Tibeau, a drink and a great deal of sea.</figcaption>
+        <figcaption class="fell cruise-caption reveal">Plate III. Tibeau, a cocktail and a coastline. Priorities in that order.</figcaption>
       </figure>
 
+      {cruiseLog.length > 0 && (
       <div class="cruise-log">
-        {cruiseLog.length > 0 ? (
           <ol class="log" role="list">
             {cruiseLog.map((e, i) => (
               <li class="log-entry reveal">
@@ -325,18 +336,19 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
               </li>
             ))}
           </ol>
-        ) : (
-          <p class="fell cruise-aside">No reviews or dining notes filed from {sailings.length > 1 ? 'these sailings' : 'the ship'} yet.</p>
-        )}
         {cruiseOnlyFood && (
-          <p class="fell cruise-aside reveal">So far this chapter is all dining. Make of that what you will.</p>
+          <p class="fell cruise-aside reveal">So far this chapter is all dining.</p>
         )}
       </div>
+      )}
 
     </div>
   </section>
 
-  <!-- Chapter III: the ledger -->
+  )}
+
+  <!-- Chapter: the ledger -->
+  {isShown('food') && (
   <section id="food" class="foodc surface-jungle grain section" aria-labelledby="food-title">
     <div class="shell">
       <div class="food-head">
@@ -368,13 +380,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
           <span>Where</span>
           <span class="ledger-head-score">Crew average</span>
         </div>
-        {ledger.length === 0 && (
-          <div class="ledger-blank reveal">
-            <div class="ledger-blank-rows" aria-hidden="true"><span>01</span><span>02</span><span>03</span></div>
-            <p class="fell ledger-blank-note">No entries in the ledger yet. Every plate that goes in will be one we actually ate, scored by whoever tasted it.</p>
-          </div>
-        )}
-        <ol class="ledger-list" role="list" hidden={ledger.length === 0}>
+        <ol class="ledger-list" role="list">
           {ledger.map((e, i) => (
             <li class="ledger-row reveal">
               <span class="fell ledger-no" aria-hidden="true">{pad(i + 1)}</span>
@@ -397,58 +403,39 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
           ))}
         </ol>
         <div class="ledger-foot reveal">
-          <p class="fell ledger-foot-note">{ledger.length > 0 ? 'The complete food log, plate by plate, has a page of its own.' : 'How the ledger is kept and scored has a page of its own.'}</p>
+          <p class="fell ledger-foot-note">The complete food log, plate by plate, has a page of its own.</p>
           <a href={href('food')} class="btn btn-brass">Open the Food Log <span class="arrow" aria-hidden="true">→</span></a>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Chapter IV: nothing published yet, and the page says so -->
+  )}
+
+  <!-- Chapter: longer stories, once there are any -->
+  {isShown('journals') && (
   <section id="journals" class="journals surface-deep grain section" aria-labelledby="journals-title">
     <div class="shell journals-grid">
       <div class="journals-text">
         <p class="eyebrow reveal">Chapter {journals.numeral} · {journals.kicker}</p>
         <h2 id="journals-title" class="display chapter-title mt-5 text-parchment-light reveal">{journals.title}</h2>
-        {journals.list.length === 0 ? (
-          <div class="reveal" style="--reveal-delay: 120ms">
-            <p class="lede mt-7">
-              This chapter is kept for longer stories and practical guides from our trips. None are published yet, and we would rather leave a page blank than fill it with something that did not happen.
-            </p>
-            <p class="journals-body">For now, the newest reports from the road are on our channels.</p>
-            <div class="journals-cta">
-              <a href={href('socials')} class="btn btn-ghost">Find Our Channels <span class="arrow" aria-hidden="true">→</span></a>
-            </div>
-          </div>
-        ) : (
-          <div class="reveal" style="--reveal-delay: 120ms">
-            <p class="lede mt-7">{journals.description}</p>
-            <ul class="journals-list" role="list">
-              {journals.list.map((e) => (
-                <li>
-                  <a href={e.url} class="journals-link">
-                    <span class="display">{e.title}</span>
-                    <span class="fell">{e.summary}</span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-      </div>
-
-      {journals.list.length === 0 && (
-        <div class="blank-wrap reveal" style="--reveal-delay: 200ms">
-          <div class="blank surface-paper grain">
-            <p class="blank-top"><span>Travel journal</span><span>Page 1</span></p>
-            <p class="fell blank-line">This page is blank.</p>
-            <p class="fell blank-sub">On purpose.</p>
-            <div class="blank-stamp"><p class="stamp">Nothing filed yet</p></div>
-          </div>
+        <div class="reveal" style="--reveal-delay: 120ms">
+          <p class="lede mt-7">{journals.description}</p>
+          <ul class="journals-list" role="list">
+            {journals.list.map((e) => (
+              <li>
+                <a href={e.url} class="journals-link">
+                  <span class="display">{e.title}</span>
+                  <span class="fell">{e.summary}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
+      </div>
     </div>
   </section>
+  )}
 </Layout>
 
 <script>
@@ -464,8 +451,7 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   .notes-title,
   .log-kind,
   .ledger-head,
-  .ledger-kind,
-  .blank-top {
+  .ledger-kind {
     font-size: 0.7rem;
     font-weight: 600;
     letter-spacing: 0.2em;
@@ -868,6 +854,9 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
       position: sticky;
       top: calc(var(--header-h) + 1.5rem);
     }
+    /* No log entries yet: the head and the plate share one row */
+    .cruise-grid:not(:has(.cruise-log)) { grid-template-rows: auto; }
+    .cruise-grid:not(:has(.cruise-log)) .cruise-plate { grid-row: 1; }
     .cruise-photo {
       aspect-ratio: 2 / 3;
       width: 100%;
@@ -959,18 +948,6 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   .ledger-score-num { font-size: clamp(1.5rem, 1.3rem + 1vw, 2.1rem); line-height: 1; color: var(--gold); }
   .ledger-score .meter { width: 3rem; }
 
-  /* Empty ledger: numbered ruled lines with nothing written on them */
-  .ledger-blank-rows { border-top: 1px solid rgb(196 154 80 / 0.55); }
-  .ledger-blank-rows span {
-    display: block;
-    padding: 1.4rem 0 1.5rem;
-    border-bottom: 1px dashed rgb(232 211 165 / 0.2);
-    font-family: 'IM Fell English', Georgia, serif;
-    font-size: 1.1rem;
-    line-height: 1.5;
-    color: rgb(196 154 80 / 0.55);
-  }
-  .ledger-blank-note { margin-top: 1.5rem; max-width: 34rem; font-size: 1.15rem; line-height: 1.45; color: rgb(232 211 165 / 0.82); }
   .ledger-foot {
     display: grid;
     gap: 1.25rem;
@@ -1027,10 +1004,8 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
     .food-intro { grid-column: 6 / -1; grid-row: 1; padding-bottom: 2.75rem; }
   }
 
-  /* ---------- Chapter IV: travel journals (the blank page) ---------- */
+  /* ---------- Travel journals ---------- */
   .journals-grid { display: grid; gap: 3.5rem; }
-  .journals-body { margin-top: 1.25rem; max-width: 34rem; color: rgb(232 211 165 / 0.86); }
-  .journals-cta { margin-top: 2.25rem; }
   .journals-list { margin-top: 2rem; border-top: 1px solid rgb(196 154 80 / 0.45); }
   .journals-list li { border-bottom: 1px solid rgb(232 211 165 / 0.16); }
   .journals-link { display: grid; gap: 0.3rem; padding: 1.25rem 0; color: var(--parchment-light); }
@@ -1038,69 +1013,13 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
   .journals-link .fell { color: rgb(232 211 165 / 0.82); }
   .journals-link:hover .display { color: var(--gold-bright); }
 
-  /* A second sheet shows under the first, so the page reads as part of a book */
-  .blank-wrap { position: relative; max-width: 26rem; width: 100%; margin-inline: auto; }
-  .blank-wrap::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: #b9a273;
-    transform: rotate(2.2deg) translate(0.5rem, 0.35rem);
-  }
-  .blank {
-    --line: 2.25rem;
-    --rule-top: 4.25rem;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    aspect-ratio: 4 / 5;
-    padding: 1.5rem 1.5rem 1.75rem 2.75rem;
-    transform: rotate(-1.2deg);
-  }
-  /* Ruled lines and a margin line, like the first page of a new notebook */
-  .blank::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(90deg, transparent calc(1.9rem - 1px), rgb(140 60 40 / 0.4) calc(1.9rem - 1px), rgb(140 60 40 / 0.4) 1.9rem, transparent 1.9rem),
-      repeating-linear-gradient(180deg, transparent 0 calc(var(--line) - 1px), rgb(72 42 27 / 0.2) calc(var(--line) - 1px) var(--line)) 0 var(--rule-top) / 100% calc(100% - var(--rule-top) - 1.25rem) no-repeat;
-    pointer-events: none;
-  }
-  .blank-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-bottom: 0.9rem;
-    border-bottom: 1px solid rgb(72 42 27 / 0.5);
-    color: var(--mahogany);
-  }
-  .blank-line,
-  .blank-sub {
-    position: relative;
-    font-size: clamp(1.45rem, 1.2rem + 1.2vw, 1.85rem);
-    line-height: var(--line);
-    color: var(--mahogany);
-  }
-  .blank-line { margin-top: 1.2rem; }
-  .blank-sub { color: rgb(72 42 27 / 0.86); }
-  .blank-stamp {
-    position: relative;
-    margin-top: auto;
-    align-self: flex-end;
-    color: var(--mahogany);
-  }
-  /* The stamp is the page's status line, so it is set at the size of the other small labels */
-  .blank-stamp .stamp { font-size: 0.72rem; letter-spacing: 0.18em; }
-
   @media (min-width: 1024px) {
     .journals-grid {
       grid-template-columns: repeat(12, minmax(0, 1fr));
       column-gap: 2rem;
       align-items: center;
     }
-    .journals-text { grid-column: 1 / span 6; }
-    .blank-wrap { grid-column: 8 / -1; max-width: 27rem; margin-inline: auto 0; }
+    .journals-text { grid-column: 1 / span 8; }
   }
 
   @media (prefers-reduced-motion: reduce) {

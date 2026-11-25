@@ -47,7 +47,7 @@ const crew = group.map((person, i) => {
       </div>
       <div class="lg:col-span-5">
         <p class="lede reveal" style="--reveal-delay: 120ms">
-          One group lead, one food expert, one drink expert, one social media expert and one reliable third vote. Friends and family from Belgium, hung here in order of file number.
+          The planner, the foodie and critic, the enthusiast, our social media expert and the cruise lover. Friends and family from Belgium, hung here in order of file number.
         </p>
       </div>
     </div>
@@ -59,11 +59,12 @@ const crew = group.map((person, i) => {
       <ul role="list" class="wall-list">
         {crew.map((member, i) => (
           <li class="wall-item" style={`--drop: ${member.hang.drop}`}>
-            <a href={href(`about#${member.slug}`)} class="portrait reveal" style={`--reveal-delay: ${i * 90}ms`}>
+            <a href={href(`about#${member.slug}`)} class="portrait reveal" style={`--reveal-delay: ${i * 90}ms`} data-crew={member.slug}>
               <span class="frame portrait-frame">
                 <LocalPhoto
                   src={member.src}
                   alt={member.alt}
+                  transition:name={`crew-${member.slug}`}
                   sizes="(min-width: 1440px) 300px, (min-width: 1024px) 20vw, (min-width: 640px) 30vw, 45vw"
                   class="photo-grade portrait-img"
                 />
@@ -190,6 +191,21 @@ const crew = group.map((person, i) => {
   .portrait:focus-visible .portrait-arrow { opacity: 1; transform: none; }
   /* Keyboard focus moves the keyline the same way the pointer does */
   .portrait:focus-visible > .frame::after { inset: 0.9rem; border-color: var(--gold-bright); }
+
+  /* On hover a portrait swings once on its wire, from the top centre where it hangs, and settles.
+     Only on devices that can hover, so a tap never leaves a frame crooked. */
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .portrait { transform-origin: top center; }
+    .portrait:hover { animation: crew-pendulum 1.8s var(--ease-out) both; }
+  }
+  @keyframes crew-pendulum {
+    0% { transform: rotate(0deg); }
+    20% { transform: rotate(1.2deg); }
+    44% { transform: rotate(-0.75deg); }
+    66% { transform: rotate(0.4deg); }
+    84% { transform: rotate(-0.15deg); }
+    100% { transform: rotate(0deg); }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .portrait:hover :global(.portrait-img),

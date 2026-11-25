@@ -53,12 +53,22 @@ const strike = 'M2.4 18.6 36.6 5.6';
         </h1>
         <p class="lede fare-lede reveal" style="--reveal-delay: 160ms">
           {empty
-            ? 'The ledger for everything our crew eats on our trips, from park snacks to dinners at sea, each scored from 1 to 5 by whoever tasted it. It is still blank: we would rather leave it empty than fill it with plates we never ate.'
+            ? 'The ledger for everything our crew eats on our trips, from park snacks to dinners at sea, each scored from 1 to 5 by whoever tasted it. No plates have gone in yet.'
             : `Everything our crew has eaten on our trips, entered in the ledger and ${scoredBy}.`}
         </p>
       </div>
 
       <div class="fare-intro">
+        {empty ? (
+          <div class="legend reveal" style="--reveal-delay: 240ms">
+            <p class="eyebrow no-rule">Meanwhile</p>
+            <p class="fell legend-note">The rest of the journal is open.</p>
+            <p class="ledger-close-links">
+              <a href={href('reviews')} class="link">Read the reviews <span class="arrow" aria-hidden="true">→</span></a>
+              <a href={href('adventures')} class="link">See the adventures <span class="arrow" aria-hidden="true">→</span></a>
+            </p>
+          </div>
+        ) : (
         <div class="legend reveal" style="--reveal-delay: 240ms">
           <p class="eyebrow no-rule">How to read the ledger</p>
           <p class="fell legend-note">One pencil stroke per point, and a strike through the lot for a five. The large numeral is the crew average, taken from the scores listed under it.</p>
@@ -74,28 +84,16 @@ const strike = 'M2.4 18.6 36.6 5.6';
             ))}
           </ol>
         </div>
+        )}
       </div>
     </div>
   </section>
 
+  {!empty && (
   <section class="ledger surface-jungle grain" aria-label="The tasting ledger">
     <div class="shell">
       <!-- Filter and sort. Hidden without JavaScript, where the full ledger is simply shown. -->
-      {empty && (
-        <div class="ledger-empty reveal">
-          <div class="empty-sheet surface-paper grain">
-            <p class="empty-top"><span>Tasting ledger</span><span>Page 1</span></p>
-            <ol class="empty-rules" aria-hidden="true">
-              {[1, 2, 3, 4, 5].map((n) => <li><span class="fell">{String(n).padStart(2, '0')}</span></li>)}
-            </ol>
-            <h2 class="fell empty-line">Not a single plate entered yet.</h2>
-            <p class="empty-sub">An entry goes in only once we have actually eaten it, with the place, the trip and a score from each of us who tasted it.</p>
-            <p class="stamp empty-stamp">Ledger open</p>
-          </div>
-        </div>
-      )}
-
-      <div class="ledger-bar" hidden={empty}>
+      <div class="ledger-bar">
         <div class="controls" id="filters">
           <div class="filter-set" role="group" aria-label="Filter by type">
             <span class="controls-label" aria-hidden="true">Show</span>
@@ -164,7 +162,7 @@ const strike = 'M2.4 18.6 36.6 5.6';
 
       <div class="ledger-close">
         <div class="ornament" aria-hidden="true"><span></span></div>
-        <p class="fell ledger-close-note reveal">{empty ? 'Meanwhile, the rest of the journal is open.' : 'That is the whole ledger, for now. Research continues, one snack at a time.'}</p>
+        <p class="fell ledger-close-note reveal">That is the whole ledger, for now.</p>
         <p class="ledger-close-links reveal">
           <a href={href('reviews')} class="link">Read the reviews <span class="arrow" aria-hidden="true">→</span></a>
           <a href={href('adventures')} class="link">See the adventures <span class="arrow" aria-hidden="true">→</span></a>
@@ -172,6 +170,7 @@ const strike = 'M2.4 18.6 36.6 5.6';
       </div>
     </div>
   </section>
+  )}
 </Layout>
 
 <style>
@@ -577,39 +576,6 @@ const strike = 'M2.4 18.6 36.6 5.6';
   /* ---------- Close ---------- */
   .ledger-close { margin-top: clamp(3rem, 7vw, 5rem); text-align: center; }
 
-  /* ---------- Empty ledger: a blank page of the tasting book ---------- */
-  .ledger-empty { max-width: 40rem; margin-inline: auto; }
-  .empty-sheet {
-    position: relative;
-    padding: clamp(1.5rem, 4vw, 2.5rem);
-    box-shadow: 0.5rem 0.6rem 0 #b9a273;
-  }
-  .empty-top {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-bottom: 0.9rem;
-    border-bottom: 3px double rgb(72 42 27 / 0.45);
-    font-size: 0.7rem;
-    font-weight: 600;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-  }
-  .empty-rules li {
-    padding: 0.75rem 0 0.7rem;
-    border-bottom: 1px solid rgb(72 42 27 / 0.2);
-    font-size: 1.05rem;
-    line-height: 1.5;
-    color: rgb(72 42 27 / 0.55);
-  }
-  .empty-line {
-    margin-top: 1.75rem;
-    font-size: clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem);
-    line-height: 1.15;
-    font-weight: 400;
-  }
-  .empty-sub { margin-top: 0.85rem; max-width: 30rem; font-size: 1.02rem; line-height: 1.55; color: rgb(44 25 15 / 0.86); }
-  .empty-stamp { margin-top: 1.5rem; color: var(--mahogany); }
   .ledger-close-note {
     margin-top: 2rem;
     font-size: 1.3rem;
@@ -624,41 +590,48 @@ const strike = 'M2.4 18.6 36.6 5.6';
   }
   /* 44px target, with the underline kept close to the words */
   .ledger-close-links .link { min-height: 2.75rem; align-items: flex-end; }
+  /* In the header (empty ledger) the links sit left, under the note */
+  .legend .ledger-close-links { justify-content: flex-start; gap: 0.5rem 2rem; margin-top: 1rem; }
 </style>
 
 <script>
-  const grid = document.getElementById('food-grid');
-  const status = document.getElementById('food-status');
-  const cards = Array.from(document.querySelectorAll<HTMLElement>('.food-card'));
-  const filterBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter]'));
-  const sortBtn = document.querySelector<HTMLButtonElement>('[data-sort]');
+  import { onPage } from '../scripts/lifecycle';
 
-  const announce = () => {
-    if (!status) return;
-    const visible = cards.filter((c) => c.style.display !== 'none').length;
-    const sorted = sortBtn?.getAttribute('aria-pressed') === 'true';
-    status.textContent = `Showing ${visible} of ${cards.length} items${sorted ? ', sorted by highest score' : ''}.`;
-  };
+  // Run for every visit to this page, also after a view-transition navigation (lifecycle.ts)
+  onPage(() => {
+    const grid = document.getElementById('food-grid');
+    const status = document.getElementById('food-status');
+    const cards = Array.from(document.querySelectorAll<HTMLElement>('.food-card'));
+    const filterBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-filter]'));
+    const sortBtn = document.querySelector<HTMLButtonElement>('[data-sort]');
 
-  filterBtns.forEach((btn) => {
-    btn.addEventListener('click', () => {
-      const type = btn.dataset.filter;
-      filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
-      cards.forEach((card) => {
-        card.style.display = type === 'all' || card.dataset.type === type ? '' : 'none';
+    const announce = () => {
+      if (!status) return;
+      const visible = cards.filter((c) => c.style.display !== 'none').length;
+      const sorted = sortBtn?.getAttribute('aria-pressed') === 'true';
+      status.textContent = `Showing ${visible} of ${cards.length} items${sorted ? ', sorted by highest score' : ''}.`;
+    };
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const type = btn.dataset.filter;
+        filterBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+        cards.forEach((card) => {
+          card.style.display = type === 'all' || card.dataset.type === type ? '' : 'none';
+        });
+        announce();
       });
+    });
+
+    // Toggle between highest score first and the original order
+    sortBtn?.addEventListener('click', () => {
+      const sortOn = sortBtn.getAttribute('aria-pressed') !== 'true';
+      sortBtn.setAttribute('aria-pressed', String(sortOn));
+      const ordered = sortOn
+        ? [...cards].sort((a, b) => parseFloat(b.dataset.avg ?? '0') - parseFloat(a.dataset.avg ?? '0'))
+        : cards;
+      ordered.forEach((card) => grid?.appendChild(card));
       announce();
     });
-  });
-
-  // Toggle between highest score first and the original order
-  sortBtn?.addEventListener('click', () => {
-    const sortOn = sortBtn.getAttribute('aria-pressed') !== 'true';
-    sortBtn.setAttribute('aria-pressed', String(sortOn));
-    const ordered = sortOn
-      ? [...cards].sort((a, b) => parseFloat(b.dataset.avg ?? '0') - parseFloat(a.dataset.avg ?? '0'))
-      : cards;
-    ordered.forEach((card) => grid?.appendChild(card));
-    announce();
   });
 </script>

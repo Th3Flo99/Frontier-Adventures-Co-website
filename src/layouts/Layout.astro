@@ -5,6 +5,7 @@ import { existsSync } from 'node:fs';
 import besleyUrl from '@fontsource-variable/besley/files/besley-latin-wght-normal.woff2?url';
 import instrumentUrl from '@fontsource-variable/instrument-sans/files/instrument-sans-latin-wght-normal.woff2?url';
 import Compass from '../components/Compass.astro';
+import { ViewTransitions } from 'astro:transitions';
 import site from '../data/site.json';
 import { base, href, stripSlash } from '../lib/paths';
 
@@ -70,8 +71,8 @@ const jsonLd = {
   <head>
     <meta charset="UTF-8" />
     <!-- The two text faces used above the fold, fetched early so headings do not re-wrap late -->
-    <link rel="preload" href={besleyUrl} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={instrumentUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={besleyUrl} as="font" type="font/woff2" crossorigin transition:persist="font-besley" />
+    <link rel="preload" href={instrumentUrl} as="font" type="font/woff2" crossorigin transition:persist="font-instrument" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#142A24" />
@@ -101,6 +102,10 @@ const jsonLd = {
          before DOMContentLoaded. If it has not checked in by then, it was blocked or failed, and
          the mark is taken away so the page falls back to its no-JavaScript form. A slow network
          only delays DOMContentLoaded, so it never triggers the fallback. -->
+    <!-- Page-to-page navigation without a full reload, so a crew portrait on the home page can
+         travel into its file on /about/. Scripts re-run per page through src/scripts/lifecycle.ts.
+         The router leaves out the animation for visitors who prefer reduced motion. -->
+    <ViewTransitions />
     <script is:inline>
       document.documentElement.classList.add('js');
       document.addEventListener('DOMContentLoaded', function () {
@@ -240,115 +245,166 @@ const jsonLd = {
     </footer>
 
     <script>
+      import { onPage } from '../scripts/lifecycle';
       // GSAP is loaded only by the pages that use it (home and adventures), not here.
 
       // The bundle has arrived: keep (or restore) the "js" mark set in the head
       (window as any).__faReady = true;
       document.documentElement.classList.add('js');
 
-      // ----- Header state -----
-      const header = document.getElementById('site-header');
-      const setScrolled = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
-      setScrolled();
-      window.addEventListener('scroll', setScrolled, { passive: true });
-
-      // ----- Journal menu -----
-      const btn = document.getElementById('menu-btn');
-      const menu = document.getElementById('site-menu');
-      const menuScroll = menu?.querySelector<HTMLElement>('[data-menu-scroll]');
-      const label = btn?.querySelector('[data-menu-label]');
-      const root = document.documentElement;
-
-      const setMenu = (open: boolean, { restoreFocus = true } = {}) => {
-        if (!btn || !menu) return;
-        if (open) {
-          // Open the page from the compass, like an aperture
-          const r = btn.getBoundingClientRect();
-          menu.style.setProperty('--cx', `${r.left + r.width / 2}px`);
-          menu.style.setProperty('--cy', `${r.top + r.height / 2}px`);
-          if (menuScroll) menuScroll.scrollTop = 0;
-        }
-        root.classList.toggle('menu-open', open);
-        btn.setAttribute('aria-expanded', String(open));
-        btn.setAttribute('aria-label', open ? 'Close the expedition index' : 'Open the expedition index');
-        if (label) label.textContent = open ? 'Close' : 'Index';
-        document.body.classList.toggle('overflow-hidden', open);
-        // Keep keyboard focus inside the overlay: everything behind it becomes inert
-        document.querySelectorAll('[data-behind-menu]').forEach((el) => el.toggleAttribute('inert', open));
-        if (open) {
-          menu.querySelector('a')?.focus({ preventScroll: true });
-        } else if (restoreFocus) {
-          btn.focus();
-        }
-      };
-
-      btn?.addEventListener('click', () => setMenu(btn.getAttribute('aria-expanded') !== 'true'));
-      menu?.querySelectorAll('a').forEach((a) =>
-        a.addEventListener('click', () => setMenu(false, { restoreFocus: false }))
-      );
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && btn?.getAttribute('aria-expanded') === 'true') setMenu(false);
-      });
-      // A page restored from the back/forward cache must not come back with the menu open
-      window.addEventListener('pageshow', (e) => {
-        if (e.persisted) setMenu(false, { restoreFocus: false });
-      });
-
-      // ----- Explorer's compass: the needle follows the pointer, or the scroll on touch screens -----
-      const needleHost = btn?.querySelector<HTMLElement>('.compass-btn-dial');
-      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-      if (needleHost && !reduceMotion.matches) {
-        let frame = 0;
-        let angle = 0;
-        const apply = () => {
-          frame = 0;
-          needleHost.style.setProperty('--needle', `${angle}deg`);
-        };
-        const schedule = () => { if (!frame) frame = requestAnimationFrame(apply); };
-
-        if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-          window.addEventListener('pointermove', (e) => {
-            const r = needleHost.getBoundingClientRect();
-            const dx = e.clientX - (r.left + r.width / 2);
-            const dy = e.clientY - (r.top + r.height / 2);
-            const target = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
-            // Take the short way round so the needle never spins a full turn
-            angle += ((((target - angle) % 360) + 540) % 360) - 180;
-            schedule();
-          }, { passive: true });
-        } else {
-          window.addEventListener('scroll', () => {
-            const max = document.documentElement.scrollHeight - window.innerHeight;
-            angle = max > 0 ? (window.scrollY / max) * 360 : 0;
-            schedule();
-          }, { passive: true });
-        }
-      }
-
-      // ----- Reveal on scroll -----
-      const reveals = document.querySelectorAll('.reveal, .unveil');
-      if (reduceMotion.matches || !('IntersectionObserver' in window)) {
-        reveals.forEach((el) => el.classList.add('visible'));
-      } else {
-        // Reveal as soon as any part of the element enters the viewport. A percentage-of-element
-        // threshold can never be met by elements much taller than the screen (a long review),
-        // which would then stay invisible. The 24px bottom margin cancels the translateY(24px)
-        // of unrevealed elements, so nothing that is on screen stays hidden.
-        const observer = new IntersectionObserver((entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        }, { threshold: 0, rootMargin: '0px 0px 24px 0px' });
-        reveals.forEach((el) => {
-          // An element laid out as "display: contents" has no box, so the observer would never
-          // report it: nothing of it is hidden either, so it simply counts as revealed
-          if (getComputedStyle(el).display === 'contents') el.classList.add('visible');
-          else observer.observe(el);
+      // View transitions: the router copies the new page's <html> attributes, which do not carry
+      // the "js" mark, so it is put back before the new page is shown. A crew portrait that
+      // morphs into the new page (transition:name) must not wait for its scroll reveal, or the
+      // morph lands on an invisible element; and its photograph is fetched at once.
+      // Only the portrait that was followed travels (about#megan, or back from it): every other
+      // crew photo drops its name on both pages, so four frames do not sweep across the screen.
+      let crewSlug = '';
+      const pinCrew = (root: Document) =>
+        root.querySelectorAll<HTMLElement>('[data-crew] [data-astro-transition-scope]').forEach((el) => {
+          el.style.viewTransitionName = el.closest<HTMLElement>('[data-crew]')?.dataset.crew === crewSlug ? '' : 'none';
         });
-      }
+      document.addEventListener('astro:before-preparation', (e: any) => {
+        crewSlug = (e.to?.hash || e.from?.hash || '').slice(1);
+        pinCrew(document);
+      });
+      document.addEventListener('astro:before-swap', (e: any) => pinCrew(e.newDocument));
+
+      document.addEventListener('astro:after-swap', () => {
+        document.documentElement.classList.add('js');
+        document.querySelectorAll<HTMLElement>('[data-astro-transition-scope]').forEach((el) => {
+          if (el instanceof HTMLImageElement) el.loading = 'eager';
+          const host = el.closest<HTMLElement>('.reveal, .unveil');
+          if (!host) return;
+          host.style.transition = 'none';
+          host.classList.add('visible');
+          requestAnimationFrame(() => requestAnimationFrame(() => { host.style.transition = ''; }));
+        });
+      });
+
+      onPage((signal) => {
+        // ----- Header state -----
+        const header = document.getElementById('site-header');
+        const setScrolled = () => header?.classList.toggle('is-scrolled', window.scrollY > 24);
+        setScrolled();
+        window.addEventListener('scroll', setScrolled, { passive: true, signal });
+
+        // ----- Journal menu -----
+        const btn = document.getElementById('menu-btn');
+        const menu = document.getElementById('site-menu');
+        const menuScroll = menu?.querySelector<HTMLElement>('[data-menu-scroll]');
+        const label = btn?.querySelector('[data-menu-label]');
+        const root = document.documentElement;
+
+        const setMenu = (open: boolean, { restoreFocus = true } = {}) => {
+          if (!btn || !menu) return;
+          if (open) {
+            // Open the page from the compass, like an aperture
+            const r = btn.getBoundingClientRect();
+            menu.style.setProperty('--cx', `${r.left + r.width / 2}px`);
+            menu.style.setProperty('--cy', `${r.top + r.height / 2}px`);
+            if (menuScroll) menuScroll.scrollTop = 0;
+          }
+          root.classList.toggle('menu-open', open);
+          btn.setAttribute('aria-expanded', String(open));
+          btn.setAttribute('aria-label', open ? 'Close the expedition index' : 'Open the expedition index');
+          if (label) label.textContent = open ? 'Close' : 'Index';
+          document.body.classList.toggle('overflow-hidden', open);
+          // Keep keyboard focus inside the overlay: everything behind it becomes inert
+          document.querySelectorAll('[data-behind-menu]').forEach((el) => el.toggleAttribute('inert', open));
+          if (open) {
+            menu.querySelector('a')?.focus({ preventScroll: true });
+          } else if (restoreFocus) {
+            btn.focus();
+          }
+        };
+
+        btn?.addEventListener('click', () => setMenu(btn.getAttribute('aria-expanded') !== 'true'));
+        menu?.querySelectorAll('a').forEach((a) =>
+          a.addEventListener('click', () => setMenu(false, { restoreFocus: false }))
+        );
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && btn?.getAttribute('aria-expanded') === 'true') setMenu(false);
+        }, { signal });
+        // A page restored from the back/forward cache must not come back with the menu open
+        window.addEventListener('pageshow', (e) => {
+          if (e.persisted) setMenu(false, { restoreFocus: false });
+        }, { signal });
+
+        // ----- Explorer's compass: the needle follows the pointer, or the scroll on touch screens -----
+        const needleHost = btn?.querySelector<HTMLElement>('.compass-btn-dial');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+        if (needleHost && !reduceMotion.matches) {
+          let frame = 0;
+          let angle = 0;
+          const apply = () => {
+            frame = 0;
+            needleHost.style.setProperty('--needle', `${angle}deg`);
+          };
+          const schedule = () => { if (!frame) frame = requestAnimationFrame(apply); };
+
+          if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+            window.addEventListener('pointermove', (e) => {
+              const r = needleHost.getBoundingClientRect();
+              const dx = e.clientX - (r.left + r.width / 2);
+              const dy = e.clientY - (r.top + r.height / 2);
+              const target = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+              // Take the short way round so the needle never spins a full turn
+              angle += ((((target - angle) % 360) + 540) % 360) - 180;
+              schedule();
+            }, { passive: true, signal });
+          } else {
+            window.addEventListener('scroll', () => {
+              const max = document.documentElement.scrollHeight - window.innerHeight;
+              angle = max > 0 ? (window.scrollY / max) * 360 : 0;
+              schedule();
+            }, { passive: true, signal });
+          }
+          signal.addEventListener('abort', () => cancelAnimationFrame(frame));
+        }
+
+        // ----- Reveal on scroll -----
+        const reveals = document.querySelectorAll('.reveal, .unveil');
+        if (reduceMotion.matches || !('IntersectionObserver' in window)) {
+          reveals.forEach((el) => el.classList.add('visible'));
+        } else {
+          // Reveal as soon as any part of the element enters the viewport. A percentage-of-element
+          // threshold can never be met by elements much taller than the screen (a long review),
+          // which would then stay invisible. The 24px bottom margin cancels the translateY(24px)
+          // of unrevealed elements, so nothing that is on screen stays hidden.
+          const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+                observer.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0, rootMargin: '0px 0px 24px 0px' });
+          signal.addEventListener('abort', () => observer.disconnect());
+          reveals.forEach((el) => {
+            // An element laid out as "display: contents" has no box, so the observer would never
+            // report it: nothing of it is hidden either, so it simply counts as revealed
+            if (getComputedStyle(el).display === 'contents') el.classList.add('visible');
+            else observer.observe(el);
+          });
+        }
+
+        // ----- Stamps press on when they first come into view (see [data-stamp] in global.css) -----
+        const stamps = document.querySelectorAll('[data-stamp]');
+        if (reduceMotion.matches || !('IntersectionObserver' in window)) {
+          stamps.forEach((el) => el.classList.add('is-pressed'));
+        } else {
+          const stampObserver = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+              if (entry.isIntersecting) {
+                entry.target.classList.add('is-pressed');
+                stampObserver.unobserve(entry.target);
+              }
+            });
+          }, { threshold: 0.6 });
+          signal.addEventListener('abort', () => stampObserver.disconnect());
+          stamps.forEach((el) => stampObserver.observe(el));
+        }
+      });
     </script>
   </body>
 </html>

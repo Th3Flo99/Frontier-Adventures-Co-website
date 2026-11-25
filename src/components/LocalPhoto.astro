@@ -8,8 +8,10 @@ interface Props {
   id?: string;
   sizes?: string;
   priority?: boolean;
+  /** Any other attribute (data-parallax, transition:name output and so on) goes on the img */
+  [key: string]: unknown;
 }
-const { src, alt, class: className, style, id, sizes = '100vw', priority = false } = Astro.props;
+const { src, alt, class: className, style, id, sizes = '100vw', priority = false, ...rest } = Astro.props;
 const photo = photos[src as keyof typeof photos];
 const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
 ---
@@ -23,4 +25,5 @@ const base = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/`;
   fetchpriority={priority ? 'high' : undefined}
   decoding="async"
   {alt} class={className} {style} {id}
+  {...rest}
 />

@@ -15,12 +15,18 @@
       "lon": 2.7758,
       "approximate": false,
       "blurb": "The closest Disney resort to our home port, and where our Davy Crockett Ranch stay took place.",
+      "photo": {
+        "src": "photos/florian/castle.jpg",
+        "alt": "Florian in profile in a Walt Disney Studios hoodie and a birthday badge, the pink castle of Disneyland Park behind him",
+        "focus": "50% 30%"
+      },
       "tag": {
         "dx": 30,
         "dy": 8,
         "label": "right"
       },
-      "_source": "reviews.json (the Davy Crockett Ranch review on TripAdvisor)."
+      "_source": "reviews.json (the Davy Crockett Ranch review on TripAdvisor).",
+      "_photoSource": "Photo: the castle in it is the pink castle of Disneyland Park, Paris, and Florian wears a French birthday badge."
     },
     {
       "id": "walt-disney-world",
@@ -32,15 +38,17 @@
       "approximate": false,
       "blurb": "Across the Atlantic to Florida. Our crew photo was taken here, in front of Cinderella Castle at Magic Kingdom. The same trip took us to sea aboard the Disney Treasure.",
       "photo": {
-        "src": "group-photo.jpg",
-        "alt": "The five of us standing arm in arm in front of Cinderella Castle at Magic Kingdom"
+        "src": "photos/thibeau/epcot.jpg",
+        "alt": "Tibeau in a Star Wars T-shirt with a drink by the lagoon at Epcot, Spaceship Earth in the distance",
+        "focus": "50% 36%"
       },
       "tag": {
         "dx": -24,
         "dy": -20,
         "label": "left"
       },
-      "_source": "Confirmed by the crew: the group photo was taken at Walt Disney World, and the 7-night Disney Treasure cruise was part of the same trip."
+      "_source": "Confirmed by the crew: the group photo was taken at Walt Disney World, and the 7-night Disney Treasure cruise was part of the same trip.",
+      "_photoSource": "Photo: Spaceship Earth, Epcot, is in the background."
     },
     {
       "id": "disney-treasure",
@@ -261,6 +269,11 @@
       "lon": 2.1776,
       "approximate": false,
       "blurb": "Seven nights in the western Mediterranean aboard the Disney Fantasy: from Barcelona to Civitavecchia, Livorno and Genoa in Italy, Toulon in France, and back to Barcelona.",
+      "photo": {
+        "src": "photos/florian/harbour.jpg",
+        "alt": "Florian in a blazer at a window table on board, looking out at a bay and mountains",
+        "focus": "50% 40%"
+      },
       "tag": {
         "dx": 15,
         "dy": 25,
@@ -446,7 +459,8 @@
           ]
         ]
       },
-      "_source": "Confirmed by the crew: a Mediterranean cruise from Barcelona on the Disney Fantasy. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart)."
+      "_source": "Confirmed by the crew: a Mediterranean cruise from Barcelona on the Disney Fantasy. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart).",
+      "_photoSource": "Photo: a ship restaurant over a mountainous bay; the Mediterranean sailing is the only one of ours with a coast like that."
     },
     {
       "id": "southampton-cruise",

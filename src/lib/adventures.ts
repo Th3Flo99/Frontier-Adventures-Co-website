@@ -51,7 +51,8 @@ export interface Destination {
   lon: number;
   approximate: boolean;
   blurb: string;
-  photo?: { src: string; alt: string };
+  /** focus: CSS object-position for the 16:9 crop on the chart, e.g. "50% 30%" */
+  photo?: { src: string; alt: string; focus?: string };
   /** Where the brass tag hangs on the chart, for destinations close to others (screen pixels) */
   tag?: { dx?: number; dy?: number; label?: 'below' | 'left' | 'right' };
   /** For a cruise: the ship, dates, ports in order and the track it actually sailed */
