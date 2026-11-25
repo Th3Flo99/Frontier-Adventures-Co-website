@@ -59,7 +59,7 @@ const crew = group.map((person, i) => {
       <ul role="list" class="wall-list">
         {crew.map((member, i) => (
           <li class="wall-item" style={`--drop: ${member.hang.drop}`}>
-            <a href={href(`about#${member.slug}`)} class="portrait reveal" style={`--reveal-delay: ${i * 90}ms`}>
+            <a href={href(`about#${member.slug}`)} class="portrait reveal" style={`--reveal-delay: ${i * 90}ms`} data-crew={member.slug}>
               <span class="frame portrait-frame">
                 <LocalPhoto
                   src={member.src}

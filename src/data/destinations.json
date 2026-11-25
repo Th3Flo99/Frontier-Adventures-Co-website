@@ -59,11 +59,6 @@
       "lon": -80.6188,
       "approximate": false,
       "blurb": "Seven nights in the Western Caribbean aboard the Disney Treasure, on the same trip as our Walt Disney World visit: Cozumel, Falmouth and Disney Castaway Cay, from Port Canaveral and back.",
-      "photo": {
-        "src": "photos/thibeau/plaza.jpg",
-        "alt": "Tibeau seen from behind in a Toy Story T-shirt, giving a thumbs up outside the yellow Plaza La Fiesta shops in Cozumel",
-        "focus": "50% 42%"
-      },
       "tag": {
         "dx": -24,
         "dy": 22,
@@ -263,8 +258,7 @@
           ]
         ]
       },
-      "_source": "Confirmed by the crew: the 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip, from Port Canaveral. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart).",
-      "_photoSource": "Photo: the Plaza La Fiesta shops in Cozumel, a port of call on this voyage."
+      "_source": "Confirmed by the crew: the 7-night Western Caribbean cruise on the Disney Treasure during the Walt Disney World trip, from Port Canaveral. Ship, dates, ports of call and the sailed track come from the crew's own voyage page on The Cruise Globe (track simplified for the chart)."
     },
     {
       "id": "mediterranean-cruise",

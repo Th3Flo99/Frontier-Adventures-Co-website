@@ -71,8 +71,8 @@ const jsonLd = {
   <head>
     <meta charset="UTF-8" />
     <!-- The two text faces used above the fold, fetched early so headings do not re-wrap late -->
-    <link rel="preload" href={besleyUrl} as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href={instrumentUrl} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={besleyUrl} as="font" type="font/woff2" crossorigin transition:persist="font-besley" />
+    <link rel="preload" href={instrumentUrl} as="font" type="font/woff2" crossorigin transition:persist="font-instrument" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content={description} />
     <meta name="theme-color" content="#142A24" />
@@ -256,6 +256,19 @@ const jsonLd = {
       // the "js" mark, so it is put back before the new page is shown. A crew portrait that
       // morphs into the new page (transition:name) must not wait for its scroll reveal, or the
       // morph lands on an invisible element; and its photograph is fetched at once.
+      // Only the portrait that was followed travels (about#megan, or back from it): every other
+      // crew photo drops its name on both pages, so four frames do not sweep across the screen.
+      let crewSlug = '';
+      const pinCrew = (root: Document) =>
+        root.querySelectorAll<HTMLElement>('[data-crew] [data-astro-transition-scope]').forEach((el) => {
+          el.style.viewTransitionName = el.closest<HTMLElement>('[data-crew]')?.dataset.crew === crewSlug ? '' : 'none';
+        });
+      document.addEventListener('astro:before-preparation', (e: any) => {
+        crewSlug = (e.to?.hash || e.from?.hash || '').slice(1);
+        pinCrew(document);
+      });
+      document.addEventListener('astro:before-swap', (e: any) => pinCrew(e.newDocument));
+
       document.addEventListener('astro:after-swap', () => {
         document.documentElement.classList.add('js');
         document.querySelectorAll<HTMLElement>('[data-astro-transition-scope]').forEach((el) => {

@@ -227,7 +227,7 @@ const crewCount = inWords(crew.length);
               )}
             </header>
 
-            <figure class="d-plate">
+            <figure class="d-plate" data-crew={member.slug}>
               {member.pictures.length > 1 ? (
                 <div class="plate-carousel reveal">
                   <PhotoCarousel

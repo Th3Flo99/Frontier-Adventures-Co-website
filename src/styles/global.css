@@ -416,6 +416,10 @@ main:focus { outline: none; }
     scroll-behavior: auto !important;
   }
   @view-transition { navigation: none; }
+  /* The client-side router (Layout.astro) animates through these pseudo-elements */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
 }
 
 /* ---------- Reveal on scroll ----------

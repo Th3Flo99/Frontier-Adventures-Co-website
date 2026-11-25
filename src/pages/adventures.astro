@@ -314,8 +314,8 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
         <figcaption class="fell cruise-caption reveal">Plate III. Tibeau, a cocktail and a coastline. Priorities in that order.</figcaption>
       </figure>
 
+      {cruiseLog.length > 0 && (
       <div class="cruise-log">
-        {cruiseLog.length > 0 && (
           <ol class="log" role="list">
             {cruiseLog.map((e, i) => (
               <li class="log-entry reveal">
@@ -336,11 +336,11 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
               </li>
             ))}
           </ol>
-        )}
         {cruiseOnlyFood && (
-          <p class="fell cruise-aside reveal">So far this chapter is all dining. Make of that what you will.</p>
+          <p class="fell cruise-aside reveal">So far this chapter is all dining.</p>
         )}
       </div>
+      )}
 
     </div>
   </section>
@@ -854,6 +854,9 @@ const scoreText = (e: Entry) => (e.kind === 'food' ? e.score.toFixed(1) : String
       position: sticky;
       top: calc(var(--header-h) + 1.5rem);
     }
+    /* No log entries yet: the head and the plate share one row */
+    .cruise-grid:not(:has(.cruise-log)) { grid-template-rows: auto; }
+    .cruise-grid:not(:has(.cruise-log)) .cruise-plate { grid-row: 1; }
     .cruise-photo {
       aspect-ratio: 2 / 3;
       width: 100%;
