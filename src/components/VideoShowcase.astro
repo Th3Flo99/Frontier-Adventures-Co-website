@@ -241,93 +241,98 @@ const channels = ['youtube', 'instagram', 'tiktok']
 </section>
 
 <script>
-  // Click-to-load player. Nothing is requested from YouTube until a visitor presses play.
-  // There is one screen, so starting another film always replaces (and stops) the first.
-  const house = document.querySelector<HTMLElement>('[data-screening]');
-  const frame = house?.querySelector<HTMLElement>('[data-frame]');
-  const slot = house?.querySelector<HTMLElement>('[data-slot]');
+  import { onPage } from '../scripts/lifecycle';
 
-  if (house && frame && slot) {
-    const status = house.querySelector<HTMLElement>('[data-status]');
-    const nowLabel = house.querySelector<HTMLElement>('[data-now-label]');
-    const nowTitle = house.querySelector<HTMLElement>('[data-now-title]');
-    const nowNumeral = house.querySelector<HTMLElement>('[data-now-numeral]');
-    const nowDate = house.querySelector<HTMLElement>('[data-now-date]');
-    const reels = Array.from(house.querySelectorAll<HTMLButtonElement>('.reel[data-play]'));
-    let current = '';
-    let giveUp = 0;
+  // Run for every page showing the screening room, also after a view-transition navigation
+  onPage(() => {
+    // Click-to-load player. Nothing is requested from YouTube until a visitor presses play.
+    // There is one screen, so starting another film always replaces (and stops) the first.
+    const house = document.querySelector<HTMLElement>('[data-screening]');
+    const frame = house?.querySelector<HTMLElement>('[data-frame]');
+    const slot = house?.querySelector<HTMLElement>('[data-slot]');
 
-    const markCurrent = (id: string) => {
-      reels.forEach((reel) => {
-        const on = reel.dataset.id === id;
-        reel.toggleAttribute('aria-current', on);
-        if (on) reel.setAttribute('aria-current', 'true');
-        const cue = reel.querySelector('[data-cue]');
-        if (cue) cue.textContent = on ? 'Now showing' : 'Play';
-      });
-    };
+    if (house && frame && slot) {
+      const status = house.querySelector<HTMLElement>('[data-status]');
+      const nowLabel = house.querySelector<HTMLElement>('[data-now-label]');
+      const nowTitle = house.querySelector<HTMLElement>('[data-now-title]');
+      const nowNumeral = house.querySelector<HTMLElement>('[data-now-numeral]');
+      const nowDate = house.querySelector<HTMLElement>('[data-now-date]');
+      const reels = Array.from(house.querySelectorAll<HTMLButtonElement>('.reel[data-play]'));
+      let current = '';
+      let giveUp = 0;
 
-    const play = (trigger: HTMLElement) => {
-      const id = trigger.dataset.id ?? '';
-      const title = trigger.dataset.title ?? 'Video';
-      if (!/^[\w-]{6,20}$/.test(id)) return;
+      const markCurrent = (id: string) => {
+        reels.forEach((reel) => {
+          const on = reel.dataset.id === id;
+          reel.toggleAttribute('aria-current', on);
+          if (on) reel.setAttribute('aria-current', 'true');
+          const cue = reel.querySelector('[data-cue]');
+          if (cue) cue.textContent = on ? 'Now showing' : 'Play';
+        });
+      };
 
-      if (id !== current) {
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1`;
-        iframe.title = title;
-        iframe.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture';
-        iframe.setAttribute('allowfullscreen', '');
-        iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+      const play = (trigger: HTMLElement) => {
+        const id = trigger.dataset.id ?? '';
+        const title = trigger.dataset.title ?? 'Video';
+        if (!/^[\w-]{6,20}$/.test(id)) return;
 
-        const loaded = () => {
+        if (id !== current) {
+          const iframe = document.createElement('iframe');
+          iframe.src = `https://www.youtube-nocookie.com/embed/${encodeURIComponent(id)}?autoplay=1`;
+          iframe.title = title;
+          iframe.allow = 'accelerometer; autoplay; encrypted-media; picture-in-picture';
+          iframe.setAttribute('allowfullscreen', '');
+          iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+
+          const loaded = () => {
+            window.clearTimeout(giveUp);
+            if (slot.firstElementChild !== iframe) return;
+            frame.classList.remove('is-loading');
+            if (status) status.textContent = `Now showing: ${title}`;
+          };
           window.clearTimeout(giveUp);
-          if (slot.firstElementChild !== iframe) return;
-          frame.classList.remove('is-loading');
-          if (status) status.textContent = `Now showing: ${title}`;
-        };
-        window.clearTimeout(giveUp);
-        iframe.addEventListener('load', loaded, { once: true });
-        // If the load event never arrives (blocked network), do not leave the loader spinning
-        giveUp = window.setTimeout(loaded, 12000);
+          iframe.addEventListener('load', loaded, { once: true });
+          // If the load event never arrives (blocked network), do not leave the loader spinning
+          giveUp = window.setTimeout(loaded, 12000);
 
-        frame.classList.add('is-loading', 'is-playing');
-        if (status) status.textContent = `Loading: ${title}`;
-        slot.replaceChildren(iframe);
-        current = id;
+          frame.classList.add('is-loading', 'is-playing');
+          if (status) status.textContent = `Loading: ${title}`;
+          slot.replaceChildren(iframe);
+          current = id;
 
-        if (nowLabel) nowLabel.textContent = 'Now showing';
-        if (nowTitle) nowTitle.textContent = title;
-        const listed = reels.find((reel) => reel.dataset.id === id);
-        if (nowNumeral && listed?.dataset.numeral) nowNumeral.textContent = listed.dataset.numeral;
-        if (nowDate && listed) {
-          const text = listed.dataset.date;
-          nowDate.hidden = !text;
-          const time = nowDate.querySelector('time');
-          if (time && text) {
-            time.textContent = text;
-            time.setAttribute('datetime', listed.dataset.dateIso ?? '');
+          if (nowLabel) nowLabel.textContent = 'Now showing';
+          if (nowTitle) nowTitle.textContent = title;
+          const listed = reels.find((reel) => reel.dataset.id === id);
+          if (nowNumeral && listed?.dataset.numeral) nowNumeral.textContent = listed.dataset.numeral;
+          if (nowDate && listed) {
+            const text = listed.dataset.date;
+            nowDate.hidden = !text;
+            const time = nowDate.querySelector('time');
+            if (time && text) {
+              time.textContent = text;
+              time.setAttribute('datetime', listed.dataset.dateIso ?? '');
+            }
           }
+          markCurrent(id);
         }
-        markCurrent(id);
-      }
 
-      // The play button on the screen disappears, so keyboard focus moves to the player.
-      // From the programme list, focus stays on the list and the screen is brought into view.
-      const iframe = slot.querySelector('iframe');
-      if (trigger.hasAttribute('data-main-play')) {
-        iframe?.focus({ preventScroll: true });
-      } else {
-        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        frame.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'smooth' });
-      }
-    };
+        // The play button on the screen disappears, so keyboard focus moves to the player.
+        // From the programme list, focus stays on the list and the screen is brought into view.
+        const iframe = slot.querySelector('iframe');
+        if (trigger.hasAttribute('data-main-play')) {
+          iframe?.focus({ preventScroll: true });
+        } else {
+          const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          frame.scrollIntoView({ block: 'nearest', behavior: reduce ? 'instant' : 'smooth' });
+        }
+      };
 
-    house.addEventListener('click', (event) => {
-      const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-play]');
-      if (trigger) play(trigger);
-    });
-  }
+      house.addEventListener('click', (event) => {
+        const trigger = (event.target as HTMLElement).closest<HTMLElement>('[data-play]');
+        if (trigger) play(trigger);
+      });
+    }
+  });
 </script>
 
 <style>

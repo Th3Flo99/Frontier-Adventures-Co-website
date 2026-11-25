@@ -25,6 +25,7 @@ import { href } from '../lib/paths';
         alt="The five of us standing arm in arm in front of Cinderella Castle at Walt Disney World"
         sizes="(min-width: 1024px) and (min-aspect-ratio: 5/4) max(150vh, 78vw, 1100px), (max-aspect-ratio: 3/4) 90vh, 115vw"
         class="hero-img"
+        data-parallax="6"
       />
       <div class="hero-shade" aria-hidden="true"></div>
     </div>
@@ -41,7 +42,7 @@ import { href } from '../lib/paths';
         <span class="hero-line"><span style="--d:0.59s">Adventure.</span></span>
       </h1>
       <p class="lede hero-lede hero-in" style="--d:0.85s">
-        Five friends. Endless adventures. Join us as we explore extraordinary places, unforgettable experiences and a little magic along the way.
+        Five friends from Belgium who love theme parks and Disney cruises. This is where we have been, and what we thought of it.
       </p>
       <div class="hero-actions hero-in" style="--d:1s">
         <a href={href('adventures')} class="btn btn-brass">Explore Our Adventures <span class="arrow" aria-hidden="true">→</span></a>
@@ -91,7 +92,7 @@ import { href } from '../lib/paths';
     height: 116%;
     object-fit: cover;
     object-position: center;
-    filter: sepia(0.16) saturate(0.9) contrast(1.04);
+    filter: sepia(0.05) saturate(0.98) contrast(1.03);
   }
   .hero-shade {
     position: absolute;
@@ -172,7 +173,7 @@ import { href } from '../lib/paths';
     }
     .hero-shade {
       background:
-        linear-gradient(90deg, var(--jungle-deep) 0%, rgb(12 27 23 / 0.72) 18%, rgb(12 27 23 / 0.15) 48%, transparent 62%),
+        linear-gradient(90deg, var(--jungle-deep) 0%, rgb(12 27 23 / 0.8) 13%, rgb(12 27 23 / 0.12) 34%, transparent 44%),
         linear-gradient(0deg, var(--jungle-deep) 0%, rgb(12 27 23 / 0.25) 22%, transparent 40%),
         radial-gradient(60% 55% at 78% 18%, rgb(221 185 111 / 0.14), transparent 70%);
     }
@@ -210,6 +211,17 @@ import { href } from '../lib/paths';
       text-align: right;
       font-size: 1rem;
       color: rgb(232 211 165 / 0.82);
+      isolation: isolate;
+    }
+    /* A soft shadow behind the caption itself: the parallax drift can move a lighter part of
+       the photograph under it, and the caption has to stay readable wherever it lands */
+    .hero-plate::before {
+      content: '';
+      position: absolute;
+      inset: -1.75rem -2.25rem -1.5rem -2.75rem;
+      z-index: -1;
+      background: radial-gradient(closest-side, rgb(12 27 23 / 0.78), rgb(12 27 23 / 0.5) 60%, transparent);
+      pointer-events: none;
     }
     .hero-scroll {
       display: inline-flex;

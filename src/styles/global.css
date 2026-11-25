@@ -252,8 +252,23 @@ a:hover .photo-grade,
   font-weight: 600;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  transform: rotate(-2.5deg);
-  opacity: 0.85;
+  --stamp-tilt: -2.5deg;
+  --stamp-opacity: 0.85;
+  transform: rotate(var(--stamp-tilt));
+  opacity: var(--stamp-opacity);
+}
+
+/* Stamp press: an element with data-stamp lands like a rubber stamp the first time it scrolls
+   into view (the class is added in Layout.astro). It sets --stamp-tilt for its resting angle
+   and --stamp-opacity for its resting opacity. Without motion, it is simply there. */
+@media (prefers-reduced-motion: no-preference) {
+  .js [data-stamp]:not(.is-pressed) { opacity: 0; }
+  .js [data-stamp].is-pressed { animation: stamp-press 0.6s cubic-bezier(0.2, 0.9, 0.3, 1.15) both; }
+}
+@keyframes stamp-press {
+  0% { opacity: 0; transform: rotate(calc(var(--stamp-tilt, 0deg) - 7deg)) scale(1.6); }
+  65% { opacity: var(--stamp-opacity, 1); transform: rotate(var(--stamp-tilt, 0deg)) scale(0.95); }
+  100% { opacity: var(--stamp-opacity, 1); transform: rotate(var(--stamp-tilt, 0deg)) scale(1); }
 }
 
 /* ---------- Buttons ---------- */

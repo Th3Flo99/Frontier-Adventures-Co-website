@@ -2,7 +2,7 @@
 import PhotoCarousel from '../components/PhotoCarousel.astro';
 import Layout from '../layouts/Layout.astro';
 import reviews from '../data/reviews.json';
-import { categories, destinationById } from '../lib/adventures';
+import { categories, destinationById, foodItems } from '../lib/adventures';
 import { href } from '../lib/paths';
 
 // Accepts "YYYY-MM-DD" or "YYYY-MM"; anything else is shown as written
@@ -135,7 +135,7 @@ const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.
               </p>
 
               <div class="verdict">
-                <div class="verdict-stamp">
+                <div class="verdict-stamp" data-stamp>
                   <p class="verdict-label" aria-hidden="true">Rated</p>
                   <p class="display verdict-num" aria-hidden="true">{r.rating}<span>/5</span></p>
                   <div class="verdict-stars" role="img" aria-label={`${r.rating} out of 5 stars`}>
@@ -236,9 +236,11 @@ const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.
       ))}
 
       <div class="journal-close">
-        <p class="fell journal-close-note reveal">That is every page written so far. The pen is capped, not retired.</p>
+        <p class="fell journal-close-note reveal">That is every review so far.</p>
         <p class="journal-close-links reveal">
-          <a href={href('food')} class="link">The food ledger <span class="arrow" aria-hidden="true">→</span></a>
+          {foodItems.length > 0
+            ? <a href={href('food')} class="link">The food ledger <span class="arrow" aria-hidden="true">→</span></a>
+            : <a href={href('about')} class="link">Meet the crew <span class="arrow" aria-hidden="true">→</span></a>}
           <a href={href('adventures')} class="link">See the adventures <span class="arrow" aria-hidden="true">→</span></a>
         </p>
       </div>
@@ -368,7 +370,8 @@ const star = 'M12 2.4l2.95 6.2 6.75.9-4.95 4.7 1.25 6.75L12 17.7l-6 3.25 1.25-6.
     outline: 1px solid currentColor;
     outline-offset: 3px;
     color: var(--mahogany);
-    transform: rotate(-3.5deg);
+    --stamp-tilt: -3.5deg;
+    transform: rotate(var(--stamp-tilt));
   }
   .verdict-label {
     font-size: 0.72rem;

@@ -53,16 +53,55 @@ const alts: Record<string, string> = {
   'photos/thibeau/cinderella.jpg': 'Tibeau arm in arm with Cinderella in her blue gown in front of a painted floral backdrop',
 };
 
+// A short line under each photo in a crew member's set, shortened from what the alt text
+// describes: nothing in it that is not in the picture. A photo without a line shows none.
+const shortCaptions: Record<string, string> = {
+  'photos/florian/bus.jpg': 'On the bus, in a patterned shirt.',
+  'photos/florian/throne.jpg': 'A throne-like chair and red curtains.',
+  'photos/florian/sitting.jpg': 'A stone bollard in a quiet square.',
+  'photos/florian/churro.jpg': 'A churro, with a rollercoaster behind.',
+  'photos/florian/window.jpg': 'A table by the window, the sea outside.',
+  'photos/florian/harbour.jpg': 'Wine, cheese, a bay and mountains.',
+  'photos/florian/captain.jpg': 'A handshake with Captain Mickey.',
+  'photos/florian/wheel.jpg': 'At the ship’s wheel.',
+  'photos/florian/terrace.jpg': 'A jug of something red, with orange slices.',
+  'photos/florian/stitch.jpg': 'A high five from Stitch.',
+  'photos/florian/birthday.jpg': 'Mickey, and a birthday badge.',
+  'photos/florian/castle.jpg': 'A pink castle over his shoulder.',
+  'photos/megan/food.jpg': 'Knife and fork up, two full plates.',
+  'photos/megan/pretzel.jpg': 'A Mickey pretzel, seconds from gone.',
+  'photos/megan/green-drink.jpg': 'Something green, by the lake.',
+  'photos/megan/deck.jpg': 'A green drink on a sunny deck.',
+  'photos/megan/stitch.jpg': 'A high five from Stitch.',
+  'photos/megan/towel.jpg': 'A towel animal wearing sunglasses.',
+  'photos/megan/belle.jpg': 'Posing with Belle.',
+  'photos/elias/pooh.jpg': 'A bench in a garden.',
+  'photos/elias/ride.jpg': 'A ride seat shaped like a shell.',
+  'photos/elias/rocks.jpg': 'Red rocks and cacti.',
+  'photos/elias/rain.jpg': 'A rain jacket on a rainy plaza.',
+  'photos/elias/castle-night.jpg': 'A castle lit in purple.',
+  'photos/elias/deck.jpg': 'A selfie on deck, open sea behind.',
+  'photos/elias/anchor.jpg': 'An anchor marked DCL.',
+  'photos/thibeau/balcony.jpg': 'A drink on a balcony, the sea behind.',
+  'photos/thibeau/railing.jpg': 'At the railing, glass in hand.',
+  'photos/thibeau/plaza.jpg': 'A thumbs up outside Plaza La Fiesta.',
+  'photos/thibeau/epcot.jpg': 'Spaceship Earth in the distance.',
+  'photos/thibeau/rocket.jpg': 'Rocket and Groot, in bronze.',
+  'photos/thibeau/cocktail.jpg': 'A cocktail and a coastline.',
+  'photos/thibeau/cinderella.jpg': 'Arm in arm with Cinderella.',
+};
+
 // Plate captions: they only describe the photograph, with a straight face.
 const captions: Record<string, string> = {
   florian: 'The planner, in {count} exposures.',
   megan: 'Megan, conducting fieldwork in {count} exposures.',
   elias: 'Elias in {count} exposures: rides, rain and the open sea.',
   lotte: 'Lotte in {count} exposures: parks, characters and the open sea.',
-  tibeau: 'The drink expert, pictured with evidence.',
+  tibeau: 'The cruise lover, pictured with evidence.',
 };
 
-// Profile fields the crew fills in later (src/data/group.json). Empty stays visibly empty.
+// Field notes: each member's own lines from src/data/group.json ("notes"), then any of these
+// profile fields that have been filled in. Empty fields are left out until they are filled.
 const noteFields = [
   { key: 'favoriteDestination', label: 'Favourite destination' },
   { key: 'favoriteAttraction', label: 'Favourite attraction' },
@@ -94,11 +133,14 @@ const crew = group.map((person, i) => {
     plate: roman[i] ?? String(i + 1),
     variant: variants[i % variants.length],
     caption: (captions[slug] ?? `${first}.`).replace('{count}', inWords(sources.length)),
-    pictures: sources.map((src) => ({ src, alt: alts[src] ?? `Photograph of ${first}` })),
-    notes: noteFields.map((field) => ({
-      label: field.label,
-      value: ((person as Record<string, unknown>)[field.key] as string | undefined)?.trim() ?? '',
-    })),
+    pictures: sources.map((src) => ({ src, alt: alts[src] ?? `Photograph of ${first}`, caption: shortCaptions[src] })),
+    notes: [
+      ...((person as { notes?: { label: string; value: string }[] }).notes ?? []),
+      ...noteFields.map((field) => ({
+        label: field.label,
+        value: ((person as Record<string, unknown>)[field.key] as string | undefined)?.trim() ?? '',
+      })),
+    ].filter((note) => note.value),
     links: Object.entries((person as { socials?: Record<string, string> }).socials ?? {}).map(([id, url]) => ({
       url,
       label: socialLabels[id] ?? id,
@@ -106,8 +148,6 @@ const crew = group.map((person, i) => {
   };
 });
 
-const paperworkOutstanding = crew.some((member) => member.notes.some((note) => !note.value));
-const nextNo = String(crew.length + 1).padStart(2, '0');
 const crewCount = inWords(crew.length);
 ---
 
@@ -124,7 +164,7 @@ const crewCount = inWords(crew.length);
       </div>
 
       <p class="lede crew-lede reveal" style="--reveal-delay: 160ms">
-        We are a Belgian group of five friends and family who share a passion for theme parks, Disney cruises, travel and adventure. Each of us has a file below.{paperworkOutstanding && ' Some of the paperwork is still outstanding.'}
+        We are a Belgian group of five friends and family who share a passion for theme parks, Disney cruises, travel and adventure. Each of us has a file below.
       </p>
 
       <figure class="frontis">
@@ -195,6 +235,7 @@ const crewCount = inWords(crew.length);
                     label={`Photos of ${member.first}`}
                     portrait
                     sizes={plateSizes}
+                    leadTransition={`crew-${member.slug}`}
                     photos={member.pictures}
                   />
                 </div>
@@ -205,6 +246,7 @@ const crewCount = inWords(crew.length);
                     alt={member.pictures[0].alt}
                     sizes={plateSizes}
                     class="photo-grade plate-img"
+                    transition:name={`crew-${member.slug}`}
                   />
                 </div>
               )}
@@ -218,18 +260,21 @@ const crewCount = inWords(crew.length);
               <p>{member.bio}</p>
             </div>
 
+            {(member.notes.length > 0 || member.links.length > 0) && (
             <div class="d-notes reveal">
-              <h3 class="notes-title">Field notes</h3>
-              <dl class="notes">
-                {member.notes.map((note) => (
-                  <div class="note">
-                    <dt>{note.label}</dt>
-                    {note.value
-                      ? <dd class="fell">{note.value}</dd>
-                      : <dd class="fell is-blank">Not yet logged</dd>}
-                  </div>
-                ))}
-              </dl>
+              {member.notes.length > 0 && (
+                <>
+                  <h3 class="notes-title">Field notes</h3>
+                  <dl class="notes">
+                    {member.notes.map((note) => (
+                      <div class="note">
+                        <dt>{note.label}</dt>
+                        <dd class="fell">{note.value}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                </>
+              )}
               {member.links.length > 0 && (
                 <ul class="d-links">
                   {member.links.map((link) => (
@@ -244,52 +289,39 @@ const crewCount = inWords(crew.length);
                 </ul>
               )}
             </div>
+            )}
           </div>
         </div>
       </article>
     ))}
   </div>
 
-  <!-- The next file is still empty -->
-  <section class="roll-open surface-deep grain section" aria-labelledby="roll-open-title">
-    <div class="shell roll-open-grid">
-      <div class="vacant reveal" aria-hidden="true">
-        <span class="fell vacant-no">No. {nextNo}</span>
-        <span class="fell vacant-note">Portrait pending</span>
-      </div>
-      <div class="roll-open-copy">
-        <p class="eyebrow reveal">File No. {nextNo} · Vacant</p>
-        <h2 id="roll-open-title" class="display chapter-title text-parchment-light mt-5 reveal">The Roll Stays Open.</h2>
-        <p class="lede mt-6 reveal">
-          The list is open if someone new joins the trips. Until then, the {crewCount} of us will manage.
-        </p>
-        <div class="mt-9 reveal">
-          <a href={href('adventures')} class="btn btn-brass">See Our Adventures <span class="arrow" aria-hidden="true">→</span></a>
-        </div>
-      </div>
-    </div>
-  </section>
 </Layout>
 
 <script>
-  // The single prints wipe in from behind a closed mask. A browser may not count a fully masked
-  // photograph as near the viewport, and then its lazy load only starts once the wipe is over.
-  // So each print is asked for while its plate is still well below the fold, whatever the engine
-  // makes of the mask. Without JavaScript there is no mask and plain lazy loading does the job.
-  const prints = document.querySelectorAll<HTMLImageElement>('.d-plate .unveil img[loading="lazy"]');
-  if ('IntersectionObserver' in window) {
-    const ahead = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        entry.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
-        ahead.unobserve(entry.target);
-      });
-    }, { rootMargin: '1500px 0px' });
-    // the figure itself is never masked, so it can be watched reliably
-    prints.forEach((img) => { const plate = img.closest('.d-plate'); if (plate) ahead.observe(plate); });
-  } else {
-    prints.forEach((img) => { img.loading = 'eager'; });
-  }
+  import { onPage } from '../scripts/lifecycle';
+
+  // Run for every visit to this page, also after a view-transition navigation (lifecycle.ts)
+  onPage(() => {
+    // The single prints wipe in from behind a closed mask. A browser may not count a fully masked
+    // photograph as near the viewport, and then its lazy load only starts once the wipe is over.
+    // So each print is asked for while its plate is still well below the fold, whatever the engine
+    // makes of the mask. Without JavaScript there is no mask and plain lazy loading does the job.
+    const prints = document.querySelectorAll<HTMLImageElement>('.d-plate .unveil img[loading="lazy"]');
+    if ('IntersectionObserver' in window) {
+      const ahead = new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.querySelectorAll<HTMLImageElement>('img[loading="lazy"]').forEach((img) => { img.loading = 'eager'; });
+          ahead.unobserve(entry.target);
+        });
+      }, { rootMargin: '1500px 0px' });
+      // the figure itself is never masked, so it can be watched reliably
+      prints.forEach((img) => { const plate = img.closest('.d-plate'); if (plate) ahead.observe(plate); });
+    } else {
+      prints.forEach((img) => { img.loading = 'eager'; });
+    }
+  });
 </script>
 
 <style>
@@ -452,12 +484,11 @@ const crewCount = inWords(crew.length);
     color: var(--d-accent);
   }
   .notes { margin-top: 0.85rem; border-top: 1px solid var(--d-line); }
+  /* The notes are short sentences, so the label sits above its line rather than beside it */
   .note {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: baseline;
-    column-gap: 1rem;
-    padding: 0.7rem 0;
+    row-gap: 0.3rem;
+    padding: 0.75rem 0 0.8rem;
     border-bottom: 1px solid var(--d-line);
   }
   .note dt {
@@ -467,8 +498,7 @@ const crewCount = inWords(crew.length);
     text-transform: uppercase;
     color: var(--d-text);
   }
-  .note dd { font-size: 1.15rem; line-height: 1.3; text-align: right; color: var(--d-head); }
-  .note dd.is-blank { color: var(--d-muted); }
+  .note dd { font-size: 1.15rem; line-height: 1.3; color: var(--d-head); text-wrap: pretty; }
 
   .d-links { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: 0.5rem 1.75rem; }
   /* 44px hit area without moving the underline */
@@ -587,39 +617,7 @@ const crewCount = inWords(crew.length);
     .dossier--wide .note dd { text-align: left; }
   }
 
-  /* ---------- The open roll ---------- */
-  .roll-open-grid { display: grid; gap: 2.5rem; }
-  .roll-open .lede { max-width: 32rem; }
-  .vacant {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    width: min(11rem, 46%);
-    aspect-ratio: 3 / 4;
-    padding: 1.1rem 1.2rem;
-    border: 1px solid rgb(196 154 80 / 0.5);
-  }
-  /* inner keyline, like the mounted prints above, around nothing yet */
-  .vacant::after {
-    content: '';
-    position: absolute;
-    inset: 0.45rem;
-    border: 1px dashed rgb(232 211 165 / 0.3);
-    pointer-events: none;
-  }
-  .vacant-no { font-size: 1.5rem; line-height: 1; color: var(--gold); }
-  .vacant-note { font-size: 1rem; line-height: 1.3; color: rgb(232 211 165 / 0.78); }
   @media (prefers-reduced-motion: reduce) {
     .roll-link:hover { padding-left: 0; }
-  }
-  @media (min-width: 768px) {
-    .roll-open-grid {
-      grid-template-columns: repeat(12, minmax(0, 1fr));
-      column-gap: 2rem;
-      align-items: end;
-    }
-    .vacant { grid-column: 1 / span 3; width: min(14rem, 100%); }
-    .roll-open-copy { grid-column: 5 / span 8; }
   }
 </style>

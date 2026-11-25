@@ -3,7 +3,7 @@
 // The most recent review lies open as a parchment page; beside it, the top of the food
 // ledger; underneath, the four chapters of the archive as an index. Everything is read from
 // src/lib/adventures.ts, so a new review or food note changes this section by itself.
-import { categories, entriesByCategory, reviews, food, foodScorers, type Entry } from '../lib/adventures';
+import { categories, entriesByCategory, destinations, reviews, food, foodScorers, type Entry } from '../lib/adventures';
 import { href } from '../lib/paths';
 
 const roman = ['I', 'II', 'III', 'IV', 'V', 'VI'];
@@ -36,18 +36,20 @@ const topFood = [...food].sort((a, b) => b.score - a.score).slice(0, 3);
 const scorers = foodScorers;
 const scorerNames = new Intl.ListFormat('en-GB', { style: 'long', type: 'conjunction' }).format(scorers);
 
-const chapters = categories.map((c, i) => {
-  const list = entriesByCategory(c.id);
-  const r = list.filter((e) => e.kind === 'review').length;
-  const f = list.filter((e) => e.kind === 'food').length;
-  const parts = [r ? count(r, 'review') : '', f ? count(f, 'food note') : ''].filter(Boolean);
-  return {
-    ...c,
-    numeral: roman[i],
-    url: href(`adventures#${c.id}`),
-    tally: parts.length ? capital(parts.join(', ')) : 'Nothing here yet',
-  };
-});
+// The archive index lists only chapters with something in them, numbered as on the archive
+// page. The cruise chapter counts its sailings until a review or dining note is filed.
+const sailings = destinations.filter((d) => d.kind === 'cruise').length;
+const chapters = categories
+  .map((c) => {
+    const list = entriesByCategory(c.id);
+    const r = list.filter((e) => e.kind === 'review').length;
+    const f = list.filter((e) => e.kind === 'food').length;
+    const parts = [r ? count(r, 'review') : '', f ? count(f, 'food note') : ''].filter(Boolean);
+    if (!parts.length && c.id === 'cruises' && sailings) parts.push(count(sailings, 'sailing'));
+    return { ...c, url: href(`adventures#${c.id}`), tally: capital(parts.join(', ')), shown: parts.length > 0 };
+  })
+  .filter((c) => c.shown)
+  .map((c, i) => ({ ...c, numeral: roman[i] }));
 ---
 
 <section id="journal" class="journal surface-deep grain section" aria-labelledby="journal-title">
@@ -63,12 +65,12 @@ const chapters = categories.map((c, i) => {
         <p class="lede reveal" style="--reveal-delay: 120ms">
           {food.length > 0
             ? 'Reviews and food scores, so far. The journal is open at the latest review, next to the plates at the top of our food ledger.'
-            : `${capital(count(reviews.length, 'published review'))} so far, and a food ledger still waiting for its first entry. The journal is open at the latest review.`}
+            : `${capital(count(reviews.length, 'published review'))} so far. The journal is open at the latest one.`}
         </p>
       </div>
     </div>
 
-    <div class="desk">
+    <div class:list={['desk', { 'desk-solo': topFood.length === 0 }]}>
       {featured && (
         <div class="page-wrap reveal">
           <article class="page surface-paper grain" aria-labelledby="journal-featured-title">
@@ -104,17 +106,6 @@ const chapters = categories.map((c, i) => {
         </div>
       )}
 
-      {topFood.length === 0 && (
-        <div class="finds finds-empty reveal" style="--reveal-delay: 140ms">
-          <h3 class="finds-title">The food ledger</h3>
-          <div class="finds-blank" aria-hidden="true"><span></span><span></span><span></span></div>
-          <p class="finds-note fell">No plates scored yet. Every entry will be one we actually ate, scored out of five by whoever tasted it.</p>
-          <p class="finds-more">
-            <a href={href('food')} class="link">How the ledger works <span class="arrow" aria-hidden="true">→</span></a>
-          </p>
-        </div>
-      )}
-
       {topFood.length > 0 && (
         <div class="finds reveal" style="--reveal-delay: 140ms">
           <h3 class="finds-title">Top of the food ledger</h3>
@@ -146,7 +137,8 @@ const chapters = categories.map((c, i) => {
       )}
     </div>
 
-    <nav class="chapters reveal" aria-label="Chapters of the adventure archive">
+    {chapters.length > 0 && (
+    <nav class="chapters reveal" aria-label="Chapters of the adventure archive" style={`--chapters:${Math.min(chapters.length, 4)}`}>
       <p class="chapters-label">In the archive</p>
       <ol class="chapters-list" role="list">
         {chapters.map((c) => (
@@ -160,6 +152,7 @@ const chapters = categories.map((c, i) => {
         ))}
       </ol>
     </nav>
+    )}
 
     <div class="journal-cta reveal">
       <a href={href('adventures')} class="btn btn-brass">Open the Archive <span class="arrow" aria-hidden="true">→</span></a>
@@ -307,9 +300,6 @@ const chapters = categories.map((c, i) => {
     color: rgb(232 211 165 / 0.8);
   }
   .finds-more { margin-top: 1.25rem; }
-  /* Empty ledger: three blank ruled lines where the entries will go */
-  .finds-blank { margin-top: 1rem; border-top: 1px solid rgb(196 154 80 / 0.5); }
-  .finds-blank span { display: block; height: 3.4rem; border-bottom: 1px dashed rgb(232 211 165 / 0.2); }
   .finds-more .link { min-height: 2.75rem; align-items: center; }
 
   /* ---------- The archive, as an index ---------- */
@@ -355,7 +345,7 @@ const chapters = categories.map((c, i) => {
     .page-foot { grid-template-columns: auto 1fr; gap: clamp(1.5rem, 3vw, 4rem); }
     .page-go :global(.btn) { white-space: nowrap; }
     .page-go { justify-items: end; text-align: right; }
-    .chapters-list { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 2.5rem; }
+    .chapters-list { grid-template-columns: repeat(min(2, var(--chapters, 2)), minmax(0, 1fr)); column-gap: 2.5rem; }
   }
 
   @media (min-width: 1024px) {
@@ -365,11 +355,13 @@ const chapters = categories.map((c, i) => {
       align-items: start;
     }
     .page-wrap { grid-column: 1 / span 7; }
+    /* No food ledger to sit beside it yet: the open page takes the wider measure */
+    .desk-solo .page-wrap { grid-column: 1 / span 9; }
     .finds { grid-column: 9 / -1; padding-top: 1.25rem; }
 
     /* Four columns divided by hairlines, like the running heads of a ledger */
     .chapters-list {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(var(--chapters, 4), minmax(0, 1fr));
       column-gap: 0;
       border-bottom: 1px solid rgb(232 211 165 / 0.16);
     }

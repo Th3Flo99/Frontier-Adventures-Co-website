@@ -1,8 +1,18 @@
 [
   {
     "name": "Florian Ronsse",
-    "role": "Group Lead",
-    "bio": "The planner. Florian handles every Disney detail from park days and cruise itineraries to Lightning Lane strategy and late-night snack runs. He keeps the group moving and the magic intact.",
+    "role": "The Planner",
+    "bio": "Every group needs someone with a plan, and in ours that is Florian. A Disney fan for almost as long as he can remember, he knows the magic is in the details: park days, cruise itineraries, Lightning Lane strategy and the late-night snack runs. Our story started with him and Tibeau. They used to be colleagues, and through their friendship the five of us found each other.",
+    "notes": [
+      {
+        "label": "Disney fan",
+        "value": "For almost as long as he can remember"
+      },
+      {
+        "label": "Fun fact",
+        "value": "He and Tibeau were colleagues. That friendship is how the crew came together."
+      }
+    ],
     "favoriteDestination": "",
     "favoriteAttraction": "",
     "travelStyle": "",
@@ -27,8 +37,22 @@
   },
   {
     "name": "Megan",
-    "role": "Food Expert",
-    "bio": "If it is edible and Disney-related, Megan has already researched it. She owns the restaurant reservations, the must-try snacks, and the honest food takes that the rest of us trust.",
+    "role": "The Foodie & Critic",
+    "bio": "A food lover at heart: new dishes, new flavours and an honest opinion on all of them, with a good cocktail alongside. She works in hospitality herself, so she knows the effort behind a good experience and always shows her appreciation to the staff. She is one of the most caring people in the group and makes sure nobody is left behind. If something does not meet her expectations, her face says it all: the famous bombastic side-eye.",
+    "notes": [
+      {
+        "label": "Where to find her",
+        "value": "At the nearest food stand"
+      },
+      {
+        "label": "On a cruise",
+        "value": "A good book, the pool, spreading Pixie Dust, or our quiz and crafting sessions"
+      },
+      {
+        "label": "Known for",
+        "value": "The famous bombastic side-eye"
+      }
+    ],
     "favoriteDestination": "",
     "favoriteAttraction": "",
     "travelStyle": "",
@@ -45,8 +69,18 @@
   },
   {
     "name": "Elias",
-    "role": "Group Member",
-    "bio": "Florian’s brother and the reliable third vote. Elias brings steady energy, strong opinions on thrills, and is always ready for one more ride or one more dessert.",
+    "role": "The Enthusiast",
+    "bio": "Always up for the next adventure, whether that is another attraction, an activity on a Disney Cruise or something new to discover. His enthusiasm is contagious. He is also our own Disney encyclopedia, with a fun fact up his sleeve for details most people would never notice. And like Tibeau, he will not say no to a nice aperitif.",
+    "notes": [
+      {
+        "label": "Known for",
+        "value": "Being our Disney encyclopedia"
+      },
+      {
+        "label": "Perfect Disney day",
+        "value": "Trying everything, discovering something new and sharing plenty of fun facts"
+      }
+    ],
     "favoriteDestination": "",
     "favoriteAttraction": "",
     "travelStyle": "",
@@ -85,8 +119,22 @@
   },
   {
     "name": "Tibeau",
-    "role": "Drink Expert",
-    "bio": "The calm one in the group. Tibeau is always relaxed and just sees how it goes. He loves cocktails and is the drink expert of the group.",
+    "role": "The Cruise Lover",
+    "bio": "The calm one, who takes things at his own pace. Theme parks are fine, but Tibeau is happiest on a Disney Cruise, especially on a sea day with nothing to do but enjoy the ocean view. He is always up for a cocktail or an aperitif, and by the end of a cruise he is friends with almost every bartender on board.",
+    "notes": [
+      {
+        "label": "Happiest",
+        "value": "On a sea day, with ocean views and nowhere else to be"
+      },
+      {
+        "label": "Known for",
+        "value": "Being friends with almost every bartender on board by the end of the cruise"
+      },
+      {
+        "label": "Perfect Disney day",
+        "value": "Not necessarily an attraction. Sometimes a sea day and a good drink."
+      }
+    ],
     "favoriteDestination": "",
     "favoriteAttraction": "",
     "travelStyle": "",
